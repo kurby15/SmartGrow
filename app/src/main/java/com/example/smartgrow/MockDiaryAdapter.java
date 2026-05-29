@@ -1,5 +1,7 @@
 package com.example.smartgrow;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import java.util.List;
 
@@ -30,13 +33,13 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
     public void onBindViewHolder(@NonNull DiaryViewHolder holder, int position) {
         PlantModel plant = plantList.get(position);
 
-        // Isalpak ang pekeng data sa mga TextViews mo
+        // Isalpak ang data sa mga TextViews mo
         holder.tvName.setText(plant.getName());
         holder.tvSpecies.setText(plant.getSpecies());
         holder.tvDate.setText("Planted: " + plant.getDatePlanted());
         holder.tvStatus.setText(plant.getHealthStatus());
 
-        // Simple dynamic background color para sa Badge base sa status
+        // Simple dynamic background color para sa Badge base sa status (Mula sa pinakahuling log status ng halaman)
         if (plant.getHealthStatus().equalsIgnoreCase("Healthy")) {
             holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#155724"));
         } else if (plant.getHealthStatus().equalsIgnoreCase("Diseased")) {
@@ -45,14 +48,14 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
             holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#856404"));
         }
 
-        // 🌟 CLICK LISTENER PARA SA PENCIL/EDIT ICON
+        // 🌟 1. CLICK LISTENER PARA SA PENCIL/EDIT ICON
         holder.cardEditPen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Hatiin ang Context para makuha ang FragmentActivity na kailangan ng BottomSheet
-                FragmentActivity activity = (FragmentActivity) v.getContext();
+                FragmentActivity activity = getActivity(v.getContext());
+                if (activity == null) return;
 
-                // Tawagin ang newInstance ng Edit Sheet para automatic may pre-filled text ang mga kahon
+                // ✨ CLEANED UP: Inalis na natin si plant.getHealthStatus() sa Edit Sheet UI
                 EditPlantBottomSheet editSheet = EditPlantBottomSheet.newInstance(
                         plant.getName(),
                         plant.getSpecies(),
@@ -60,10 +63,45 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
                         plant.getHealthStatus()
                 );
 
-                // Ipakita na ang magandang Edit Sheet sa screen
                 editSheet.show(activity.getSupportFragmentManager(), "EditPlantBottomSheetTag");
             }
         });
+
+        // 🌟 2. CLICK LISTENER PARA SA ADD LOG BUTTON
+        holder.btnAddLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentActivity activity = getActivity(v.getContext());
+                if (activity == null) return;
+
+                // Tawagin ang bagong gawang AddLogBottomSheet na may touch scroll behaviors
+                AddLogBottomSheet addLogSheet = AddLogBottomSheet.newInstance();
+                addLogSheet.show(activity.getSupportFragmentManager(), "AddLogBottomSheetTag");
+            }
+        });
+
+        // 🌟 3. CLICK LISTENER PARA SA NOTIFICATION/REMINDER BELL ICON (BAGO!)
+        holder.cardEditBell.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentActivity activity = getActivity(v.getContext());
+                if (activity == null) return;
+
+                // Bubuksan na si Bottom Sheet na may kasamang Watering, Fertilizer, at Sunlight parameters!
+                PlantReminderBottomSheet reminderSheet = PlantReminderBottomSheet.newInstance();
+                reminderSheet.show(activity.getSupportFragmentManager(), "PlantReminderBottomSheetTag");
+            }
+        });
+    }
+
+    private FragmentActivity getActivity(Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof FragmentActivity) {
+                return (FragmentActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 
     @Override
@@ -74,7 +112,9 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
     // Taga-bind ng mga IDs mula sa item_plant_card.xml
     public static class DiaryViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvSpecies, tvDate, tvStatus;
-        MaterialCardView cardEditPen; // Sinama natin si pencil frame control dito
+        MaterialCardView cardEditPen;
+        MaterialCardView cardEditBell; // 🌟 IDINAGDAG PARA SA BELL CARD CONTAINER
+        MaterialButton btnAddLog;
 
         public DiaryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -83,8 +123,10 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
             tvDate = itemView.findViewById(R.id.tv_diary_plant_timestamp);
             tvStatus = itemView.findViewById(R.id.tv_diary_health_pill_text);
 
-            // 🔗 Ikonek ang Pencil click zone container ID mula sa card layout
+            // 🔗 Ikonek ang mga operating panels mula sa card layout
             cardEditPen = itemView.findViewById(R.id.card_diary_item_edit_pen);
+            cardEditBell = itemView.findViewById(R.id.card_diary_item_alert_bell); // 🔗 BININD ANG COMPONENT NG ALERTER BELL DITO!
+            btnAddLog = itemView.findViewById(R.id.btn_diary_action_add_log);
         }
     }
 }

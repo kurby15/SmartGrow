@@ -1,38 +1,48 @@
 package com.example.smartgrow;
 
-import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.Handler; // For background timers
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.Random;
+import java.util.TimeZone;
 
 public class HomeFragment extends Fragment {
 
-    private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile, cardActionAddPlant;
     private RecyclerView rvMyPlantsList;
     private TextView tvTaskReminder;
+    private TextView tvActionViewAllHistory; // View Chat Logs component
+
+    // Real-time Displays
+    private TextView tvDashboardLiveDateTime;
+    private TextView tvDashboardWeatherMock;
+    private TextView tvUserGreeting;
+
+    // Recycler adapters
+    private RecyclerView rvAiHistory;
+    private AiHistoryAdapter aiHistoryAdapter;
+    private HomePlantAdapter homePlantAdapter;
+    private List<PlantModel> plantDataList;
+
+    // Ticking engine for clock
+    private final Handler clockHandler = new Handler();
+    private Runnable clockRunnable;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -43,176 +53,127 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // 🔗 1. Bind structural Top Header controls
-        cardActionNotification = view.findViewById(R.id.card_action_notification);
-        cardActionGlobal = view.findViewById(R.id.card_action_global);
-        cardActionProfile = view.findViewById(R.id.card_action_profile);
-        cardActionAddPlant = view.findViewById(R.id.card_action_add_plant);
+        // 1. Bind structural dashboard controls (Wala na rito ang header buttons!)
         tvTaskReminder = view.findViewById(R.id.tv_task_reminder);
+        tvActionViewAllHistory = view.findViewById(R.id.tv_action_view_all_history);
 
-        // 🔗 2. Bind the Target List View
+        // 2. Bind ang Real-time Displays mula sa XML
+        tvDashboardLiveDateTime = view.findViewById(R.id.tv_dashboard_live_datetime);
+        tvDashboardWeatherMock = view.findViewById(R.id.tv_dashboard_weather_mock);
+        tvUserGreeting = view.findViewById(R.id.tv_user_greeting);
+
+        // 3. Bind ang Horizontal AI History View
+        rvAiHistory = view.findViewById(R.id.rv_ai_detected_history);
+        if (rvAiHistory != null) {
+            rvAiHistory.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        }
+
+        // 4. Bind the Target List View
         rvMyPlantsList = view.findViewById(R.id.rv_my_plants_list);
-        rvMyPlantsList.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvMyPlantsList.setHasFixedSize(true);
+        if (rvMyPlantsList != null) {
+            rvMyPlantsList.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvMyPlantsList.setHasFixedSize(true);
+        }
 
-        // 🛠️ SETUP UX INTERACTION LISTENERS
+        // Execute setups
         setupClickListeners();
-
-        // ✨ SMARTGROW LINK STYLING
         setupTaskReminderLink();
-
-        // 🌿 SETUP SIMULATED MOCK LIST VIEW FOR PRE-BACKEND TESTING
+        setupAiHistoryList();
         setupMockPlantAdapter();
+
+        // Run system background clock & weather
+        startRealTimeClock();
+        updateMockWeatherEngine();
 
         return view;
     }
 
+    private void startRealTimeClock() {
+        clockRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateLiveDateTimeAndGreeting();
+                clockHandler.postDelayed(this, 1000);
+            }
+        };
+        clockHandler.post(clockRunnable);
+    }
+
+    private void updateLiveDateTimeAndGreeting() {
+        TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
+        Calendar calendar = Calendar.getInstance(phTimeZone);
+
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEEE, hh:mm a", new Locale("en", "PH"));
+        dateTimeFormat.setTimeZone(phTimeZone);
+
+        String currentDateTime = dateTimeFormat.format(calendar.getTime());
+        if (tvDashboardLiveDateTime != null) tvDashboardLiveDateTime.setText(currentDateTime);
+
+        int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        String greeting;
+        if (hourOfDay >= 0 && hourOfDay < 12) {
+            greeting = "Good Morning, Isha!";
+        } else if (hourOfDay >= 12 && hourOfDay < 17) {
+            greeting = "Good Afternoon, Isha!";
+        } else {
+            greeting = "Good Evening, Isha!";
+        }
+        if (tvUserGreeting != null) tvUserGreeting.setText(greeting);
+    }
+
+    private void updateMockWeatherEngine() {
+        if (tvDashboardWeatherMock == null) return;
+        String[] weatherConditions = {"☀️ Sunny, 32°C", "⛅ Partly Cloudy, 29°C", "🌧️ Rainy, 26°C", "☁️ Overcast, 28°C"};
+        int randomIndex = new Random().nextInt(weatherConditions.length);
+        tvDashboardWeatherMock.setText(weatherConditions[randomIndex]);
+    }
+
     private void setupClickListeners() {
+        if (tvTaskReminder != null) {
+            tvTaskReminder.setOnClickListener(v -> showTodoBottomSheetDialog());
+        }
 
-        // 🔔 Trigger Click sa Notification Bell Icon!
-        cardActionNotification.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showNotificationDialog();
-            }
-        });
-
-        // 🟢 Trigger Click sa "See Task" link para mag-Slide Up ang To-Do Layout!
-        tvTaskReminder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showTodoBottomSheetDialog();
-            }
-        });
-
-        // Global Community Trigger Link
-        cardActionGlobal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getContext(), "Connecting to Global Community...", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // ⚡ INAYOS NA KONEKSYON: Kapag pinindot ang View Chat Logs sa dashboard,
+        // tatawagin nito ang safe at iisang showAiChatAssistantBottomSheet() na nasa MainActivity
+        if (tvActionViewAllHistory != null) {
+            tvActionViewAllHistory.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).showAiChatAssistantBottomSheet();
+                }
+            });
+        }
     }
 
-    // 🌟 Slide-Up Window Panel Handler para sa AI Assistant Chat System
-    // INIWAN NATIN ITO DITO para kung sakaling kakailanganin mong tawagin ito locally.
-    public void showAiChatAssistantBottomSheet() {
-        final BottomSheetDialog chatDialog = new BottomSheetDialog(getContext());
-        chatDialog.setContentView(R.layout.dialog_chat_assistant);
+    private void showTodoBottomSheetDialog() {
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+        View sheetView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_todo_sheet, null);
+        bottomSheetDialog.setContentView(sheetView);
 
-        // Force maximum layout behavior to enable smooth fullscreen slide dynamics
-        chatDialog.getBehavior().setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+        RecyclerView rvTodoList = sheetView.findViewById(R.id.rv_todo_tasks_list);
+        if (rvTodoList != null) {
+            rvTodoList.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvTodoList.setHasFixedSize(true);
 
-        RecyclerView rvChatMessages = chatDialog.findViewById(R.id.rv_chat_messages_list);
-        EditText etChatInput = chatDialog.findViewById(R.id.et_chat_input);
-        FloatingActionButton fabSend = chatDialog.findViewById(R.id.fab_send_message);
-        ImageButton ibMenu = chatDialog.findViewById(R.id.ib_chat_menu);
+            List<TaskModel> todoList = new ArrayList<>();
+            todoList.add(new TaskModel("Water Lagundi (Cough & Asthma Relief)", "10:00 AM", false));
+            todoList.add(new TaskModel("Check Yerba Buena leaves for fungal disease", "02:30 PM", false));
+            todoList.add(new TaskModel("Apply fertilizer to Sambong plant", "04:00 PM", true));
 
-        // ➕ BAGONG DAGDAG: I-bind ang Plus/Attach ImageButton control mula sa XML
-        ImageButton ibAttach = chatDialog.findViewById(R.id.ib_chat_attach);
-
-        final ArrayList<ChatMessageModel> chatList = new ArrayList<>();
-
-        // 💬 Nakaabang na initial text message galing kay AI Assistant
-        chatList.add(new ChatMessageModel("Hi! I'm your Plant Smart Care Assistant. How can I help you today?", getCurrentTime(), ChatMessageModel.TYPE_AI));
-
-        final ChatAssistantAdapter chatAdapter = new ChatAssistantAdapter(chatList);
-        if (rvChatMessages != null) {
-            rvChatMessages.setLayoutManager(new LinearLayoutManager(getContext()));
-            rvChatMessages.setAdapter(chatAdapter);
+            TodoTaskAdapter todoAdapter = new TodoTaskAdapter(todoList);
+            rvTodoList.setAdapter(todoAdapter);
         }
-
-        // 📌 Tatlong Dote Click Listener para sa "See Chat History" Popup Menu!
-        if (ibMenu != null) {
-            ibMenu.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    PopupMenu popup = new PopupMenu(getContext(), v);
-                    popup.getMenu().add("History");
-                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            if (item.getTitle().equals("History")) {
-                                Toast.makeText(getContext(), "Opening Chat History Logs...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                    popup.show();
-                }
-            });
-        }
-
-        // 📸 BAGONG DAGDAG: Plus Sign Click Listener para sa Camera at Gallery Operations!
-        if (ibAttach != null) {
-            ibAttach.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    PopupMenu attachMenu = new PopupMenu(getContext(), v);
-                    attachMenu.getMenu().add("Take a Photo");
-                    attachMenu.getMenu().add("Upload from Gallery");
-
-                    attachMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            if (item.getTitle().equals("Take a Photo")) {
-                                Toast.makeText(getContext(), "Opening Camera Client...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            } else if (item.getTitle().equals("Upload from Gallery")) {
-                                Toast.makeText(getContext(), "Opening Media Storage Gallery...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                    attachMenu.show();
-                }
-            });
-        }
-
-        // 🚀 Real-time typing message sender block execution
-        if (fabSend != null && etChatInput != null) {
-            fabSend.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String userText = etChatInput.getText().toString().trim();
-                    if (!userText.isEmpty()) {
-                        chatList.add(new ChatMessageModel(userText, getCurrentTime(), ChatMessageModel.TYPE_USER));
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        if (rvChatMessages != null) rvChatMessages.scrollToPosition(chatList.size() - 1);
-
-                        etChatInput.setText("");
-
-                        chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        if (rvChatMessages != null) rvChatMessages.scrollToPosition(chatList.size() - 1);
-
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int loadingIndex = chatList.size() - 1;
-                                if (loadingIndex >= 0 && chatList.get(loadingIndex).getMessageType() == ChatMessageModel.TYPE_LOADING) {
-                                    chatList.remove(loadingIndex);
-                                    chatAdapter.notifyItemRemoved(loadingIndex);
-                                }
-
-                                String aiReply = "I have noted that. Let me look up the optimal growth patterns and diagnostics for your plant updates.";
-                                chatList.add(new ChatMessageModel(aiReply, getCurrentTime(), ChatMessageModel.TYPE_AI));
-                                chatAdapter.notifyItemInserted(chatList.size() - 1);
-                                if (rvChatMessages != null) rvChatMessages.scrollToPosition(chatList.size() - 1);
-                            }
-                        }, 2000);
-                    }
-                }
-            });
-        }
-
-        chatDialog.show();
+        bottomSheetDialog.show();
     }
 
-    private String getCurrentTime() {
-        return new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+    private void setupAiHistoryList() {
+        if (rvAiHistory != null) {
+            List<String> mockDetectedPlantsList = new ArrayList<>();
+            mockDetectedPlantsList.add("Oregano");
+            mockDetectedPlantsList.add("Sambong");
+            mockDetectedPlantsList.add("Lagundi");
+            aiHistoryAdapter = new AiHistoryAdapter(mockDetectedPlantsList);
+            rvAiHistory.setAdapter(aiHistoryAdapter);
+        }
     }
 
     private void setupTaskReminderLink() {
@@ -220,158 +181,38 @@ public class HomeFragment extends Fragment {
         android.text.SpannableString spannableString = new android.text.SpannableString(fullText);
         int startIndex = fullText.indexOf("See Task");
         int endIndex = startIndex + "See Task".length();
-
         if (startIndex != -1) {
             spannableString.setSpan(new android.text.style.ForegroundColorSpan(Color.parseColor("#0C6211")), startIndex, endIndex, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             spannableString.setSpan(new android.text.style.UnderlineSpan(), startIndex, endIndex, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             spannableString.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), startIndex, endIndex, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        tvTaskReminder.setText(spannableString);
+        if (tvTaskReminder != null) tvTaskReminder.setText(spannableString);
     }
 
-    private void showTodoBottomSheetDialog() {
-        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
-        bottomSheetDialog.setContentView(R.layout.dialog_todo_sheet);
-        RecyclerView rvTodoTasks = bottomSheetDialog.findViewById(R.id.rv_todo_tasks_list);
-        if (rvTodoTasks != null) {
-            rvTodoTasks.setLayoutManager(new LinearLayoutManager(getContext()));
-            rvTodoTasks.setHasFixedSize(true);
-            setupMockTaskAdapter(rvTodoTasks);
-        }
-        bottomSheetDialog.show();
+    private void setupMockPlantAdapter() {
+        plantDataList = new ArrayList<>();
+        plantDataList.add(new PlantModel("Lagundi", "Vitex negundo", "May 25, 2026", "Healthy", "Cough & Asthma Relief", 92));
+        plantDataList.add(new PlantModel("Sambong", "Blumea balsamifera", "May 26, 2026", "Healthy", "Kidney Stones Relief", 85));
+        plantDataList.add(new PlantModel("Yerba Buena", "Clinopodium douglasii", "May 28, 2026", "Diseased", "Minty Fresh / Cough", 33));
+
+        homePlantAdapter = new HomePlantAdapter(plantDataList);
+        if (rvMyPlantsList != null) rvMyPlantsList.setAdapter(homePlantAdapter);
     }
 
-    private void setupMockTaskAdapter(RecyclerView recyclerView) { }
-
-    private void showNotificationDialog() {
-        final Dialog dialog = new Dialog(getContext());
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.dialog_notification);
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (clockHandler != null && clockRunnable != null) {
+            clockHandler.removeCallbacks(clockRunnable);
         }
-        MaterialCardView btnClose = dialog.findViewById(R.id.btn_close_notification);
-        if (btnClose != null) {
-            btnClose.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) { dialog.dismiss(); }
-            });
-        }
-        dialog.show();
     }
 
-    private void setupMockPlantAdapter() { }
-
-
-    // 🛠️ HAKBANG 2: DAGDAG NA HELPER METHOD PARA SA MAIN ACTIVITY CLICK OPERATION
-    // Pinapagana nito ang slide-up layout kahit nasaan mang fragment tab ang user
-    public void showAiChatAssistantBottomSheetFromActivity(android.content.Context context) {
-        final BottomSheetDialog chatDialog = new BottomSheetDialog(context);
-        chatDialog.setContentView(R.layout.dialog_chat_assistant);
-
-        chatDialog.getBehavior().setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
-
-        RecyclerView rvChatMessages = chatDialog.findViewById(R.id.rv_chat_messages_list);
-        EditText etChatInput = chatDialog.findViewById(R.id.et_chat_input);
-        FloatingActionButton fabSend = chatDialog.findViewById(R.id.fab_send_message);
-        ImageButton ibMenu = chatDialog.findViewById(R.id.ib_chat_menu);
-        ImageButton ibAttach = chatDialog.findViewById(R.id.ib_chat_attach);
-
-        final ArrayList<ChatMessageModel> chatList = new ArrayList<>();
-        chatList.add(new ChatMessageModel("Hi! I'm your Plant Smart Care Assistant. How can I help you today?", getCurrentTime(), ChatMessageModel.TYPE_AI));
-
-        final ChatAssistantAdapter chatAdapter = new ChatAssistantAdapter(chatList);
-        if (rvChatMessages != null) {
-            rvChatMessages.setLayoutManager(new LinearLayoutManager(context));
-            rvChatMessages.setAdapter(chatAdapter);
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (clockHandler != null && clockRunnable != null) {
+            clockHandler.removeCallbacks(clockRunnable);
+            clockHandler.post(clockRunnable);
         }
-
-        // Pop-up menu para sa Chat History
-        if (ibMenu != null) {
-            ibMenu.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(context, v);
-                    popup.getMenu().add("History");
-                    popup.setOnMenuItemClickListener(new androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            if (item.getTitle().equals("History")) {
-                                Toast.makeText(context, "Opening Chat History Logs...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                    popup.show();
-                }
-            });
-        }
-
-        // Attach operations menu (Camera & Media Upload)
-        if (ibAttach != null) {
-            ibAttach.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    androidx.appcompat.widget.PopupMenu attachMenu = new androidx.appcompat.widget.PopupMenu(context, v);
-                    attachMenu.getMenu().add("Take a Photo");
-                    attachMenu.getMenu().add("Upload from Gallery");
-
-                    attachMenu.setOnMenuItemClickListener(new androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            if (item.getTitle().equals("Take a Photo")) {
-                                Toast.makeText(context, "Opening Camera Client...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            } else if (item.getTitle().equals("Upload from Gallery")) {
-                                Toast.makeText(context, "Opening Media Storage Gallery...", Toast.LENGTH_SHORT).show();
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                    attachMenu.show();
-                }
-            });
-        }
-
-        // Typing sender logic
-        if (fabSend != null && etChatInput != null) {
-            fabSend.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String userText = etChatInput.getText().toString().trim();
-                    if (!userText.isEmpty()) {
-                        chatList.add(new ChatMessageModel(userText, getCurrentTime(), ChatMessageModel.TYPE_USER));
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        if (rvChatMessages != null) rvChatMessages.scrollToPosition(chatList.size() - 1);
-
-                        etChatInput.setText("");
-
-                        chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int loadingIndex = chatList.size() - 1;
-                                if (loadingIndex >= 0 && chatList.get(loadingIndex).getMessageType() == ChatMessageModel.TYPE_LOADING) {
-                                    chatList.remove(loadingIndex);
-                                    chatAdapter.notifyItemRemoved(loadingIndex);
-                                }
-
-                                String aiReply = "I have noted that. Let me look up the optimal growth patterns and diagnostics for your plant updates.";
-                                chatList.add(new ChatMessageModel(aiReply, getCurrentTime(), ChatMessageModel.TYPE_AI));
-                                chatAdapter.notifyItemInserted(chatList.size() - 1);
-                                if (rvChatMessages != null) rvChatMessages.scrollToPosition(chatList.size() - 1);
-                            }
-                        }, 2000);
-                    }
-                }
-            });
-        }
-
-        chatDialog.show();
     }
 }

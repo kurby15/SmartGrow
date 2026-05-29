@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/img_home_plant_photo"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/smartgrow_logo"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent"
+            app:strokeColor="#E2F2E1"
+            app:strokeWidth="1dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="8dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_home_plant_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yerba Buena"
+                    android:textColor="#333333"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins"
+                    android:layout_alignParentStart="true"/>
+
+                <TextView
+                    android:id="@+id/tv_home_health_percentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="33%"
+                    android:textColor="#0C6211"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins"
+                    android:layout_alignParentEnd="true"/>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tv_home_medicinal_use"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Minty Fresh / Cough"
+                android:textColor="#666666"
+                android:textSize="11sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="1dp" />
+
+            <TextView
+                android:id="@+id/tv_home_next_care_schedule"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕒 Next: Today"
+                android:textColor="#555555"
+                android:textSize="11sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:id="@+id/layout_badge_water"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#E1F5FE"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:layout_marginEnd="6dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💧 Watered"
+                        android:textColor="#0288D1"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_badge_sun"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#FFF9C4"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:layout_marginEnd="6dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="☀️ Sunned"
+                        android:textColor="#F57F17"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_badge_fertilizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#E8F5E9"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌱 Fed"
+                        android:textColor="#2E7D32"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progress_home_health_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp"
+                android:progress="33"
+                android:max="100"
+                android:progressDrawable="@drawable/custom_green_progress_bar" />
+
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

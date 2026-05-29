@@ -10,19 +10,18 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import java.util.Calendar;
 
@@ -30,19 +29,23 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
 
     // Existing Form Controls
     private EditText etName, etSpecies, etDate;
-    private Spinner spinnerStatus;
-    private Button btnSubmit;
+    private TextView tvStaticStatus; // 🌟 PINALITAN NA ANG SPINNER NG TEXTVIEW!
+    private MaterialButton btnSubmit;
 
-    // 📸 New Image Upload Controls
+    // 📸 Image Upload Controls
     private MaterialCardView cardUploadImage;
     private LinearLayout layoutImagePlaceholder;
     private ImageView imgPlantPreview;
 
-    // Ang lalagyan ng Uri para sa gallery path (Susi para sa Firebase Storage ng mga coders mo)
+    // Ang lalagyan ng Uri para sa gallery path
     private Uri selectedImageUri = null;
 
     public AddPlantBottomSheetActivity() {
         // Required empty public constructor
+    }
+
+    public static AddPlantBottomSheetActivity  newInstance() {
+        return new AddPlantBottomSheetActivity ();
     }
 
     // 🖼️ 1. Launcher para sa Gallery Picker
@@ -52,7 +55,6 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     selectedImageUri = result.getData().getData();
                     if (selectedImageUri != null) {
-                        // Ipakita ang larawan sa preview panel at itago ang text placeholder
                         imgPlantPreview.setImageURI(selectedImageUri);
                         imgPlantPreview.setVisibility(View.VISIBLE);
                         layoutImagePlaceholder.setVisibility(View.GONE);
@@ -69,12 +71,9 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
                     if (extras != null) {
                         Bitmap photo = (Bitmap) extras.get("data");
                         if (photo != null) {
-                            // Ipakita ang kinuhang snapshot bitmap at itago ang placeholder
                             imgPlantPreview.setImageBitmap(photo);
                             imgPlantPreview.setVisibility(View.VISIBLE);
                             layoutImagePlaceholder.setVisibility(View.GONE);
-
-                            // Note sa backend: Pwede nilang i-convert itong bitmap to URI kung gusto nilang i-save sa Cloud Storage
                         }
                     }
                 }
@@ -83,26 +82,22 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // 🌟 SIGURADUHING NAKAKABIT DITO YUNG PINAKABAGONG XML NATIN!
         View view = inflater.inflate(R.layout.dialog_add_plant_sheet, container, false);
 
-        // 🔗 Bind Existing View Elements
+        // 🔗 Bind View Elements
         etName = view.findViewById(R.id.et_add_plant_name);
         etSpecies = view.findViewById(R.id.et_add_plant_species);
         etDate = view.findViewById(R.id.et_add_plant_date);
-        spinnerStatus = view.findViewById(R.id.spinner_add_plant_status);
+        tvStaticStatus = view.findViewById(R.id.tv_static_health_status); // 🔗 Bounded sa bagong badge text natin!
         btnSubmit = view.findViewById(R.id.btn_submit_new_plant);
 
-        // 🔗 Bind New Image Upload View Elements
+        // 📸 Bind Image Upload Elements
         cardUploadImage = view.findViewById(R.id.card_upload_image);
         layoutImagePlaceholder = view.findViewById(R.id.layout_image_placeholder);
         imgPlantPreview = view.findViewById(R.id.img_plant_preview);
 
-        // 🛠️ Setup default static selection choices para sa Health Status Spinner
-        String[] healthOptions = {"Healthy", "Needs Attention", "Diseased"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, healthOptions);
-        spinnerStatus.setAdapter(adapter);
-
-        // 📅 Trigger standard Native Android Calendar View on Focus/Click
+        // 📅 Trigger standard Native Android Calendar View on Click
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,7 +113,7 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
             }
         });
 
-        // 🚀 Final submit hook endpoint para sa back-end developer
+        // 🚀 Submit hook handler
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -145,18 +140,15 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
         datePickerDialog.show();
     }
 
-    // 🛠️ Pop-up Dialog window para mamili kung Camera o Gallery ang bubuksan
     private void showImageSourceOptions() {
         String[] options = {"Take Photo (Camera)", "Choose from Gallery", "Cancel"};
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
         builder.setTitle("Select Plant Image Source");
         builder.setItems(options, (dialog, which) -> {
             if (which == 0) {
-                // Fire Camera Hardware Intent Target Action
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 cameraLauncher.launch(cameraIntent);
             } else if (which == 1) {
-                // Fire Native Media Gallery Explorer View Intent Action
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 galleryLauncher.launch(galleryIntent);
             } else {
@@ -170,25 +162,20 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
         String plantName = etName.getText().toString().trim();
         String plantSpecies = etSpecies.getText().toString().trim();
         String datePlanted = etDate.getText().toString().trim();
-        String healthStatus = spinnerStatus.getSelectedItem().toString();
 
-        // Safe basic structural check validator before executing transactions
+        // Automatic "Healthy" na string ang ipapasa sa Firebase database base sa static view natin!
+        String healthStatus = "Healthy";
+
         if (plantName.isEmpty() || plantSpecies.isEmpty() || datePlanted.isEmpty()) {
-            Toast.makeText(getContext(), "Please clear all required fields!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please fill in all required fields!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        /* 🚧 DEV NOTE (PARA SA BACKEND CODERS):
-           Dito niyo na isasaksak yung upload integration.
-           1. I-upload muna yung `selectedImageUri` (kung meron) sa Firebase Storage gamit ang storageRef.putFile().
-           2. Kapag nakuha na yung image downloadUrl, isasama ito sa Realtime Database or Firestore object payload distribution.
-
-           Halimbawa:
-           DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Diaries");
-           ref.push().setValue(new PlantModel(plantName, plantSpecies, datePlanted, healthStatus, downloadUrl));
+        /* 🚧 DEV NOTE (PARA SA INYONG BACKEND):
+           Ipasok ang `healthStatus` ("Healthy") diretso sa Firebase ref submission object payload niyo.
         */
 
         Toast.makeText(getContext(), plantName + " added successfully!", Toast.LENGTH_SHORT).show();
-        dismiss(); // Auto slide down pagkatapos mag-save
+        dismiss(); // Eto ang magpapadulas/slide down sa kaniya pababa nang kusa pagkatapos mag-save!
     }
 }

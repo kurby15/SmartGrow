@@ -17,7 +17,8 @@ import java.util.List;
 
 public class DiaryFragment extends Fragment {
 
-    private MaterialCardView cardDiaryNotification, cardDiaryGlobal, cardDiaryProfile, cardBtnAddNewDiary;
+    // 🟢 NILINIS NA: Tinanggal na ang header cards (cardDiaryNotification, cardDiaryGlobal, cardDiaryProfile)
+    private MaterialCardView cardBtnAddNewDiary;
     private EditText etSearchPlants;
     private RecyclerView rvPlantDiaryList;
 
@@ -33,19 +34,16 @@ public class DiaryFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_diary, container, false);
 
-        // 🔗 Bind UI Controls mula sa Top Header Bar
-        cardDiaryNotification = view.findViewById(R.id.card_diary_notification);
-        cardDiaryGlobal = view.findViewById(R.id.card_diary_global);
-        cardDiaryProfile = view.findViewById(R.id.card_diary_profile);
-
         // 🔗 Bind Search Context at Control Buttons
         etSearchPlants = view.findViewById(R.id.et_search_plants);
         cardBtnAddNewDiary = view.findViewById(R.id.card_btn_add_new_diary);
 
         // 🔗 Bind ang Target List View Container (RecyclerView)
         rvPlantDiaryList = view.findViewById(R.id.rv_plant_diary_list);
-        rvPlantDiaryList.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvPlantDiaryList.setHasFixedSize(true);
+        if (rvPlantDiaryList != null) {
+            rvPlantDiaryList.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvPlantDiaryList.setHasFixedSize(true);
+        }
 
         // 🛠️ Setup Click Actions
         setupClickListeners();
@@ -57,19 +55,13 @@ public class DiaryFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        cardDiaryNotification.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Opening Notifications...", Toast.LENGTH_SHORT).show());
-
-        cardDiaryGlobal.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Connecting to Global Community Dashboard...", Toast.LENGTH_SHORT).show());
-
-        cardDiaryProfile.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Opening Profile Settings...", Toast.LENGTH_SHORT).show());
-
-        cardBtnAddNewDiary.setOnClickListener(v -> {
-            AddPlantBottomSheetActivity addPlantSheet = new AddPlantBottomSheetActivity();
-            addPlantSheet.show(getParentFragmentManager(), "AddPlantBottomSheetTag");
-        });
+        // 🟢 NILINIS NA LISTENERS: Ang natira na lang ay ang Add New Diary Button
+        if (cardBtnAddNewDiary != null) {
+            cardBtnAddNewDiary.setOnClickListener(v -> {
+                AddPlantBottomSheetActivity addPlantSheet = new AddPlantBottomSheetActivity();
+                addPlantSheet.show(getParentFragmentManager(), "AddPlantBottomSheetTag");
+            });
+        }
     }
 
     // 🚀 Dito mangyayari ang milagro ng pekeng data!
@@ -77,13 +69,14 @@ public class DiaryFragment extends Fragment {
         mockPlantList = new ArrayList<>();
 
         // 📝 Mag-imbento tayo ng 3 halaman para kunwaring galing sa database
-        mockPlantList.add(new PlantModel("My Healing Plant", "Lagundi", "15/01/2026", "Healthy")); //
+        mockPlantList.add(new PlantModel("My Healing Plant", "Lagundi", "15/01/2026", "Healthy"));
         mockPlantList.add(new PlantModel("Office Table Buddy", "Snake Plant", "02/03/2026", "Healthy"));
         mockPlantList.add(new PlantModel("Backyard Shrub", "Oregano", "20/04/2026", "Healthy"));
 
-
         // Isalpak na ang Adapter sa RecyclerView natin para lumitaw sa phone screen!
         MockDiaryAdapter adapter = new MockDiaryAdapter(mockPlantList);
-        rvPlantDiaryList.setAdapter(adapter);
+        if (rvPlantDiaryList != null) {
+            rvPlantDiaryList.setAdapter(adapter);
+        }
     }
 }

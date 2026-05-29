@@ -24,7 +24,7 @@
             android:name=".AddPlantBottomSheetActivity"
             android:exported="false" />
         <activity
-            android:name=".ChatAssistantAdapter"
+            android:name=".ChatAdapter"
             android:exported="false" />
         <activity
             android:name=".ChatMessageModel"

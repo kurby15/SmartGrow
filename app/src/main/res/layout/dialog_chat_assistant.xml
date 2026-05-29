@@ -3,21 +3,22 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@android:color/transparent">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="600dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         app:cardBackgroundColor="#FFFFFF"
-        app:strokeWidth="0dp">
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
             <!-- 🛑 Top Header Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_chat_header"
@@ -128,19 +129,21 @@
                     app:layout_constraintTop_toTopOf="parent"/>
 
                 <!-- ➕ BAGONG DAGDAG: Plus Icon Button para sa Image Attachment Operations -->
+
+                <!-- Rounded Edit Text Background Panel (Inurong pakanan para kasya si Plus Sign) -->
+
                 <ImageButton
                     android:id="@+id/ib_chat_attach"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_add_plus_green"
-                    app:tint="#0C6211"
+                    android:contentDescription="Attach Media o Image Source"
+                    android:src="@drawable/ic_plus_sign"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:contentDescription="Attach Media o Image Source" />
+                    app:tint="#0C6211" />
 
-                <!-- Rounded Edit Text Background Panel (Inurong pakanan para kasya si Plus Sign) -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="48dp"

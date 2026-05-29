@@ -5,9 +5,17 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
@@ -22,18 +30,17 @@ public class RegisterStep5Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-            android.view.Window window = getWindow();
-
-
+        // 🟢 INAYOS: Tamang Window Translucent/No Limits SDK check para sa edge-to-edge layout
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Window window = getWindow();
             window.setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             );
         }
         setContentView(R.layout.activity_register_step5);
 
-
+        // 🔗 Bind UI Components
         ImageButton btnBack = findViewById(R.id.btn_register_back);
         MaterialButton btnSignUp = findViewById(R.id.btn_signup);
 
@@ -42,21 +49,22 @@ public class RegisterStep5Activity extends AppCompatActivity {
         EditText etPassword = findViewById(R.id.et_password);
         EditText etConfirmPassword = findViewById(R.id.et_confirm_password);
 
-
+        // Initialize the beautiful customized dialog box
         setupLoadingDialog();
 
-
+        // Left sliding transition kapag bumalik sa nakaraang step
         btnBack.setOnClickListener(v -> {
             finish();
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         });
 
-
+        // Main Action: Trigger account computation and layout transitions
         btnSignUp.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
             String pass = etPassword.getText().toString().trim();
             String confirm = etConfirmPassword.getText().toString().trim();
 
+            // Form validation checks
             if (user.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
@@ -67,60 +75,67 @@ public class RegisterStep5Activity extends AppCompatActivity {
                 return;
             }
 
-            loadingDialog.show();
+            // 🛑 PROTEKSYON: I-disable muna ang sign up para maiwasan ang double-tap glitch habang naglo-load
+            btnSignUp.setEnabled(false);
 
+            // Buksan ang custom progress dialog engine
+            loadingDialog.show();
 
             TextView tvPercentage = loadingDialog.findViewById(R.id.tv_progress_percentage);
             TextView tvLoadingMessage = loadingDialog.findViewById(R.id.tv_loading_message);
 
+            ImageView leaf1 = loadingDialog.findViewById(R.id.leaf_bottom_left);
+            ImageView leaf2 = loadingDialog.findViewById(R.id.leaf_top_right);
+            ImageView leaf3 = loadingDialog.findViewById(R.id.leaf_top_left);
+            ImageView leaf4 = loadingDialog.findViewById(R.id.leaf_bottom_right);
 
-            android.widget.ImageView leaf1 = loadingDialog.findViewById(R.id.leaf_bottom_left);
-            android.widget.ImageView leaf2 = loadingDialog.findViewById(R.id.leaf_top_right);
-            android.widget.ImageView leaf3 = loadingDialog.findViewById(R.id.leaf_top_left);
-            android.widget.ImageView leaf4 = loadingDialog.findViewById(R.id.leaf_bottom_right);
-
-
-            android.animation.ValueAnimator animator = android.animation.ValueAnimator.ofInt(0, 100);
+            // 📈 Core Animation Engine: Counts 0 to 100 within 4 full seconds
+            ValueAnimator animator = ValueAnimator.ofInt(0, 100);
             animator.setDuration(4000);
             animator.addUpdateListener(animation -> {
                 int progressValue = (int) animation.getAnimatedValue();
-                tvPercentage.setText(progressValue + "%");
+                if (tvPercentage != null) tvPercentage.setText(progressValue + "%");
 
-
-                if (progressValue >= 0 && progressValue <= 25) {
-                    tvLoadingMessage.setText("Creating your account...");
-                } else if (progressValue > 25 && progressValue <= 50) {
-                    tvLoadingMessage.setText("Setting up your dashboard...");
-                } else if (progressValue > 50 && progressValue <= 75) {
-                    tvLoadingMessage.setText("Readying your AI companion...");
-                } else if (progressValue > 75 && progressValue <= 95) {
-                    tvLoadingMessage.setText("Almost there! Finalizing updates...");
-                } else if (progressValue > 95) {
-                    tvLoadingMessage.setText("Start chatting soon! 🎉");
+                // Dynamic updates reflecting current app features (Dashboard, Care Assistant, Plants Log)
+                if (tvLoadingMessage != null) {
+                    if (progressValue >= 0 && progressValue <= 25) {
+                        tvLoadingMessage.setText("Creating your account...");
+                    } else if (progressValue > 25 && progressValue <= 50) {
+                        tvLoadingMessage.setText("Setting up your dashboard...");
+                    } else if (progressValue > 50 && progressValue <= 75) {
+                        tvLoadingMessage.setText("Readying your AI companion...");
+                    } else if (progressValue > 75 && progressValue <= 95) {
+                        tvLoadingMessage.setText("Almost there! Finalizing updates...");
+                    } else if (progressValue > 95) {
+                        tvLoadingMessage.setText("Start chatting soon! 🎉");
+                    }
                 }
 
-
-                if (progressValue == 20) {
-                    sproutLeafAnimation(leaf1);
-                } else if (progressValue == 45) {
-                    sproutLeafAnimation(leaf2);
-                } else if (progressValue == 70) {
-                    sproutLeafAnimation(leaf3);
-                } else if (progressValue == 90) {
-                    sproutLeafAnimation(leaf4);
-                }
+                // Sequential leaf sprouting benchmarks - Using ranges to handle frame skips
+                if (progressValue >= 20) sproutLeafAnimation(leaf1);
+                if (progressValue >= 45) sproutLeafAnimation(leaf2);
+                if (progressValue >= 70) sproutLeafAnimation(leaf3);
+                if (progressValue >= 90) sproutLeafAnimation(leaf4);
             });
 
-            animator.addListener(new android.animation.AnimatorListenerAdapter() {
+            animator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
-                    loadingDialog.dismiss();
+
+                    // Isara ang loading frame nang ligtas
+                    if (loadingDialog != null && loadingDialog.isShowing()) {
+                        loadingDialog.dismiss();
+                    }
+
                     Toast.makeText(RegisterStep5Activity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Intent intent = new Intent(RegisterStep5Activity.this, MainActivity.class);
-                    // startActivity(intent);
+                    // 🚀 SUCCESS TRANSITION: Pag-lipat papuntang MainActivity na may kalakip na clear stack protection
+                    Intent intent = new Intent(RegisterStep5Activity.this, MainActivity.class);
+                    startActivity(intent);
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+
+                    // Sinisigurong burado ang lahat ng registration steps sa background stack para hindi na pwedeng i-back ng user
                     finishAffinity();
                 }
             });
@@ -128,6 +143,7 @@ public class RegisterStep5Activity extends AppCompatActivity {
             animator.start();
         });
 
+        // Handle structural system device hardware back key presses safely
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -137,28 +153,30 @@ public class RegisterStep5Activity extends AppCompatActivity {
         });
     }
 
-
-
     private void setupLoadingDialog() {
         loadingDialog = new Dialog(this, R.style.CustomLoadingDialog);
         loadingDialog.setContentView(R.layout.dialog_loading);
         loadingDialog.setCancelable(false);
+        if (loadingDialog.getWindow() != null) {
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
     }
 
-   
-    private void sproutLeafAnimation(android.widget.ImageView leaf) {
-        leaf.setVisibility(android.view.View.VISIBLE);
+    private void sproutLeafAnimation(ImageView leaf) {
+        if (leaf == null || leaf.getVisibility() == View.VISIBLE) return;
+
+        leaf.setVisibility(View.VISIBLE);
         leaf.setScaleX(0f);
         leaf.setScaleY(0f);
         leaf.setAlpha(0f);
 
-
+        // Smooth spring physics overshoot leaf animation logic
         leaf.animate()
                 .alpha(1f)
                 .scaleX(1f)
                 .scaleY(1f)
                 .setDuration(500)
-                .setInterpolator(new android.view.animation.OvershootInterpolator())
+                .setInterpolator(new OvershootInterpolator())
                 .start();
     }
 }
