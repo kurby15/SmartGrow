@@ -12,14 +12,83 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGrow">
         <activity
+            android:name=".EditPlantBottomSheet"
+            android:exported="false" />
+        <activity
+            android:name=".MockDiaryAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".PlantModel"
+            android:exported="false" />
+        <activity
+            android:name=".AddPlantBottomSheetActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatAssistantAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".ChatMessageModel"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".VerifyOTPActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResetPassword"
+            android:exported="false" />
+        <activity
+            android:name=".ForgotPassword"
+            android:exported="false" />
+        <activity
+            android:name=".activity_forgot_password"
+            android:exported="false" /> <!-- 🚀 1. Splash / Launcher Activity (Palaging unahin sa listahan para malinis) -->
+        <activity
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity> <!-- 📝 2. Registration Flow Steps (May smooth layout transitions enabled) -->
+        <activity
+            android:name=".RegisterStep1Activity"
+            android:animateLayoutChanges="true"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterStep2Activity"
+            android:animateLayoutChanges="true"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterStep3Activity"
+            android:animateLayoutChanges="true"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterStep4Activity"
+            android:animateLayoutChanges="true"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterStep5Activity"
+            android:animateLayoutChanges="true"
+            android:exported="false" /> <!-- 🔐 3. Main and Other App System Screens -->
+        <activity
+            android:name=".GetStartedActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

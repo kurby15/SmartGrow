@@ -1,9 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Base.Theme.SmartGrow" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+      >
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+    <style name="Theme.SmartGrow" parent="Base.Theme.SmartGrow" />
+
+    <!-- Custom Loading Style -->
+    <style name="CustomLoadingDialog" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item> <!-- Gaano kadilim ang paligid -->
     </style>
 
-    <style name="Theme.SmartGrow" parent="Base.Theme.SmartGrow" />
+    <style name="CustomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">#EAF4EB</item>
+        <item name="marginHorizontal">4dp</item>
+    </style>
 </resources>
