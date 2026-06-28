@@ -9,6 +9,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import android.content.Context;
+import android.content.SharedPreferences;
+
 public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.HomePlantViewHolder> {
 
     private List<PlantModel> plantList;
@@ -29,28 +37,68 @@ public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.Home
     public void onBindViewHolder(@NonNull HomePlantViewHolder holder, int position) {
         PlantModel plant = plantList.get(position);
 
-        // ✨ INAYOS NA METHODS: Kusa nang tutugma sa PlantModel.java mo para iwas error!
         if (holder.tvName != null) {
-            holder.tvName.setText(plant.getName()); // Binago mula getName() -> getPlantName()
+            holder.tvName.setText(plant.getName());
         }
 
         if (holder.tvMedicinalUse != null) {
-            holder.tvMedicinalUse.setText(plant.getMedicinalUse()); // Binago mula getMedicinalUse() -> getMedicalUse()
+            holder.tvMedicinalUse.setText(plant.getMedicinalUse());
         }
 
         if (holder.tvHealthPercentage != null) {
             holder.tvHealthPercentage.setText(plant.getHealthPercentage() + "%");
         }
 
-        // Isalpak ang percentage level sa structural horizontal bar
         if (holder.progressBarHealth != null) {
             holder.progressBarHealth.setProgress(plant.getHealthPercentage());
         }
 
-        // Default local image placeholder muna gamit ang app logo niyo
+        // Fetch Recent Activity from Firebase
+        fetchRecentActivity(plant.getId(), holder);
+
+        // Default local image placeholder
         if (holder.imgPlantPhoto != null) {
             holder.imgPlantPhoto.setImageResource(R.drawable.smartgrow_logo);
         }
+    }
+
+    private void fetchRecentActivity(String plantId, HomePlantViewHolder holder) {
+        if (plantId == null) return;
+
+        SharedPreferences preferences = holder.itemView.getContext().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        String currentUsername = preferences.getString("current_username", "");
+
+        if (currentUsername.isEmpty()) return;
+
+        DatabaseReference logsRef = FirebaseDatabase.getInstance().getReference("users")
+                .child(currentUsername).child("plants").child(plantId).child("logs");
+
+        // Get the most recent log
+        logsRef.orderByKey().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Hide badges initially
+                holder.layoutWater.setVisibility(View.GONE);
+                holder.layoutSun.setVisibility(View.GONE);
+                holder.layoutFertilizer.setVisibility(View.GONE);
+
+                if (snapshot.exists()) {
+                    for (DataSnapshot logSnapshot : snapshot.getChildren()) {
+                        LogModel lastLog = logSnapshot.getValue(LogModel.class);
+                        if (lastLog != null) {
+                            if (lastLog.isWatered()) holder.layoutWater.setVisibility(View.VISIBLE);
+                            if (lastLog.getSunlightExposure() != null && !lastLog.getSunlightExposure().isEmpty() && !lastLog.getSunlightExposure().equalsIgnoreCase("None")) {
+                                holder.layoutSun.setVisibility(View.VISIBLE);
+                            }
+                            if (lastLog.isFertilized()) holder.layoutFertilizer.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     @Override
@@ -62,6 +110,7 @@ public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.Home
         TextView tvName, tvMedicinalUse, tvHealthPercentage;
         ProgressBar progressBarHealth;
         android.widget.ImageView imgPlantPhoto;
+        View layoutWater, layoutSun, layoutFertilizer;
 
         public HomePlantViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,6 +119,10 @@ public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.Home
             tvHealthPercentage = itemView.findViewById(R.id.tv_home_health_percentage);
             progressBarHealth = itemView.findViewById(R.id.progress_home_health_bar);
             imgPlantPhoto = itemView.findViewById(R.id.img_home_plant_photo);
+            
+            layoutWater = itemView.findViewById(R.id.layout_badge_water);
+            layoutSun = itemView.findViewById(R.id.layout_badge_sun);
+            layoutFertilizer = itemView.findViewById(R.id.layout_badge_fertilizer);
         }
     }
 }

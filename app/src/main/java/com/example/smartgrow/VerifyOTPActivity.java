@@ -21,10 +21,16 @@ public class VerifyOTPActivity extends AppCompatActivity {
     private EditText etOtp1, etOtp2, etOtp3, etOtp4;
     private MaterialButton btnVerifyCode;
     private TextView tvResendTimer;
+    private String expectedOtpCode;
+    private String userEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get data from intent
+        expectedOtpCode = getIntent().getStringExtra("otp_code");
+        userEmail = getIntent().getStringExtra("email");
 
         // 🌟 Transparent Status Bar
         Window window = getWindow();
@@ -56,15 +62,18 @@ public class VerifyOTPActivity extends AppCompatActivity {
         btnVerifyCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String code = etOtp1.getText().toString() + etOtp2.getText().toString()
+                String enteredCode = etOtp1.getText().toString() + etOtp2.getText().toString()
                         + etOtp3.getText().toString() + etOtp4.getText().toString();
 
-                if (code.length() < 4) {
+                if (enteredCode.length() < 4) {
                     Toast.makeText(VerifyOTPActivity.this, "Please complete the 4-digit code", Toast.LENGTH_SHORT).show();
+                } else if (expectedOtpCode != null && !enteredCode.equals(expectedOtpCode)) {
+                    Toast.makeText(VerifyOTPActivity.this, "Incorrect code. Please try again.", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Code Sim Match: Pasok sa Reset Screen
+                    // Code Match: Pasok sa Reset Screen
                     Toast.makeText(VerifyOTPActivity.this, "Code verified!", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(VerifyOTPActivity.this, ResetPasswordActivity.class);
+                    intent.putExtra("email", userEmail);
                     startActivity(intent);
                     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 }

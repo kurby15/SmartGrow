@@ -14,12 +14,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
+import android.content.SharedPreferences;
 
 public class GetStartedActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if user is already logged in
+        SharedPreferences preferences = getSharedPreferences("SmartGrowPrefs", MODE_PRIVATE);
+        if (preferences.getBoolean("is_logged_in", false)) {
+            Intent intent = new Intent(GetStartedActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         // 🌟 1. Transparent status bar para sumabay sa kulay ng iyong background gradient
         Window window = getWindow();

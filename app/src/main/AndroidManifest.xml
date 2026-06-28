@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,54 +14,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGrow">
-        <activity
-            android:name=".EditPlantBottomSheet"
-            android:exported="false" />
-        <activity
-            android:name=".MockDiaryAdapter"
-            android:exported="false" />
-        <activity
-            android:name=".PlantModel"
-            android:exported="false" />
-        <activity
-            android:name=".AddPlantBottomSheetActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ChatAdapter"
-            android:exported="false" />
-        <activity
-            android:name=".ChatMessageModel"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".VerifyOTPActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ForgotPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ResetPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ResetPassword"
-            android:exported="false" />
-        <activity
-            android:name=".ForgotPassword"
-            android:exported="false" />
-        <activity
-            android:name=".activity_forgot_password"
-            android:exported="false" /> <!-- 🚀 1. Splash / Launcher Activity (Palaging unahin sa listahan para malinis) -->
+
+        <!-- 🚀 1. Splash / Launcher Activity (Eto ang unang lilitaw pagka-open ng app) -->
         <activity
             android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- 📝 2. Registration Flow Steps (May smooth layout transitions enabled) -->
+        </activity>
+
+        <!-- 🏁 2. Onboarding / Authentication Entry -->
+        <activity
+            android:name=".GetStartedActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
+        <!-- 📝 3. Registration Flow Steps -->
         <activity
             android:name=".RegisterStep1Activity"
             android:animateLayoutChanges="true"
@@ -78,12 +53,22 @@
         <activity
             android:name=".RegisterStep5Activity"
             android:animateLayoutChanges="true"
-            android:exported="false" /> <!-- 🔐 3. Main and Other App System Screens -->
+            android:exported="false" />
+
+        <!-- 🔐 4. Password Recovery / OTP -->
         <activity
-            android:name=".GetStartedActivity"
+            android:name=".ForgotPasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".VerifyOTPActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:exported="false" />
+
+        <!-- 🏠 5. Main Screen / Dashboard -->
+        <activity
+            android:name=".MainActivity"
             android:exported="false" />
 
         <meta-data

@@ -23,12 +23,16 @@ import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import android.content.Context;
+import android.content.SharedPreferences;
 import java.util.Calendar;
 
 public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
 
     // Existing Form Controls
-    private EditText etName, etSpecies, etDate;
+    private EditText etName, etSpecies, etMedicinalUse, etDate;
     private TextView tvStaticStatus; // 🌟 PINALITAN NA ANG SPINNER NG TEXTVIEW!
     private MaterialButton btnSubmit;
 
@@ -36,6 +40,9 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     private MaterialCardView cardUploadImage;
     private LinearLayout layoutImagePlaceholder;
     private ImageView imgPlantPreview;
+
+    private DatabaseReference databaseReference;
+    private String currentUsername;
 
     // Ang lalagyan ng Uri para sa gallery path
     private Uri selectedImageUri = null;
@@ -46,6 +53,18 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
 
     public static AddPlantBottomSheetActivity  newInstance() {
         return new AddPlantBottomSheetActivity ();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        currentUsername = preferences.getString("current_username", "");
+        
+        if (!currentUsername.isEmpty()) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("plants");
+        }
     }
 
     // 🖼️ 1. Launcher para sa Gallery Picker
@@ -88,6 +107,7 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
         // 🔗 Bind View Elements
         etName = view.findViewById(R.id.et_add_plant_name);
         etSpecies = view.findViewById(R.id.et_add_plant_species);
+        etMedicinalUse = view.findViewById(R.id.et_add_plant_medicinal_use);
         etDate = view.findViewById(R.id.et_add_plant_date);
         tvStaticStatus = view.findViewById(R.id.tv_static_health_status); // 🔗 Bounded sa bagong badge text natin!
         btnSubmit = view.findViewById(R.id.btn_submit_new_plant);
@@ -161,21 +181,34 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     private void executePlantSubmission() {
         String plantName = etName.getText().toString().trim();
         String plantSpecies = etSpecies.getText().toString().trim();
+        String medicinalUse = etMedicinalUse.getText().toString().trim();
         String datePlanted = etDate.getText().toString().trim();
-
-        // Automatic "Healthy" na string ang ipapasa sa Firebase database base sa static view natin!
-        String healthStatus = "Healthy";
 
         if (plantName.isEmpty() || plantSpecies.isEmpty() || datePlanted.isEmpty()) {
             Toast.makeText(getContext(), "Please fill in all required fields!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        /* 🚧 DEV NOTE (PARA SA INYONG BACKEND):
-           Ipasok ang `healthStatus` ("Healthy") diretso sa Firebase ref submission object payload niyo.
-        */
+        if (databaseReference == null) {
+            Toast.makeText(getContext(), "Error: User session lost.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        Toast.makeText(getContext(), plantName + " added successfully!", Toast.LENGTH_SHORT).show();
-        dismiss(); // Eto ang magpapadulas/slide down sa kaniya pababa nang kusa pagkatapos mag-save!
+        String plantId = databaseReference.push().getKey();
+        PlantModel plant = new PlantModel(plantName, plantSpecies, datePlanted, "Healthy", medicinalUse, 100);
+        plant.setId(plantId);
+        
+        if (selectedImageUri != null) {
+            plant.setImageUrl(selectedImageUri.toString());
+        }
+
+        databaseReference.child(plantId).setValue(plant).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(getContext(), plantName + " added successfully!", Toast.LENGTH_SHORT).show();
+                dismiss();
+            } else {
+                Toast.makeText(getContext(), "Failed to add plant.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

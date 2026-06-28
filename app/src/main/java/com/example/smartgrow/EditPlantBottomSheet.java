@@ -17,7 +17,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import android.content.Context;
+import android.content.SharedPreferences;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EditPlantBottomSheet extends BottomSheetDialogFragment {
 
@@ -30,11 +36,14 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     private ImageView imgEditPlantPreview, imgEditCalendarIcon;
 
     // Kunin ang mga default values na pinasa mula sa card list
-    private String currentName, currentSpecies, currentDate, currentStatus;
+    private String plantId, currentName, currentSpecies, currentDate, currentStatus;
+    private DatabaseReference databaseReference;
+    private String currentUsername;
 
-    public static EditPlantBottomSheet newInstance(String name, String species, String date, String status) {
+    public static EditPlantBottomSheet newInstance(String plantId, String name, String species, String date, String status) {
         EditPlantBottomSheet fragment = new EditPlantBottomSheet();
         Bundle args = new Bundle();
+        args.putString("key_id", plantId);
         args.putString("key_name", name);
         args.putString("key_species", species);
         args.putString("key_date", date);
@@ -46,7 +55,12 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        currentUsername = preferences.getString("current_username", "");
+
         if (getArguments() != null) {
+            plantId = getArguments().getString("key_id");
             currentName = getArguments().getString("key_name");
             currentSpecies = getArguments().getString("key_species");
             currentDate = getArguments().getString("key_date");
@@ -56,6 +70,11 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
                 currentDate = currentDate.replace("Planted: ", "");
             }
             currentStatus = getArguments().getString("key_status");
+        }
+
+        if (!currentUsername.isEmpty() && plantId != null) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("users")
+                    .child(currentUsername).child("plants").child(plantId);
         }
     }
 
@@ -119,9 +138,32 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
         // 💾 SCRIPT 3: Save Button Action Hook
         btnSave.setOnClickListener(v -> {
             String updatedName = etEditName.getText().toString().trim();
-            Toast.makeText(getContext(), "Changes Saved for " + updatedName + "!", Toast.LENGTH_SHORT).show();
-            // Dito mangyayari ang Firebase update logic mamaya ng mga backend niyo
-            dismiss();
+            String updatedSpecies = etEditSpecies.getText().toString().trim();
+            String updatedDate = etEditDate.getText().toString().trim();
+
+            if (updatedName.isEmpty() || updatedSpecies.isEmpty() || updatedDate.isEmpty()) {
+                Toast.makeText(getContext(), "Please fill in all fields!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (databaseReference == null) {
+                Toast.makeText(getContext(), "Error: Database reference not found.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("name", updatedName);
+            updates.put("species", updatedSpecies);
+            updates.put("datePlanted", updatedDate);
+
+            databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(getContext(), "Changes Saved for " + updatedName + "!", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                } else {
+                    Toast.makeText(getContext(), "Failed to update plant.", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         return view;

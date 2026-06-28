@@ -21,16 +21,26 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterStep5Activity extends AppCompatActivity {
 
     private Dialog loadingDialog;
+    private User userData;
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 🟢 INAYOS: Tamang Window Translucent/No Limits SDK check para sa edge-to-edge layout
+        // Initialize Firebase
+        databaseReference = FirebaseDatabase.getInstance().getReference("users");
+
+        // Get user data from previous step
+        userData = (User) getIntent().getSerializableExtra("user_data");
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window window = getWindow();
             window.setFlags(
@@ -46,6 +56,7 @@ public class RegisterStep5Activity extends AppCompatActivity {
 
         EditText etUsername = findViewById(R.id.et_username);
         EditText etFullName = findViewById(R.id.et_fullname);
+        EditText etEmail = findViewById(R.id.et_email);
         EditText etPassword = findViewById(R.id.et_password);
         EditText etConfirmPassword = findViewById(R.id.et_confirm_password);
 
@@ -61,12 +72,19 @@ public class RegisterStep5Activity extends AppCompatActivity {
         // Main Action: Trigger account computation and layout transitions
         btnSignUp.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
+            String fullName = etFullName.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
             String pass = etPassword.getText().toString().trim();
             String confirm = etConfirmPassword.getText().toString().trim();
 
             // Form validation checks
-            if (user.isEmpty() || pass.isEmpty()) {
+            if (user.isEmpty() || fullName.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -77,6 +95,13 @@ public class RegisterStep5Activity extends AppCompatActivity {
 
             // 🛑 PROTEKSYON: I-disable muna ang sign up para maiwasan ang double-tap glitch habang naglo-load
             btnSignUp.setEnabled(false);
+
+            // Update userData
+            if (userData == null) userData = new User();
+            userData.setUsername(user);
+            userData.setFullName(fullName);
+            userData.setEmail(email);
+            userData.setPassword(pass);
 
             // Buksan ang custom progress dialog engine
             loadingDialog.show();
@@ -123,20 +148,31 @@ public class RegisterStep5Activity extends AppCompatActivity {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
 
-                    // Isara ang loading frame nang ligtas
-                    if (loadingDialog != null && loadingDialog.isShowing()) {
-                        loadingDialog.dismiss();
-                    }
+                    // Save to Firebase
+                    databaseReference.child(user).setValue(userData).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Isara ang loading frame nang ligtas
+                            if (loadingDialog != null && loadingDialog.isShowing()) {
+                                loadingDialog.dismiss();
+                            }
 
-                    Toast.makeText(RegisterStep5Activity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterStep5Activity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
 
-                    // 🚀 SUCCESS TRANSITION: Pag-lipat papuntang MainActivity na may kalakip na clear stack protection
-                    Intent intent = new Intent(RegisterStep5Activity.this, MainActivity.class);
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                            // 🚀 SUCCESS TRANSITION: Pag-lipat papuntang MainActivity na may kalakip na clear stack protection
+                            Intent intent = new Intent(RegisterStep5Activity.this, LoginActivity.class);
+                            startActivity(intent);
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
-                    // Sinisigurong burado ang lahat ng registration steps sa background stack para hindi na pwedeng i-back ng user
-                    finishAffinity();
+                            // Sinisigurong burado ang lahat ng registration steps sa background stack para hindi na pwedeng i-back ng user
+                            finishAffinity();
+                        } else {
+                            if (loadingDialog != null && loadingDialog.isShowing()) {
+                                loadingDialog.dismiss();
+                            }
+                            btnSignUp.setEnabled(true);
+                            Toast.makeText(RegisterStep5Activity.this, "Failed to create account: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             });
 

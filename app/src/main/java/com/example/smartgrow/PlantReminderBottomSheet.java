@@ -13,6 +13,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import android.content.Context;
+import android.content.SharedPreferences;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -22,8 +26,32 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
     private EditText etTime;
     private MaterialButton btnSave;
 
-    public static PlantReminderBottomSheet newInstance() {
-        return new PlantReminderBottomSheet();
+    private String plantId;
+    private DatabaseReference databaseReference;
+    private String currentUsername;
+
+    public static PlantReminderBottomSheet newInstance(String plantId) {
+        PlantReminderBottomSheet fragment = new PlantReminderBottomSheet();
+        Bundle args = new Bundle();
+        args.putString("key_plant_id", plantId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            plantId = getArguments().getString("key_plant_id");
+        }
+
+        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        currentUsername = preferences.getString("current_username", "");
+
+        if (!currentUsername.isEmpty() && plantId != null) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("users")
+                    .child(currentUsername).child("plants").child(plantId).child("reminders");
+        }
     }
 
     @Nullable
@@ -71,16 +99,20 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                 return;
             }
 
-            /* 🚧 DEV NOTE (PARA SA INYONG BACKEND):
-               Apat na variables na ang pwede ninyong ihagis diretso sa Firebase database payload node:
-               - waterSched
-               - fertSched
-               - sunSched (Heto yung bago)
-               - timeSet
-            */
+            if (databaseReference == null) {
+                Toast.makeText(getContext(), "Error: Database reference not found.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            Toast.makeText(getContext(), "Care schedules saved successfully!", Toast.LENGTH_SHORT).show();
-            dismiss(); // Kusa nang mag-s-slide down pagkatapos mag-save
+            ReminderModel reminder = new ReminderModel(waterSched, fertSched, sunSched, timeSet);
+            databaseReference.setValue(reminder).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(getContext(), "Care schedules saved successfully!", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                } else {
+                    Toast.makeText(getContext(), "Failed to save reminders.", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

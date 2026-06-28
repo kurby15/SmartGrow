@@ -14,6 +14,7 @@ import com.google.android.material.card.MaterialCardView;
 public class RegisterStep1Activity extends AppCompatActivity {
 
     private MaterialCardView selectedCard = null;
+    private String selectedChoiceText = "";
     private int currentStep = 1;
 
     @Override
@@ -64,7 +65,11 @@ public class RegisterStep1Activity extends AppCompatActivity {
                 return;
             }
 
+            User user = new User();
+            user.setChoice1(selectedChoiceText);
+
             Intent intent = new Intent(RegisterStep1Activity.this, RegisterStep2Activity.class);
+            intent.putExtra("user_data", user);
             startActivity(intent);
 
 
@@ -96,5 +101,6 @@ public class RegisterStep1Activity extends AppCompatActivity {
         targetText.setTextColor(Color.parseColor("#FFFFFF"));
 
         selectedCard = targetCard;
+        selectedChoiceText = targetText.getText().toString();
     }
 }

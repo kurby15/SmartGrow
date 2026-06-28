@@ -73,8 +73,7 @@
                     android:stateListAnimator="@null"
                     android:translationZ="3dp"
                     app:cornerRadius="15dp"
-                    app:elevation="2dp"
-                    app:shadowColor="#CCCCCC" />
+                    app:elevation="2dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_logout_yes"

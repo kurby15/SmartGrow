@@ -7,18 +7,31 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ResetPasswordActivity extends AppCompatActivity {
 
     private EditText etNewPassword, etConfirmPassword;
     private MaterialButton btnUpdatePassword;
+    private DatabaseReference databaseReference;
+    private String userEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Initialize Firebase
+        databaseReference = FirebaseDatabase.getInstance().getReference("users");
+
+        // Kukunin ang email na ipinasa mula sa nakaraang mga screen
+        userEmail = getIntent().getStringExtra("email");
 
         Window window = getWindow();
         window.setFlags(
@@ -50,15 +63,53 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 } else if (!newPassword.equals(confirmPassword)) {
                     Toast.makeText(ResetPasswordActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(ResetPasswordActivity.this, "Password successfully updated!", Toast.LENGTH_LONG).show();
-
-
-                    Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                    finish();
+                    updatePasswordInFirebase(newPassword);
                 }
+            }
+        });
+    }
+
+    private void updatePasswordInFirebase(String newPassword) {
+        if (userEmail == null || userEmail.isEmpty()) {
+            Toast.makeText(this, "Error: Email destination lost. Restart process.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnUpdatePassword.setEnabled(false);
+        Toast.makeText(this, "Updating password...", Toast.LENGTH_SHORT).show();
+
+        // Hanapin ang user profile node na may katapat na email address para palitan ang password field
+        databaseReference.orderByChild("email").equalTo(userEmail).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                        // Palitan ang inner child field na password gamit ang bagong value
+                        userSnapshot.getRef().child("password").setValue(newPassword).addOnCompleteListener(task -> {
+                            btnUpdatePassword.setEnabled(true);
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ResetPasswordActivity.this, "Password successfully updated in SmartGrow!", Toast.LENGTH_LONG).show();
+
+                                Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                                finish();
+                            } else {
+                                Toast.makeText(ResetPasswordActivity.this, "Failed to update database.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                } else {
+                    btnUpdatePassword.setEnabled(true);
+                    Toast.makeText(ResetPasswordActivity.this, "User profile node no longer exists.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                btnUpdatePassword.setEnabled(true);
+                Toast.makeText(ResetPasswordActivity.this, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

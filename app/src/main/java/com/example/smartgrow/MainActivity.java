@@ -91,15 +91,23 @@ public class MainActivity extends AppCompatActivity {
             cardActionNotification.setOnClickListener(v -> showNotificationDialog());
         }
         if (cardActionGlobal != null) {
-            cardActionGlobal.setOnClickListener(v ->
-                    Toast.makeText(MainActivity.this, "Connecting to Global Community...", Toast.LENGTH_SHORT).show());
+            cardActionGlobal.setOnClickListener(v -> {
+                // Pagpapalit ng fragment gamit ang FragmentManager
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new CommunityForumFragment()) // Palitan ang R.id.fragment_container kung iba ang ID ng lalagyan mo
+                        .addToBackStack(null) // Opsyonal: Para kapag pinindot ang back button, babalik sa dating screen
+                        .commit();
+            });
         }
         if (cardActionProfile != null) {
-            cardActionProfile.setOnClickListener(v ->
-                    Toast.makeText(MainActivity.this, "Opening User Profile Status...", Toast.LENGTH_SHORT).show());
+            cardActionProfile.setOnClickListener(v -> {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new ProfileFragment()) // Dito ka dideretso
+                        .addToBackStack(null)
+                        .commit();
+            });
         }
     }
-
     // 🟢 NOTIFICATION DIALOG ENGINE
     private void showNotificationDialog() {
         final Dialog dialog = new Dialog(this);

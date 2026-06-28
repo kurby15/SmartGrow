@@ -14,10 +14,15 @@ import com.google.android.material.card.MaterialCardView;
 public class RegisterStep2Activity extends AppCompatActivity {
 
     private MaterialCardView selectedCard = null;
+    private String selectedChoiceText = "";
+    private User userData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get user data from previous step
+        userData = (User) getIntent().getSerializableExtra("user_data");
 
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
@@ -62,7 +67,12 @@ public class RegisterStep2Activity extends AppCompatActivity {
                 return;
             }
 
+            if (userData != null) {
+                userData.setChoice2(selectedChoiceText);
+            }
+
             Intent intent = new Intent(RegisterStep2Activity.this, RegisterStep3Activity.class);
+            intent.putExtra("user_data", userData);
             startActivity(intent);
 
 
@@ -93,5 +103,6 @@ public class RegisterStep2Activity extends AppCompatActivity {
         targetText.setTextColor(Color.parseColor("#FFFFFF"));
 
         selectedCard = targetCard;
+        selectedChoiceText = targetText.getText().toString();
     }
 }

@@ -1,6 +1,8 @@
 package com.example.smartgrow;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import android.content.Context;
+import android.content.SharedPreferences;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +31,11 @@ public class DiaryFragment extends Fragment {
     private EditText etSearchPlants;
     private RecyclerView rvPlantDiaryList;
 
-    // Lalagyan ng listahan ng pekeng halaman natin
-    private List<PlantModel> mockPlantList;
+    private List<PlantModel> plantList = new ArrayList<>();
+    private List<PlantModel> filteredList = new ArrayList<>();
+    private MockDiaryAdapter adapter;
+    private DatabaseReference databaseReference;
+    private String currentUsername;
 
     public DiaryFragment() {
         // Required empty public constructor
@@ -33,6 +45,9 @@ public class DiaryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_diary, container, false);
+
+        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        currentUsername = preferences.getString("current_username", "");
 
         // 🔗 Bind Search Context at Control Buttons
         etSearchPlants = view.findViewById(R.id.et_search_plants);
@@ -45,13 +60,75 @@ public class DiaryFragment extends Fragment {
             rvPlantDiaryList.setHasFixedSize(true);
         }
 
+        // Initialize adapter
+        adapter = new MockDiaryAdapter(filteredList);
+        rvPlantDiaryList.setAdapter(adapter);
+
+        if (!currentUsername.isEmpty()) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("plants");
+            fetchPlantsFromFirebase();
+        }
+
         // 🛠️ Setup Click Actions
         setupClickListeners();
 
-        // 🌿 Dito na natin pagaganahin ang pag-load ng pekeng data!
-        setupMockDiaryAdapter();
+        // Setup Search logic
+        setupSearchLogic();
 
         return view;
+    }
+
+    private void fetchPlantsFromFirebase() {
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                plantList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    PlantModel plant = dataSnapshot.getValue(PlantModel.class);
+                    if (plant != null) {
+                        plantList.add(plant);
+                    }
+                }
+                filterList(etSearchPlants.getText().toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void setupSearchLogic() {
+        etSearchPlants.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterList(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void filterList(String query) {
+        filteredList.clear();
+        if (query.isEmpty()) {
+            filteredList.addAll(plantList);
+        } else {
+            for (PlantModel plant : plantList) {
+                if (plant.getName().toLowerCase().contains(query.toLowerCase()) ||
+                    plant.getSpecies().toLowerCase().contains(query.toLowerCase())) {
+                    filteredList.add(plant);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
     }
 
     private void setupClickListeners() {
@@ -61,22 +138,6 @@ public class DiaryFragment extends Fragment {
                 AddPlantBottomSheetActivity addPlantSheet = new AddPlantBottomSheetActivity();
                 addPlantSheet.show(getParentFragmentManager(), "AddPlantBottomSheetTag");
             });
-        }
-    }
-
-    // 🚀 Dito mangyayari ang milagro ng pekeng data!
-    private void setupMockDiaryAdapter() {
-        mockPlantList = new ArrayList<>();
-
-        // 📝 Mag-imbento tayo ng 3 halaman para kunwaring galing sa database
-        mockPlantList.add(new PlantModel("My Healing Plant", "Lagundi", "15/01/2026", "Healthy"));
-        mockPlantList.add(new PlantModel("Office Table Buddy", "Snake Plant", "02/03/2026", "Healthy"));
-        mockPlantList.add(new PlantModel("Backyard Shrub", "Oregano", "20/04/2026", "Healthy"));
-
-        // Isalpak na ang Adapter sa RecyclerView natin para lumitaw sa phone screen!
-        MockDiaryAdapter adapter = new MockDiaryAdapter(mockPlantList);
-        if (rvPlantDiaryList != null) {
-            rvPlantDiaryList.setAdapter(adapter);
         }
     }
 }

@@ -13,6 +13,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import java.util.List;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import android.content.SharedPreferences;
+
 public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.DiaryViewHolder> {
 
     private List<PlantModel> plantList;
@@ -48,6 +55,9 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
             holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#856404"));
         }
 
+        // Fetch Recent Activity for Diary Card
+        fetchDiaryRecentActivity(plant.getId(), holder);
+
         // 🌟 1. CLICK LISTENER PARA SA PENCIL/EDIT ICON
         holder.cardEditPen.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,6 +67,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
 
                 // ✨ CLEANED UP: Inalis na natin si plant.getHealthStatus() sa Edit Sheet UI
                 EditPlantBottomSheet editSheet = EditPlantBottomSheet.newInstance(
+                        plant.getId(),
                         plant.getName(),
                         plant.getSpecies(),
                         plant.getDatePlanted(),
@@ -75,7 +86,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
                 if (activity == null) return;
 
                 // Tawagin ang bagong gawang AddLogBottomSheet na may touch scroll behaviors
-                AddLogBottomSheet addLogSheet = AddLogBottomSheet.newInstance();
+                AddLogBottomSheet addLogSheet = AddLogBottomSheet.newInstance(plant.getId());
                 addLogSheet.show(activity.getSupportFragmentManager(), "AddLogBottomSheetTag");
             }
         });
@@ -88,9 +99,43 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
                 if (activity == null) return;
 
                 // Bubuksan na si Bottom Sheet na may kasamang Watering, Fertilizer, at Sunlight parameters!
-                PlantReminderBottomSheet reminderSheet = PlantReminderBottomSheet.newInstance();
+                PlantReminderBottomSheet reminderSheet = PlantReminderBottomSheet.newInstance(plant.getId());
                 reminderSheet.show(activity.getSupportFragmentManager(), "PlantReminderBottomSheetTag");
             }
+        });
+    }
+
+    private void fetchDiaryRecentActivity(String plantId, DiaryViewHolder holder) {
+        if (plantId == null) return;
+
+        SharedPreferences preferences = holder.itemView.getContext().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+        String currentUsername = preferences.getString("current_username", "");
+
+        if (currentUsername.isEmpty()) return;
+
+        DatabaseReference logsRef = FirebaseDatabase.getInstance().getReference("users")
+                .child(currentUsername).child("plants").child(plantId).child("logs");
+
+        // Kunin ang pinakahuling log na ang 'watered' ay true
+        logsRef.orderByChild("watered").equalTo(true).limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot logSnapshot : snapshot.getChildren()) {
+                        LogModel lastLog = logSnapshot.getValue(LogModel.class);
+                        if (lastLog != null && holder.tvLastWatered != null) {
+                            holder.tvLastWatered.setText(lastLog.getDate());
+                        }
+                    }
+                } else {
+                    if (holder.tvLastWatered != null) {
+                        holder.tvLastWatered.setText("No activity yet");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -111,7 +156,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
 
     // Taga-bind ng mga IDs mula sa item_plant_card.xml
     public static class DiaryViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvSpecies, tvDate, tvStatus;
+        TextView tvName, tvSpecies, tvDate, tvStatus, tvLastWatered;
         MaterialCardView cardEditPen;
         MaterialCardView cardEditBell; // 🌟 IDINAGDAG PARA SA BELL CARD CONTAINER
         MaterialButton btnAddLog;
@@ -122,6 +167,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
             tvSpecies = itemView.findViewById(R.id.tv_diary_plant_scientific_species);
             tvDate = itemView.findViewById(R.id.tv_diary_plant_timestamp);
             tvStatus = itemView.findViewById(R.id.tv_diary_health_pill_text);
+            tvLastWatered = itemView.findViewById(R.id.tv_diary_last_watered_activity_date);
 
             // 🔗 Ikonek ang mga operating panels mula sa card layout
             cardEditPen = itemView.findViewById(R.id.card_diary_item_edit_pen);
