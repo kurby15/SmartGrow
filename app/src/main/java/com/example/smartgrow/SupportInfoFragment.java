@@ -58,7 +58,48 @@ public class SupportInfoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_support_info, container, false);
+        View view = inflater.inflate(R.layout.fragment_support_info, container, false);
+
+        view.findViewById(R.id.btn_back_support).setOnClickListener(v ->{
+            if(getActivity() != null){
+                getActivity().getOnBackPressedDispatcher().onBackPressed();
+            }
+        });
+        view.findViewById(R.id.item_help_center).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new HelpCenterFaqFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.item_contact_us).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new ContactUsFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.item_privacy_policy).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new PrivacyPolicyFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.item_terms_service).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new TermOfServiceFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.item_about_smartgrow).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new AboutSmartGrowFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        return view;
     }
 }

@@ -44,6 +44,27 @@ public class ProfileFragment extends Fragment {
         tvChoice3 = view.findViewById(R.id.tv_choice3);
         tvChoice4 = view.findViewById(R.id.tv_choice4);
 
+        view.findViewById(R.id.btn_preferences).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new AppPreferencesFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btn_security).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new AccountSecurityFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btn_support).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new SupportInfoFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
         SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
         currentUsername = preferences.getString("current_username", "");
 

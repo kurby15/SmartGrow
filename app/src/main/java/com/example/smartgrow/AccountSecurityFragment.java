@@ -59,6 +59,34 @@ public class AccountSecurityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_account_security, container, false);
+        View view = inflater.inflate(R.layout.fragment_account_security, container, false);
+
+        view.findViewById(R.id.btn_back_account_security).setOnClickListener(v ->{
+            if(getActivity() != null){
+                getActivity().getOnBackPressedDispatcher().onBackPressed();
+            }
+        });
+        view.findViewById(R.id.btn_security_edit_profile).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new EditProfileFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btn_security_privacy).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new PrivacyDataFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btn_security_password).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new ChangePasswordFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        return view;
     }
 }

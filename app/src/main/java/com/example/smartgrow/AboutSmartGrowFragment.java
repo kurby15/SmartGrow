@@ -58,7 +58,11 @@ public class AboutSmartGrowFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_about_smart_grow, container, false);
+        View view = inflater.inflate(R.layout.fragment_about_smart_grow, container, false);
+
+        view.findViewById(R.id.btn_back_about).setOnClickListener(v -> {
+            getParentFragmentManager().popBackStack();
+        });
+        return view;
     }
 }

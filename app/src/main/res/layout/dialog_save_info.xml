@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:padding="32dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="16dp"
+        app:strokeWidth="0dp"
+        app:cardElevation="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp">
+
+            <ImageView
+                android:id="@+id/iv_logout_icon"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_logout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:contentDescription="Logout Icon" />
+
+            <TextView
+                android:id="@+id/tv_save_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
+                android:text="Do you want to save changes?"
+                android:textColor="#0C6211"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/iv_logout_icon" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_save_info">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_save_no"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#FFFFFF"
+                    android:text="No"
+                    android:textSize="12sp"
+                    android:textColor="#0C6211"
+                    android:textStyle="bold"
+                    android:textAllCaps="false"
+                    android:fontFamily="@font/poppins"
+                    android:stateListAnimator="@null"
+                    android:translationZ="3dp"
+                    app:cornerRadius="15dp"
+                    app:elevation="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_save_yes"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="#0C6211"
+                    android:fontFamily="@font/poppins"
+                    android:text="Yes"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:stateListAnimator="@null"
+                    android:translationZ="3dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="15dp" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
