@@ -1,102 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:background="@drawable/bg_bottom_sheet_rounded">
 
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_create_post_sheet"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:strokeWidth="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:padding="24dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <!-- Drag Handle Indicator -->
+        <View
+            android:id="@+id/view_drag_handle"
+            android:layout_width="45dp"
+            android:layout_height="4dp"
+            android:background="#DDDDDD"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_create_post_header"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="20dp">
+            android:layout_marginTop="16dp"
+            android:text="Create Post"
+            android:textColor="#111111"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/view_drag_handle" />
 
-            <View
-                android:id="@+id/view_drag_handle"
-                android:layout_width="45dp"
-                android:layout_height="4dp"
-                android:background="#DDDDDD"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <View
+            android:id="@+id/header_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_create_post_header"/>
 
-            <TextView
-                android:id="@+id/tv_create_post_header"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Create Post"
-                android:textColor="#111111"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/view_drag_handle" />
+        <!-- User Profile Avatar -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/img_create_post"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginTop="16dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/CircleImageView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_divider"
+            tools:srcCompat="@tools:sample/avatars" />
 
-            <View
-                android:id="@+id/header_divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#EEEEEE"
-                android:layout_marginTop="10dp"
-                app:layout_constraintTop_toBottomOf="@id/tv_create_post_header"/>
+        <TextView
+            android:id="@+id/tv_identity_user_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="You"
+            android:textColor="#111111"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins"
+            app:layout_constraintBottom_toTopOf="@id/tv_identity_post_target"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/img_create_post"
+            app:layout_constraintTop_toTopOf="@id/img_create_post"
+            app:layout_constraintVertical_chainStyle="packed" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/img_create_post"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_marginTop="20dp"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/CircleImageView"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/header_divider"
-                tools:srcCompat="@tools:sample/avatars" />
+        <TextView
+            android:id="@+id/tv_identity_post_target"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Posting to Community"
+            android:textColor="#888888"
+            android:textSize="12sp"
+            android:fontFamily="@font/poppins"
+            app:layout_constraintBottom_toBottomOf="@id/img_create_post"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tv_identity_user_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_identity_user_name" />
 
-            <TextView
-                android:id="@+id/tv_identity_user_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="You"
-                android:textColor="#111111"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintBottom_toTopOf="@id/tv_identity_post_target"
-                app:layout_constraintStart_toEndOf="@id/img_create_post"
-                app:layout_constraintTop_toTopOf="@id/img_create_post"
-                app:layout_constraintVertical_chainStyle="packed" />
-
-            <TextView
-                android:id="@+id/tv_identity_post_target"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Posting to Community"
-                android:textColor="#888888"
-                android:textSize="12sp"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintBottom_toBottomOf="@id/img_create_post"
-                app:layout_constraintStart_toStartOf="@id/tv_identity_user_name"
-                app:layout_constraintTop_toBottomOf="@id/tv_identity_user_name" />
+        <!-- Input Post Box Container with Rounded Corners (using MaterialCardView for clean background styling) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_input_container"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F3FBF2"
+            app:strokeWidth="0dp"
+            app:layout_constraintTop_toBottomOf="@id/img_create_post"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <EditText
                 android:id="@+id/et_create_post_box"
                 android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:layout_marginTop="18dp"
-                android:background="#F3FBF2"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
                 android:gravity="top|start"
                 android:hint="Share your plant care tips, questions, or experiences..."
                 android:importantForAutofill="no"
@@ -105,57 +112,60 @@
                 android:textColor="#111111"
                 android:textColorHint="#778877"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintTop_toBottomOf="@id/img_create_post"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                android:fontFamily="@font/poppins" />
+        </com.google.android.material.card.MaterialCardView>
 
-            <LinearLayout
-                android:id="@+id/btn_add_photo"
+        <!-- Add Photo Button Action Group -->
+        <LinearLayout
+            android:id="@+id/btn_add_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_input_container">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_add_photo"
+                android:contentDescription="Add Photo Icon"
+                app:tint="#0C6211" />
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="8dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/et_create_post_box">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_add_photo"
-                    app:tint="#0C6211" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Add Photo"
-                    android:textColor="#0C6211"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/poppins" />
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_submit_post"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#0C6211"
-                android:text="Post"
-                android:layout_marginTop="20dp"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:layout_marginStart="8dp"
+                android:text="Add Photo"
+                android:textColor="#0C6211"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"
-                app:cardCornerRadius="15dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btn_add_photo"
-                app:layout_constraintBottom_toBottomOf="parent"/> </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
+                android:fontFamily="@font/poppins" />
+        </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Submit Post Button (Retained original properties as requested) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_submit_post"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#0C6211"
+            android:text="Post"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins"
+            app:cornerRadius="15dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_add_photo"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

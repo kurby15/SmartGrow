@@ -5,117 +5,120 @@
     xmlns:tools="http://tools.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA">
+    android:background="#F9FAFA"
+    android:padding="16dp">
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
+    <!-- Title - Flexible Width (0dp) para iwas clipping sa makikitid na phone -->
+    <TextView
+        android:id="@+id/tv_community_forum_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Community Forum"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#111111"
+        android:fontFamily="@font/poppins"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Subtitle - Flexible Width (0dp) -->
+    <TextView
+        android:id="@+id/tv_community_forum_subtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Connect with fellow plant enthusiasts"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/poppins"
+        app:layout_constraintTop_toBottomOf="@id/tv_community_forum_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Mind Input Box Card - Ginawang clickable ang buong card para mas madaling pindutin sa phone -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_mind"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:strokeWidth="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_community_forum_subtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="12dp">
 
-            <TextView
-                android:id="@+id/tv_community_forum_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Community Forum"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                android:textColor="#111111"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <TextView
-                android:id="@+id/tv_community_forum_subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Connect with fellow plant enthusiasts"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                android:layout_marginTop="2dp"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintTop_toBottomOf="@id/tv_community_forum_title"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_mind"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:strokeWidth="0dp"
-                app:layout_constraintTop_toBottomOf="@id/tv_community_forum_subtitle"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp">
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_user"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="12dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_user"
-                        app:backgroundColor="#EAEAEA"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:shapeAppearanceOverlay="@style/CircleImageView"
-                        tools:srcCompat="@tools:sample/avatars" />
-
-                    <TextView
-                        android:id="@+id/tv_mind"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginEnd="12dp"
-                        android:text="What's on your mind?"
-                        android:textColor="#888888"
-                        android:textSize="16sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_camera_icon"
-                        app:layout_constraintStart_toEndOf="@+id/img_user"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/btn_camera_icon"
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:layout_marginEnd="4dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:src="@drawable/ic_camera"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_forum_feed"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="8dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintTop_toBottomOf="@+id/card_mind"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_user"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_user"
+                app:backgroundColor="#EAEAEA"
                 app:layout_constraintBottom_toBottomOf="parent"
-                tools:listitem="@layout/item_forum_post" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/CircleImageView"
+                tools:srcCompat="@tools:sample/avatars" />
+
+            <!-- Nilagyan ng sapat na end margin para hindi mag-overlap ang mahabang text sa camera icon -->
+            <TextView
+                android:id="@+id/tv_mind"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:text="What's on your mind?"
+                android:textColor="#888888"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btn_camera_icon"
+                app:layout_constraintStart_toEndOf="@+id/img_user"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/btn_camera_icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                android:src="@drawable/ic_camera"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:contentDescription="Upload Photo" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- RecyclerView - Ngayong wala na ito sa loob ng ScrollView, sasakupin na nito ang natitirang taas ng kahit anong screen -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_forum_feed"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:scrollbars="vertical"
+        android:overScrollMode="never"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@+id/card_mind"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_forum_post" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

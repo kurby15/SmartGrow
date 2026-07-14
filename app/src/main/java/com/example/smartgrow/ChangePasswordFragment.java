@@ -1,9 +1,9 @@
 package com.example.smartgrow;
 
 import android.os.Bundle;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +15,9 @@ import android.view.ViewGroup;
  */
 public class ChangePasswordFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -28,15 +25,6 @@ public class ChangePasswordFragment extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ChangePasswordFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static ChangePasswordFragment newInstance(String param1, String param2) {
         ChangePasswordFragment fragment = new ChangePasswordFragment();
         Bundle args = new Bundle();
@@ -56,13 +44,18 @@ public class ChangePasswordFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        // I-inflate ang fully flexible/scrollable view
         View view = inflater.inflate(R.layout.fragment_change_password, container, false);
 
+        // Safe pop back stack para sa fragment hierarchy
         view.findViewById(R.id.btn_back_change_pass).setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack();
+            if (isAdded() && getParentFragmentManager() != null) {
+                getParentFragmentManager().popBackStack();
+            }
         });
+
         return view;
     }
 }

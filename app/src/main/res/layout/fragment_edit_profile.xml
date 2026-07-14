@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://tools.android.com/tools"
     android:id="@+id/layout_edit_info"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,21 +13,24 @@
         android:layout_height="wrap_content"
         android:padding="24dp">
 
+        <!-- Back Button - Nilagyan ng sapat na laki para madaling mapindot sa maliit na screen -->
         <ImageView
             android:id="@+id/btn_back_edit_info"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:padding="8dp"
             android:src="@drawable/ic_back"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:contentDescription="Go back" />
 
+        <!-- Title - Ginawang 0dp (match_constraint) para mag-wrap ang text kung maliit ang phone -->
         <TextView
             android:id="@+id/tv_edit_info_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Edit Information"
@@ -35,6 +39,7 @@
             android:textStyle="bold"
             android:fontFamily="@font/poppins"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_back_edit_info" />
 
         <View
@@ -45,17 +50,21 @@
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toBottomOf="@id/tv_edit_info_title"/>
 
+        <!-- Subtitle -->
         <TextView
             android:id="@+id/tv_edit_info_subtitle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Update your personal information to personalize your account."
             android:textColor="#666666"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:fontFamily="@font/poppins"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/header_divider" />
 
+        <!-- Full Name Field -->
         <TextView
             android:id="@+id/lbl_fullname"
             android:layout_width="wrap_content"
@@ -91,9 +100,13 @@
                 android:textSize="15sp"
                 android:fontFamily="@font/poppins"
                 android:inputType="textPersonName"
-                android:paddingHorizontal="16dp" />
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:paddingHorizontal="16dp"
+                android:importantForAutofill="no" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Email Field -->
         <TextView
             android:id="@+id/lbl_email"
             android:layout_width="wrap_content"
@@ -129,9 +142,13 @@
                 android:textSize="15sp"
                 android:fontFamily="@font/poppins"
                 android:inputType="textEmailAddress"
-                android:paddingHorizontal="16dp" />
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:paddingHorizontal="16dp"
+                android:importantForAutofill="no" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Address Field -->
         <TextView
             android:id="@+id/lbl_address"
             android:layout_width="wrap_content"
@@ -167,9 +184,13 @@
                 android:textSize="15sp"
                 android:fontFamily="@font/poppins"
                 android:inputType="textPostalAddress"
-                android:paddingHorizontal="16dp" />
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:paddingHorizontal="16dp"
+                android:importantForAutofill="no" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Phone Number Field -->
         <TextView
             android:id="@+id/lbl_phone"
             android:layout_width="wrap_content"
@@ -205,14 +226,19 @@
                 android:textSize="15sp"
                 android:fontFamily="@font/poppins"
                 android:inputType="phone"
-                android:paddingHorizontal="16dp" />
+                android:imeOptions="actionDone"
+                android:maxLines="1"
+                android:paddingHorizontal="16dp"
+                android:importantForAutofill="no" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Save Button - Naka-anchor na nang maayos sa bottom para hindi 'lumulubog' kapag lumitaw ang keyboard -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_edit_info"
             android:layout_width="120dp"
             android:layout_height="48dp"
             android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp"
             android:backgroundTint="#0C6211"
             android:text="Save"
             android:textAllCaps="false"
@@ -222,7 +248,8 @@
             android:fontFamily="@font/poppins"
             app:cornerRadius="24dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_phone" />
+            app:layout_constraintTop_toBottomOf="@id/card_phone"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

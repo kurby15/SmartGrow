@@ -38,77 +38,102 @@ public class ProfileFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        // Bind views
         tvFullName = view.findViewById(R.id.tv_user_display_name);
         tvRank = view.findViewById(R.id.tv_user_rank);
         tvChoice2 = view.findViewById(R.id.tv_choice2);
         tvChoice3 = view.findViewById(R.id.tv_choice3);
         tvChoice4 = view.findViewById(R.id.tv_choice4);
 
+        // Click listeners for navigation
         view.findViewById(R.id.btn_preferences).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new AppPreferencesFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (isAdded()) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new AppPreferencesFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         view.findViewById(R.id.btn_security).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new AccountSecurityFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (isAdded()) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new AccountSecurityFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         view.findViewById(R.id.btn_support).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new SupportInfoFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (isAdded()) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new SupportInfoFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
-        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-        currentUsername = preferences.getString("current_username", "");
+        // Initialize Shared Preferences safely
+        if (getActivity() != null) {
+            SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
+            currentUsername = preferences.getString("current_username", "");
 
-        if (!currentUsername.isEmpty()) {
-            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername);
-            fetchUserData();
+            if (!currentUsername.isEmpty()) {
+                databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername);
+                fetchUserData();
+            }
+
+            // Logout Listener
+            view.findViewById(R.id.btn_logout).setOnClickListener(v -> {
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.clear();
+                editor.apply();
+
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            });
         }
-
-        view.findViewById(R.id.btn_logout).setOnClickListener(v -> {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-            
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        });
 
         return view;
     }
 
     private void fetchUserData() {
+        if (databaseReference == null) return;
+
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Ensure fragment is active before accessing UI components
+                if (!isAdded()) return;
+
                 if (snapshot.exists()) {
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
-                        tvFullName.setText(user.getFullName());
-                        
-                        // Choice 1 goes to Rank
-                        tvRank.setText(user.getChoice1());
-                        
-                        // Choices 2, 3, 4 go to Interests section
-                        if (tvChoice2 != null) tvChoice2.setText(user.getChoice2());
-                        if (tvChoice3 != null) tvChoice3.setText(user.getChoice3());
-                        if (tvChoice4 != null) tvChoice4.setText(user.getChoice4());
+                        if (tvFullName != null) tvFullName.setText(user.getFullName());
+
+                        // Choice 1 targets Rank
+                        if (tvRank != null && user.getChoice1() != null) {
+                            tvRank.setText(user.getChoice1());
+                        }
+
+                        // Choices 2, 3, 4 populate dynamic Interests
+                        if (tvChoice2 != null && user.getChoice2() != null) {
+                            tvChoice2.setText(user.getChoice2());
+                        }
+                        if (tvChoice3 != null && user.getChoice3() != null) {
+                            tvChoice3.setText(user.getChoice3());
+                        }
+                        if (tvChoice4 != null && user.getChoice4() != null) {
+                            tvChoice4.setText(user.getChoice4());
+                        }
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                if (getContext() != null) {
+                if (isAdded() && getContext() != null) {
                     Toast.makeText(getContext(), "Error fetching data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }

@@ -9,19 +9,20 @@
 
     <ImageView
         android:id="@+id/btn_back_account_security"
-        android:layout_width="wrap_content"
+        android:layout_width="36dp"
         android:layout_height="36dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_back"
+        android:padding="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:contentDescription="Go back" />
 
     <TextView
         android:id="@+id/tv_account_security_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Account &amp; Security"
@@ -30,38 +31,43 @@
         android:textStyle="bold"
         android:fontFamily="@font/poppins"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_back_account_security" />
 
     <View
         android:id="@+id/header_divider"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="#EEEEEE"
         android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_account_security_title"/>
 
+    <!-- List container: Naka-match constraint para flexible -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_divider">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_edit_profile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="12dp"
             app:strokeWidth="0dp"
             app:cardElevation="2dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
@@ -71,35 +77,29 @@
                     android:text="Edit Profile"
                     android:textColor="#111111"
                     android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:fontFamily="@font/poppins" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/ic_next"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_alignParentEnd="true"
+                    android:src="@drawable/ic_next" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_privacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="12dp"
             app:strokeWidth="0dp"
             app:cardElevation="2dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
@@ -109,35 +109,29 @@
                     android:text="Privacy &amp; Data"
                     android:textColor="#111111"
                     android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:fontFamily="@font/poppins" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/ic_next"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_alignParentEnd="true"
+                    android:src="@drawable/ic_next" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="12dp"
             app:strokeWidth="0dp"
             app:cardElevation="2dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
@@ -147,18 +141,13 @@
                     android:text="Change Password"
                     android:textColor="#111111"
                     android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:fontFamily="@font/poppins" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/ic_next"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_alignParentEnd="true"
+                    android:src="@drawable/ic_next" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>

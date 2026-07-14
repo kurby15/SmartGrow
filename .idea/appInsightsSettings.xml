@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.smartgrow" />
+                  <option name="mobileSdkAppId" value="1:948708493094:android:b712c31c3b1aa8d2e423e7" />
+                  <option name="projectId" value="smartgrow-8d6a4" />
+                  <option name="projectNumber" value="948708493094" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

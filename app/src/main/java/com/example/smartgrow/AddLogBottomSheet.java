@@ -2,12 +2,17 @@ package com.example.smartgrow;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,12 +20,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import android.content.Context;
-import android.content.SharedPreferences;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,9 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
     private String plantId;
     private DatabaseReference databaseReference;
     private String currentUsername;
+
+    // I-store ang root view para ligtas gamitin kahit saan sa class
+    private View rootView;
 
     public static AddLogBottomSheet newInstance(String plantId) {
         AddLogBottomSheet fragment = new AddLogBottomSheet();
@@ -60,14 +64,14 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
-    // ⭐ HETO ANG LOGIC: Pinapayagan si user mag slide up at slide down via Touchscreen gesture!
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
 
         if (dialog.getWindow() != null) {
-            dialog.getWindow().getAttributes().windowAnimations = com.google.android.material.R.style.Animation_Material3_BottomSheetDialog;
+            // Ligtas na keyboard adjustment configuration
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
         dialog.setOnShowListener(dialogInterface -> {
@@ -75,8 +79,13 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
             View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
-                behavior.setHideable(true); // Pwedeng hilahin pababa gamit ang daliri para i-dismiss!
-                behavior.setState(BottomSheetBehavior.STATE_EXPANDED); // Automatic naka-open agad full views
+                behavior.setHideable(true);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+                // Responsive layout calculation para sa scroll control
+                int displayHeight = requireContext().getResources().getDisplayMetrics().heightPixels;
+                behavior.setMaxHeight((int) (displayHeight * 0.90));
+                behavior.setSkipCollapsed(true);
             }
         });
 
@@ -86,29 +95,27 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.dialog_add_log_sheet, container, false);
+        rootView = inflater.inflate(R.layout.dialog_add_log_sheet, container, false);
 
-        // Bind interactive views
-        etLogDate = view.findViewById(R.id.et_log_date);
-        etLogNotes = view.findViewById(R.id.et_log_notes);
-        imgCalendarIcon = view.findViewById(R.id.img_log_calendar_icon);
-        rgWatered = view.findViewById(R.id.rg_log_watered);
-        rgFertilized = view.findViewById(R.id.rg_log_fertilized);
-        rgSunlight = view.findViewById(R.id.rg_log_sunlight);
-        rgHealth = view.findViewById(R.id.rg_log_health);
-        btnSubmitLog = view.findViewById(R.id.btn_submit_log);
+        // Bind layouts at interactive elements
+        etLogDate = rootView.findViewById(R.id.et_log_date);
+        etLogNotes = rootView.findViewById(R.id.et_log_notes);
+        imgCalendarIcon = rootView.findViewById(R.id.img_log_calendar_icon);
+        rgWatered = rootView.findViewById(R.id.rg_log_watered);
+        rgFertilized = rootView.findViewById(R.id.rg_log_fertilized);
+        rgSunlight = rootView.findViewById(R.id.rg_log_sunlight);
+        rgHealth = rootView.findViewById(R.id.rg_log_health);
+        btnSubmitLog = rootView.findViewById(R.id.btn_submit_log);
 
-        // 📅 Calendar Selector Popup Logic
+        // Calendar Click Listeners
         View.OnClickListener dateListener = v -> showDatePickerDialog();
         etLogDate.setOnClickListener(dateListener);
         imgCalendarIcon.setOnClickListener(dateListener);
 
-        // 💾 Submit Log Trigger Button
-        btnSubmitLog.setOnClickListener(v -> {
-            saveLogToFirebase();
-        });
+        // Action Click Submit
+        btnSubmitLog.setOnClickListener(v -> saveLogToFirebase());
 
-        return view;
+        return rootView;
     }
 
     private void saveLogToFirebase() {
@@ -130,20 +137,22 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
 
         String sunlight = "";
         int sunlightId = rgSunlight.getCheckedRadioButtonId();
-        if (sunlightId != -1) {
-            sunlight = ((RadioButton) getView().findViewById(sunlightId)).getText().toString();
+        if (sunlightId != -1 && rootView != null) {
+            RadioButton rb = rootView.findViewById(sunlightId);
+            if (rb != null) {
+                sunlight = rb.getText().toString();
+            }
         }
 
         String health = "";
-        int healthPercentage = 100; // Default
-        
+        int healthPercentage = 100;
+
         int healthId = rgHealth.getCheckedRadioButtonId();
-        if (healthId != -1) {
-            RadioButton rb = getView().findViewById(healthId);
+        if (healthId != -1 && rootView != null) {
+            RadioButton rb = rootView.findViewById(healthId);
             if (rb != null) {
                 health = rb.getText().toString();
-                
-                // 📊 Kalkulahin ang percentage base sa status string
+
                 if (health.equalsIgnoreCase("Healthy")) healthPercentage = 100;
                 else if (health.equalsIgnoreCase("Fair")) healthPercentage = 75;
                 else if (health.equalsIgnoreCase("Needs Attention")) healthPercentage = 50;
@@ -158,22 +167,21 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
 
         String logId = databaseReference.push().getKey();
         if (logId == null) return;
-        
+
         LogModel log = new LogModel(logId, date, watered, fertilized, sunlight, health, notes);
 
         final String finalHealth = health;
         final int finalPercentage = healthPercentage;
-        
+
         databaseReference.child(logId).setValue(log).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // 🚀 I-update ang main plant record sa Firebase (parehong Status at Percentage)
                 DatabaseReference plantRef = FirebaseDatabase.getInstance().getReference("users")
                         .child(currentUsername).child("plants").child(plantId);
-                
+
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("healthStatus", finalHealth);
                 updates.put("healthPercentage", finalPercentage);
-                
+
                 plantRef.updateChildren(updates);
 
                 Toast.makeText(getContext(), "New Plant Growth Log Saved!", Toast.LENGTH_SHORT).show();

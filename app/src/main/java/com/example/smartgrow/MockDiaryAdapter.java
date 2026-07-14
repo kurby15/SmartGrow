@@ -59,17 +59,19 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
         fetchDiaryRecentActivity(plant.getId(), holder);
 
         // 🌟 1. CLICK LISTENER PARA SA PENCIL/EDIT ICON
+        // 🌟 1. CLICK LISTENER PARA SA PENCIL/EDIT ICON
         holder.cardEditPen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentActivity activity = getActivity(v.getContext());
                 if (activity == null) return;
 
-                // ✨ CLEANED UP: Inalis na natin si plant.getHealthStatus() sa Edit Sheet UI
+                // 🛠️ INAYOS: Ipinasa na ang anim (6) na tamang parameters base sa lagayan sa EditPlantBottomSheet
                 EditPlantBottomSheet editSheet = EditPlantBottomSheet.newInstance(
                         plant.getId(),
                         plant.getName(),
                         plant.getSpecies(),
+                        plant.getMedicinalUse(), // Siguraduhing may .getMedicinalUse() ang iyong PlantModel
                         plant.getDatePlanted(),
                         plant.getHealthStatus()
                 );

@@ -1,210 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet_rounded"
-    android:padding="24dp">
+    android:fillViewport="true"
+    android:background="@drawable/bg_bottom_sheet_rounded">
 
-    <View
-        android:id="@+id/view_reminder_drag_handle"
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:background="#CCCCCC"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_reminder_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Set Care Reminders"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:fontFamily="@font/poppins"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/view_reminder_drag_handle"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_reminder_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Set how often you want to be notified to care for this plant."
-        android:textSize="12sp"
-        android:textColor="#666666"
-        android:fontFamily="@font/poppins"
-        app:layout_constraintTop_toBottomOf="@id/tv_reminder_title"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/lbl_watering_frequency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Watering Schedule:"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:textSize="14sp"
-        android:fontFamily="@font/poppins"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_reminder_subtitle"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_watering_spinner"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#F3FBF2"
-        app:strokeWidth="1dp"
-        app:strokeColor="#E2F2E1"
-        app:layout_constraintTop_toBottomOf="@id/lbl_watering_frequency">
-        <Spinner
-            android:id="@+id/spinner_watering_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="16dp"
-            android:background="@android:color/transparent" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <TextView
-        android:id="@+id/lbl_fertilizing_frequency"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fertilizer Schedule:"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:textSize="14sp"
-        android:fontFamily="@font/poppins"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/card_watering_spinner"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:padding="24dp">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_fertilizing_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#F3FBF2"
-        app:strokeWidth="1dp"
-        app:strokeColor="#E2F2E1"
-        app:layout_constraintTop_toBottomOf="@id/lbl_fertilizing_frequency">
-        <Spinner
-            android:id="@+id/spinner_fertilizing_frequency"
+        <!-- Drag Handle Indicator -->
+        <View
+            android:id="@+id/view_reminder_drag_handle"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="#CCCCCC"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_reminder_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Care Reminders"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:fontFamily="@font/poppins"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/view_reminder_drag_handle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_reminder_subtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Set how often you want to be notified to care for this plant."
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:fontFamily="@font/poppins"
+            app:layout_constraintTop_toBottomOf="@id/tv_reminder_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Watering Schedule Dropdown -->
+        <TextView
+            android:id="@+id/lbl_watering_frequency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Watering Schedule:"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_reminder_subtitle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_watering_spinner"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="16dp"
-            android:background="@android:color/transparent" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <TextView
-        android:id="@+id/lbl_sunlight_frequency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sunlight Exposure Schedule:"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:textSize="14sp"
-        android:fontFamily="@font/poppins"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/card_fertilizing_spinner"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_sunlight_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#F3FBF2"
-        app:strokeWidth="1dp"
-        app:strokeColor="#E2F2E1"
-        app:layout_constraintTop_toBottomOf="@id/lbl_sunlight_frequency">
-        <Spinner
-            android:id="@+id/spinner_sunlight_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="16dp"
-            android:background="@android:color/transparent" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <TextView
-        android:id="@+id/lbl_reminder_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Preferred Reminder Time:"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:textSize="14sp"
-        android:fontFamily="@font/poppins"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/card_sunlight_spinner"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_reminder_time"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#F3FBF2"
-        app:strokeWidth="1dp"
-        app:strokeColor="#E2F2E1"
-        app:layout_constraintTop_toBottomOf="@id/lbl_reminder_time">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="16dp">
-            <EditText
-                android:id="@+id/et_reminder_time"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F3FBF2"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E2F2E1"
+            app:layout_constraintTop_toBottomOf="@id/lbl_watering_frequency">
+            <Spinner
+                android:id="@+id/spinner_watering_frequency"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_toLeftOf="@id/img_clock_icon"
-                android:background="@android:color/transparent"
-                android:hint="Set Time (e.g., 08:00 AM)"
-                android:textColorHint="#94A3B3"
-                android:textColor="#111111"
-                android:textSize="14sp"
-                android:focusable="false"
-                android:clickable="true"
-                android:fontFamily="@font/poppins" />
-            <ImageView
-                android:id="@+id/img_clock_icon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:src="@android:drawable/ic_menu_recent_history"
-                app:tint="#555555" />
-        </RelativeLayout>
-    </com.google.android.material.card.MaterialCardView>
+                android:paddingHorizontal="16dp"
+                android:background="@android:color/transparent" />
+        </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_save_reminder"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp"
-        android:text="Save Schedule"
-        android:textAllCaps="false"
-        android:textColor="#FFFFFF"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:fontFamily="@font/poppins"
-        android:paddingHorizontal="24dp"
-        app:backgroundTint="#0C6211"
-        app:cornerRadius="10dp"
-        app:layout_constraintTop_toBottomOf="@id/card_reminder_time"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Fertilizer Schedule Dropdown -->
+        <TextView
+            android:id="@+id/lbl_fertilizing_frequency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fertilizer Schedule:"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/card_watering_spinner"
+            app:layout_constraintStart_toStartOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_fertilizing_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F3FBF2"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E2F2E1"
+            app:layout_constraintTop_toBottomOf="@id/lbl_fertilizing_frequency">
+            <Spinner
+                android:id="@+id/spinner_fertilizing_frequency"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="16dp"
+                android:background="@android:color/transparent" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sunlight Exposure Schedule Dropdown -->
+        <TextView
+            android:id="@+id/lbl_sunlight_frequency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sunlight Exposure Schedule:"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/card_fertilizing_spinner"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_sunlight_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F3FBF2"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E2F2E1"
+            app:layout_constraintTop_toBottomOf="@id/lbl_sunlight_frequency">
+            <Spinner
+                android:id="@+id/spinner_sunlight_frequency"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="16dp"
+                android:background="@android:color/transparent" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Preferred Reminder Time -->
+        <TextView
+            android:id="@+id/lbl_reminder_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preferred Reminder Time:"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/card_sunlight_spinner"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_reminder_time"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F3FBF2"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E2F2E1"
+            app:layout_constraintTop_toBottomOf="@id/lbl_reminder_time">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="16dp">
+                <EditText
+                    android:id="@+id/et_reminder_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_toLeftOf="@id/img_clock_icon"
+                    android:layout_toStartOf="@id/img_clock_icon"
+                    android:background="@android:color/transparent"
+                    android:hint="Set Time (e.g., 08:00 AM)"
+                    android:textColorHint="#94A3B3"
+                    android:textColor="#111111"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:fontFamily="@font/poppins" />
+                <ImageView
+                    android:id="@+id/img_clock_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="Clock Icon"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="#555555" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_reminder"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Save Schedule"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins"
+            app:backgroundTint="#0C6211"
+            app:cornerRadius="10dp"
+            app:layout_constraintTop_toBottomOf="@id/card_reminder_time"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

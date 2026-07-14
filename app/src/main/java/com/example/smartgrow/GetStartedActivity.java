@@ -3,14 +3,11 @@ package com.example.smartgrow;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
@@ -38,9 +35,9 @@ public class GetStartedActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // 🌿 2. Bind ng iyong Original Views
+        // 🌿 2. Bind ng iyong Original Views (Inalis ang layoutLogoTitle dahil wala na ito sa XML)
         ImageView imgLogo = findViewById(R.id.img_logo);
-        LinearLayout layoutLogoTitle = findViewById(R.id.layout_logo_title);
+        TextView tvAppName = findViewById(R.id.tv_app_name); // Inadd natin ito para ma-animate ang text title
         TextView tvTagline = findViewById(R.id.tv_tagline);
         MaterialButton btnGetStarted = findViewById(R.id.btn_get_started);
 
@@ -67,18 +64,20 @@ public class GetStartedActivity extends AppCompatActivity {
         Animation fadeSlideUpDelayed = AnimationUtils.loadAnimation(this, R.anim.fade_slide_up_delayed);
         final Animation floatingLogo = AnimationUtils.loadAnimation(this, R.anim.floating_effect);
 
-        // 🚀 7. Patakbuhin ang iyong mga orihinal na Text at Button Animations
-        if (layoutLogoTitle != null) layoutLogoTitle.startAnimation(fadeSlideUpFast);
+        // 🚀 7. Patakbuhin ang mga Animations sa mga indibidwal na views
+        if (imgLogo != null) imgLogo.startAnimation(fadeSlideUpFast);
+        if (tvAppName != null) tvAppName.startAnimation(fadeSlideUpFast);
         if (tvTagline != null) tvTagline.startAnimation(fadeSlideUpDelayed);
         if (btnGetStarted != null) btnGetStarted.startAnimation(fadeSlideUpDelayed);
 
-        // 🔄 8. Iyong orihinal na Animation Listener para sa logo
+        // 🔄 8. Animation Listener para sa logo (Kapag natapos ang fadeSlideUp, magsisimula ang floating effect)
         fadeSlideUpFast.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {}
 
             @Override
             public void onAnimationEnd(Animation animation) {
+                // Pagkatapos ng pambungad na animation, sisimulan ang dahan-dahang pag-float ng main logo
                 if (imgLogo != null) {
                     imgLogo.startAnimation(floatingLogo);
                 }

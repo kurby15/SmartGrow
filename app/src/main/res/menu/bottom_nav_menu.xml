@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 1. HOME ICON (KALIWA) -->
     <item
         android:id="@+id/nav_home"
         android:icon="@drawable/ic_home_green"
         android:title="Home" />
 
+    <!-- 2. PLACEHOLDER (GITNA) - Ginawang clickable=false para walang mangyari kapag pinindot sa likod ng chat bubble -->
     <item
         android:id="@+id/nav_placeholder"
         android:icon="@android:color/transparent"
-        android:title="Assistant"
-        android:enabled="false"/>
+        android:title=""
+        android:enabled="false" />
 
+    <!-- 3. JOURNAL/PLANTS ICON (KANAN) -->
     <item
         android:id="@+id/nav_diary"
         android:icon="@drawable/ic_diary_book"
-        android:title="Dashboard" />
+        android:title="My Plants" />
 
 </menu>

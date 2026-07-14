@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -27,25 +28,26 @@ import java.util.Map;
 
 public class EditPlantBottomSheet extends BottomSheetDialogFragment {
 
-    private EditText etEditName, etEditSpecies, etEditDate;
+    // Inayos ang mga Edit Texts kasama na ang Medicinal Use
+    private EditText etEditName, etEditSpecies, etEditMedicinalUse, etEditDate;
     private MaterialButton btnSave;
 
-    // 📸 Mga UI components para sa Photo Section at Calendar Icon
     private MaterialCardView cardEditUploadImage;
     private LinearLayout layoutEditImagePlaceholder;
     private ImageView imgEditPlantPreview, imgEditCalendarIcon;
 
-    // Kunin ang mga default values na pinasa mula sa card list
-    private String plantId, currentName, currentSpecies, currentDate, currentStatus;
+    private String plantId, currentName, currentSpecies, currentMedicinalUse, currentDate, currentStatus;
     private DatabaseReference databaseReference;
     private String currentUsername;
 
-    public static EditPlantBottomSheet newInstance(String plantId, String name, String species, String date, String status) {
+    // Dinagdag ang "medicinalUse" parameter sa bagong instance loader
+    public static EditPlantBottomSheet newInstance(String plantId, String name, String species, String medicinalUse, String date, String status) {
         EditPlantBottomSheet fragment = new EditPlantBottomSheet();
         Bundle args = new Bundle();
         args.putString("key_id", plantId);
         args.putString("key_name", name);
         args.putString("key_species", species);
+        args.putString("key_medicinal", medicinalUse);
         args.putString("key_date", date);
         args.putString("key_status", status);
         fragment.setArguments(args);
@@ -55,7 +57,7 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
         currentUsername = preferences.getString("current_username", "");
 
@@ -63,9 +65,9 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             plantId = getArguments().getString("key_id");
             currentName = getArguments().getString("key_name");
             currentSpecies = getArguments().getString("key_species");
+            currentMedicinalUse = getArguments().getString("key_medicinal");
             currentDate = getArguments().getString("key_date");
 
-            // ✂️ Linisin ang "Planted: " prefix kung meron man para malinis ang date sa input field
             if (currentDate != null && currentDate.contains("Planted: ")) {
                 currentDate = currentDate.replace("Planted: ", "");
             }
@@ -78,25 +80,27 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
-    // 🚀 CONTROL PARA SA TOUCH GESTURES (SLIDE UP / SLIDE DOWN DISMISS)
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
 
-        // Setup ang native smooth slide animations ng Material Components
         if (dialog.getWindow() != null) {
             dialog.getWindow().getAttributes().windowAnimations = com.google.android.material.R.style.Animation_Material3_BottomSheetDialog;
+            // KONTROL PARA SA KEYBOARD: Pinipilit ang window na mag-adjust kapag lumabas ang soft keyboard
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
-        // I-activate ang swipe down detection sa touchscreen
         dialog.setOnShowListener(dialogInterface -> {
             BottomSheetDialog bsd = (BottomSheetDialog) dialogInterface;
             View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
-                behavior.setHideable(true); // Pinapayagang ma-swipe pababa para mag-close
-                behavior.setState(BottomSheetBehavior.STATE_EXPANDED); // Sapilitang naka-full bukas agad
+                behavior.setHideable(true);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+                // Pigilan ang bottom sheet na mag-collapse kapag hinila paitaas ng keyboard
+                behavior.setSkipCollapsed(true);
             }
         });
 
@@ -108,40 +112,42 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_edit_plant_sheet, container, false);
 
-        // 🔗 Core Fields Layout Binding
+        // Bind ng text inputs kasama ang medicinal use
         etEditName = view.findViewById(R.id.et_edit_plant_name);
         etEditSpecies = view.findViewById(R.id.et_edit_plant_species);
+        etEditMedicinalUse = view.findViewById(R.id.et_edit_plant_medicinal_use);
         etEditDate = view.findViewById(R.id.et_edit_plant_date);
         btnSave = view.findViewById(R.id.btn_save_plant_changes);
 
-        // 🔗 New Upload Layout & Icons Binding
         cardEditUploadImage = view.findViewById(R.id.card_edit_upload_image);
         layoutEditImagePlaceholder = view.findViewById(R.id.layout_edit_image_placeholder);
         imgEditPlantPreview = view.findViewById(R.id.img_edit_plant_preview);
         imgEditCalendarIcon = view.findViewById(R.id.img_edit_calendar_icon);
 
-        // 🌟 AUTO-FILL: Isalpak agad ang lumang data sa mga textboxes
+        // Auto-fill ng active details
         etEditName.setText(currentName);
         etEditSpecies.setText(currentSpecies);
+        etEditMedicinalUse.setText(currentMedicinalUse);
         etEditDate.setText(currentDate);
 
-        // 📅 SCRIPT 1: Native DatePicker popup para sa Touch Screen
+        // Date Picker setup
         View.OnClickListener datePickerListener = v -> showDatePickerDialog();
         etEditDate.setOnClickListener(datePickerListener);
         imgEditCalendarIcon.setOnClickListener(datePickerListener);
 
-        // 📸 SCRIPT 2: Placeholder click listener para sa Camera/Gallery Upload Frame
+        // Upload handler mock
         cardEditUploadImage.setOnClickListener(v ->
                 Toast.makeText(getContext(), "Opening Camera/Gallery for Photo Update...", Toast.LENGTH_SHORT).show()
         );
 
-        // 💾 SCRIPT 3: Save Button Action Hook
+        // Save logic
         btnSave.setOnClickListener(v -> {
             String updatedName = etEditName.getText().toString().trim();
             String updatedSpecies = etEditSpecies.getText().toString().trim();
+            String updatedMedicinal = etEditMedicinalUse.getText().toString().trim();
             String updatedDate = etEditDate.getText().toString().trim();
 
-            if (updatedName.isEmpty() || updatedSpecies.isEmpty() || updatedDate.isEmpty()) {
+            if (updatedName.isEmpty() || updatedSpecies.isEmpty() || updatedMedicinal.isEmpty() || updatedDate.isEmpty()) {
                 Toast.makeText(getContext(), "Please fill in all fields!", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -154,6 +160,7 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             Map<String, Object> updates = new HashMap<>();
             updates.put("name", updatedName);
             updates.put("species", updatedSpecies);
+            updates.put("medicinalUse", updatedMedicinal); // Ngayon ay mai-save na ito sa Firebase!
             updates.put("datePlanted", updatedDate);
 
             databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
@@ -169,7 +176,6 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
         return view;
     }
 
-    // Helper function para sa tunay na Calendar Wheel interface ng phone
     private void showDatePickerDialog() {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);

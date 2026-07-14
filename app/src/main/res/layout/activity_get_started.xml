@@ -5,94 +5,115 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_splash_bg"
-    android:padding="32dp">
+    android:padding="24dp">
 
+    <!-- Responsive Guideline para sa safe zone ng bottom button -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.88" />
+
+    <!-- Leaf decoration top right - Scalable via screen width percent -->
     <ImageView
         android:id="@+id/leaf_bg_top"
-        android:layout_width="260dp"
-        android:layout_height="260dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:src="@drawable/ic_leaf_right"
         android:alpha="0.05"
         android:rotation="-20"
+        app:layout_constraintWidth_percent="0.6"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="-50dp"
-        android:layout_marginRight="-50dp"
+        android:layout_marginTop="-40dp"
+        android:layout_marginEnd="-40dp"
         android:contentDescription="Nature Deco" />
 
+    <!-- Leaf decoration bottom left - Scalable via screen width percent -->
     <ImageView
         android:id="@+id/leaf_bg_bottom"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:src="@drawable/ic_leaf_left"
         android:alpha="0.04"
         android:rotation="40"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintBottom_toTopOf="@id/btn_get_started"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginLeft="-60dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginStart="-50dp"
+        android:layout_marginBottom="10dp"
         android:contentDescription="Nature Deco" />
 
+    <!-- Premium Glow Effect: Perfectly responsive centering behind the logo ecosystem -->
     <View
         android:id="@+id/view_glow"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:alpha="0.25"
         android:background="@drawable/logo_glow_circle"
-        app:layout_constraintTop_toTopOf="@id/layout_logo_title"
-        app:layout_constraintBottom_toBottomOf="@id/layout_logo_title"
-        app:layout_constraintStart_toStartOf="@id/layout_logo_title"
-        app:layout_constraintEnd_toEndOf="@id/layout_logo_title" />
-
-    <LinearLayout
-        android:id="@+id/layout_logo_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tv_tagline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed">
-
-        <ImageView
-            android:id="@+id/img_logo"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
-            android:src="@drawable/smartgrow_logo"
-            android:contentDescription="SmartGrow Logo" />
-
-        <TextView
-            android:id="@+id/tv_app_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:fontFamily="@font/poppins"
-            android:textStyle="bold"
-            android:letterSpacing="-0.02"
-            android:text="SmartGrow"
-            android:textColor="@color/white"
-            android:textSize="36sp" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_tagline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:alpha="0.85"
-        android:fontFamily="@font/poppins"
-        android:gravity="center"
-        android:lineSpacingExtra="5sp"
-        android:text="Scan, identify, and let your plants thrive."
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/layout_logo_title"
-        app:layout_constraintBottom_toTopOf="@id/btn_get_started"
+        app:layout_constraintWidth_percent="0.65"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintTop_toTopOf="@id/img_logo"
+        app:layout_constraintBottom_toBottomOf="@id/tv_app_name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Logo: Scaled via percentage (38% of screen width) so it shrinks/grows perfectly across any device -->
+    <ImageView
+        android:id="@+id/img_logo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/smartgrow_logo"
+        app:layout_constraintWidth_percent="0.38"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tv_app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.45"
+        android:contentDescription="SmartGrow Logo" />
+
+    <!-- App Name Title -->
+    <TextView
+        android:id="@+id/tv_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/poppins"
+        android:textStyle="bold"
+        android:letterSpacing="-0.02"
+        android:text="SmartGrow"
+        android:textColor="@color/white"
+        android:textSize="34sp"
+        app:layout_constraintTop_toBottomOf="@id/img_logo"
+        app:layout_constraintBottom_toTopOf="@id/tv_tagline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Tagline Text -->
+    <TextView
+        android:id="@+id/tv_tagline"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:alpha="0.85"
+        android:fontFamily="@font/poppins"
+        android:gravity="center"
+        android:text="Scan, identify, and let your plants thrive."
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        app:layout_constraintWidth_percent="0.8"
+        app:layout_constraintTop_toBottomOf="@id/tv_app_name"
+        app:layout_constraintBottom_toTopOf="@id/guideline_bottom"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <!-- Get Started Bottom Action Button: Responsive max height with dynamic padding boundaries -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_get_started"
         android:layout_width="match_parent"
@@ -108,11 +129,10 @@
         android:textColor="#12A703"
         android:textSize="18sp"
         app:cornerRadius="28dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:rippleColor="#2012A703"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline_bottom"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

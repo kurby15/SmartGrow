@@ -1,16 +1,21 @@
 package com.example.smartgrow;
 
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DatabaseReference;
@@ -22,8 +27,9 @@ import java.util.Locale;
 
 public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
 
-    private Spinner spinnerWater, spinnerFertilizer, spinnerSunlight; // 🌟 Idinagdag si spinnerSunlight
+    private Spinner spinnerWater, spinnerFertilizer, spinnerSunlight;
     private EditText etTime;
+    private ImageView imgClockIcon;
     private MaterialButton btnSave;
 
     private String plantId;
@@ -54,6 +60,34 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    // 🚀 ENGINE CONTROL PARA SA TOUCH GESTURES AT KEYBOARD FIT
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
+
+        // Paganahin ang native smooth Material 3 animations
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().getAttributes().windowAnimations = com.google.android.material.R.style.Animation_Material3_BottomSheetDialog;
+            // 🛑 ANTI-OVERLAP: Awtomatikong itinataas ang sheet kapag lumabas ang soft keyboard
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
+
+        // I-activate ang swipe gesture handlers
+        dialog.setOnShowListener(dialogInterface -> {
+            BottomSheetDialog bsd = (BottomSheetDialog) dialogInterface;
+            View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setHideable(true); // Pwedeng i-swipe pababa para mag-dismiss
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED); // Naka-full expanded agad para kitang-kita ang form
+                behavior.setSkipCollapsed(true); // Iwasang magbitay o maiwan sa kalahati kapag tinatago ang keyboard
+            }
+        });
+
+        return dialog;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -64,17 +98,18 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 🔗 Bind View Layout Components
+        // 🔗 Layout XML Data Bindings
         spinnerWater = view.findViewById(R.id.spinner_watering_frequency);
         spinnerFertilizer = view.findViewById(R.id.spinner_fertilizing_frequency);
-        spinnerSunlight = view.findViewById(R.id.spinner_sunlight_frequency); // 🔗 Ikonek si sunlight
+        spinnerSunlight = view.findViewById(R.id.spinner_sunlight_frequency);
         etTime = view.findViewById(R.id.et_reminder_time);
+        imgClockIcon = view.findViewById(R.id.img_clock_icon);
         btnSave = view.findViewById(R.id.btn_save_reminder);
 
-        // 🛠️ Construct Dropdown Options
+        // 🛠️ Dropdown Adapters
         String[] waterOptions = {"Every Day", "Every 2 Days", "Every 3 Days", "Weekly", "None"};
         String[] fertilizerOptions = {"Every Week", "Every 2 Weeks", "Monthly", "None"};
-        String[] sunlightOptions = {"Every Day", "Every 2 Days", "Weekly", "None"}; // 🌟 Mga pagpipilian para sa araw
+        String[] sunlightOptions = {"Every Day", "Every 2 Days", "Weekly", "None"};
 
         ArrayAdapter<String> waterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, waterOptions);
         ArrayAdapter<String> fertAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, fertilizerOptions);
@@ -82,16 +117,18 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
 
         spinnerWater.setAdapter(waterAdapter);
         spinnerFertilizer.setAdapter(fertAdapter);
-        spinnerSunlight.setAdapter(sunAdapter); // 🛠️ Isalpak ang adapter kay sunlight
+        spinnerSunlight.setAdapter(sunAdapter);
 
-        // ⏰ Hook TimePicker Dialog on Focus/Click
-        etTime.setOnClickListener(v -> showTimePicker());
+        // ⏰ Pag-click sa orasan o text field, bubukas ang system Time Wheel
+        View.OnClickListener timePickerListener = v -> showTimePicker();
+        etTime.setOnClickListener(timePickerListener);
+        imgClockIcon.setOnClickListener(timePickerListener);
 
-        // 🚀 Save Transaction Logic
+        // 💾 Save Execution Pipeline
         btnSave.setOnClickListener(v -> {
             String waterSched = spinnerWater.getSelectedItem().toString();
             String fertSched = spinnerFertilizer.getSelectedItem().toString();
-            String sunSched = spinnerSunlight.getSelectedItem().toString(); // 🌟 Kunin ang string ng sunlight schedule
+            String sunSched = spinnerSunlight.getSelectedItem().toString();
             String timeSet = etTime.getText().toString().trim();
 
             if (timeSet.isEmpty()) {

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="#FAFAFA">
 
+    <!-- TOP HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_top_header"
         android:layout_width="match_parent"
@@ -100,6 +101,7 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- FRAGMENT CONTAINER -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
@@ -109,6 +111,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- SHADOW LINE -->
     <View
         android:id="@+id/view_nav_shadow"
         android:layout_width="match_parent"
@@ -116,6 +119,7 @@
         android:background="#E0E0E0"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"/>
 
+    <!-- BOTTOM NAVIGATION BAR (FIXED COMPATIBILITY) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"
         android:layout_width="match_parent"
@@ -128,10 +132,12 @@
         app:itemIconSize="26dp"
         app:itemActiveIndicatorStyle="@style/CustomNavIndicator"
         app:itemRippleColor="#200C6211"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- CHAT FLOATING ASSISTANT (PERFECTLY CENTERED) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_nav_chat_assistant"
         android:layout_width="64dp"
