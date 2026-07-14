@@ -32,7 +32,8 @@
         <ImageView
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:src="@drawable/smartgrow_logo" />
+            android:src="@drawable/smartgrow_logo"
+            app:tint="#12A703"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

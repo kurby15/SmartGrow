@@ -34,11 +34,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         // Initialize Firebase
         databaseReference = FirebaseDatabase.getInstance().getReference("users");
 
-        Window window = getWindow();
-        window.setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        );
         setContentView(R.layout.activity_forgot_password);
 
         if (getSupportActionBar() != null) {

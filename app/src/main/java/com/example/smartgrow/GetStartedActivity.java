@@ -31,12 +31,6 @@ public class GetStartedActivity extends AppCompatActivity {
             return;
         }
 
-        // 🌟 1. Transparent status bar para sumabay sa kulay ng iyong background gradient
-        Window window = getWindow();
-        window.setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        );
         setContentView(R.layout.activity_get_started);
 
         // Itago ang default action bar kung mayroon man

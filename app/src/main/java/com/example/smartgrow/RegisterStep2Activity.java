@@ -24,16 +24,6 @@ public class RegisterStep2Activity extends AppCompatActivity {
         // Get user data from previous step
         userData = (User) getIntent().getSerializableExtra("user_data");
 
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-            android.view.Window window = getWindow();
-
-
-            window.setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            );
-        }
         setContentView(R.layout.activity_register_step2);
 
         ImageButton btnBack = findViewById(R.id.btn_register_back);

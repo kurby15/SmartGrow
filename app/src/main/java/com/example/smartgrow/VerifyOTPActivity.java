@@ -32,12 +32,6 @@ public class VerifyOTPActivity extends AppCompatActivity {
         expectedOtpCode = getIntent().getStringExtra("otp_code");
         userEmail = getIntent().getStringExtra("email");
 
-        // 🌟 Transparent Status Bar
-        Window window = getWindow();
-        window.setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        );
         setContentView(R.layout.activity_verify_otp);
 
         if (getSupportActionBar() != null) {

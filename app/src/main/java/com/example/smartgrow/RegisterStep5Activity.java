@@ -40,14 +40,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
         // Get user data from previous step
         userData = (User) getIntent().getSerializableExtra("user_data");
 
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Window window = getWindow();
-            window.setFlags(
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            );
-        }
         setContentView(R.layout.activity_register_step5);
 
         // 🔗 Bind UI Components

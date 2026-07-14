@@ -28,14 +28,6 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize Firebase
         databaseReference = FirebaseDatabase.getInstance().getReference("users");
 
-        // 🌟 Full Screen Layout Setup (No Limits Background)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-            android.view.Window window = getWindow();
-            window.setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            );
-        }
         setContentView(R.layout.activity_login);
 
         // 🔗 Binding UI Elements

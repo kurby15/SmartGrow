@@ -21,16 +21,6 @@ public class RegisterStep1Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-            android.view.Window window = getWindow();
-
-
-            window.setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            );
-        }
         setContentView(R.layout.activity_register_step1);
 
         ImageButton btnBack = findViewById(R.id.btn_register_back);
