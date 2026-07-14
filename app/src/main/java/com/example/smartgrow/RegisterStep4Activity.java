@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import java.util.HashMap;
 
 public class RegisterStep4Activity extends AppCompatActivity {
 
@@ -17,15 +18,16 @@ public class RegisterStep4Activity extends AppCompatActivity {
     private String selectedChoiceText = "";
     private User userData;
 
+    // HashMap para sa ligtas na pag-map ng Card sa katabing TextView nito
+    private final HashMap<MaterialCardView, TextView> cardTextMap = new HashMap<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Get user data from previous step
-        userData = (User) getIntent().getSerializableExtra("user_data");
-
         setContentView(R.layout.activity_register_step4);
 
+        // Kunin ang naipong data mula sa Step 3
+        userData = (User) getIntent().getSerializableExtra("user_data");
 
         ImageButton btnBack = findViewById(R.id.btn_register_back);
         MaterialButton btnNext = findViewById(R.id.btn_register_next);
@@ -40,18 +42,19 @@ public class RegisterStep4Activity extends AppCompatActivity {
         TextView tvChoice3 = findViewById(R.id.tv_choice3_text);
         TextView tvChoice4 = findViewById(R.id.tv_choice4_text);
 
+        // I-map ang cards para hindi mag-null pointer crash
+        cardTextMap.put(card1, tvChoice1);
+        cardTextMap.put(card2, tvChoice2);
+        cardTextMap.put(card3, tvChoice3);
+        cardTextMap.put(card4, tvChoice4);
 
-        card1.setOnClickListener(v -> selectChoice(card1, tvChoice1));
-        card2.setOnClickListener(v -> selectChoice(card2, tvChoice2));
-        card3.setOnClickListener(v -> selectChoice(card3, tvChoice3));
-        card4.setOnClickListener(v -> selectChoice(card4, tvChoice4));
+        // Click listeners para sa bawat option
+        card1.setOnClickListener(v -> selectChoice(card1));
+        card2.setOnClickListener(v -> selectChoice(card2));
+        card3.setOnClickListener(v -> selectChoice(card3));
+        card4.setOnClickListener(v -> selectChoice(card4));
 
-
-        btnBack.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-        });
-
+        btnBack.setOnClickListener(v -> goBack());
 
         btnNext.setOnClickListener(v -> {
             if (selectedCard == null) {
@@ -63,38 +66,48 @@ public class RegisterStep4Activity extends AppCompatActivity {
                 userData.setChoice4(selectedChoiceText);
             }
 
+            // Lilipad na sa huling hakbang (Step 5)
             Intent intent = new Intent(RegisterStep4Activity.this, RegisterStep5Activity.class);
             intent.putExtra("user_data", userData);
             startActivity(intent);
 
-
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
-
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                finish();
-                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                goBack();
             }
         });
     }
 
-    private void selectChoice(MaterialCardView targetCard, TextView targetText) {
+    private void selectChoice(MaterialCardView targetCard) {
+        // Ibalik sa default white background ang lumang pinili
         if (selectedCard != null) {
             selectedCard.setCardBackgroundColor(Color.parseColor("#FFFFFF"));
             selectedCard.setStrokeColor(Color.parseColor("#EAEAEA"));
 
-            TextView previousText = (TextView) selectedCard.getChildAt(0);
-            previousText.setTextColor(Color.parseColor("#333333"));
+            TextView previousText = cardTextMap.get(selectedCard);
+            if (previousText != null) {
+                previousText.setTextColor(Color.parseColor("#333333"));
+            }
         }
 
-        targetCard.setCardBackgroundColor(Color.parseColor("#0C6211"));
-        targetCard.setStrokeColor(Color.parseColor("#0C6211"));
-        targetText.setTextColor(Color.parseColor("#FFFFFF"));
+        // Ilapat ang Green Theme sa bagong napiling card
+        TextView targetText = cardTextMap.get(targetCard);
+        if (targetText != null) {
+            targetCard.setCardBackgroundColor(Color.parseColor("#0C6211"));
+            targetCard.setStrokeColor(Color.parseColor("#0C6211"));
+            targetText.setTextColor(Color.parseColor("#FFFFFF"));
 
-        selectedCard = targetCard;
-        selectedChoiceText = targetText.getText().toString();
+            selectedCard = targetCard;
+            selectedChoiceText = targetText.getText().toString();
+        }
+    }
+
+    private void goBack() {
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

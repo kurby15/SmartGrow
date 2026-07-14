@@ -2,12 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://tools.android.com/tools">
 
+    <!-- Network at Internet Permissions para sa Firebase -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- ⚡ Idinagdag ang android:name=".SmartGrowApp" sa ibaba para gumana ang automated padding hack -->
     <application
-        android:name=".SmartGrowApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,7 +14,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SmartGrow">
+        android:theme="@style/Theme.SmartGrow"
+        tools:targetApi="31">
 
         <!-- 🚀 1. Splash / Launcher Activity -->
         <activity
@@ -31,6 +31,7 @@
         <activity
             android:name=".GetStartedActivity"
             android:exported="false" />
+
         <activity
             android:name=".LoginActivity"
             android:windowSoftInputMode="adjustResize"
@@ -39,27 +40,26 @@
         <!-- 📝 3. Registration Flow Steps -->
         <activity
             android:name=".RegisterStep1Activity"
-            android:animateLayoutChanges="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".RegisterStep2Activity"
-            android:animateLayoutChanges="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".RegisterStep3Activity"
-            android:animateLayoutChanges="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".RegisterStep4Activity"
-            android:animateLayoutChanges="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".RegisterStep5Activity"
-            android:animateLayoutChanges="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
@@ -68,24 +68,28 @@
             android:name=".ForgotPasswordActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".VerifyOTPActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
         <activity
             android:name=".ResetPasswordActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
-        <!-- 🏠 5. Main Screen / Dashboard (Dito nakakabit ang EditProfileFragment) -->
+        <!-- 🏠 5. Main Screen / Dashboard -->
         <activity
             android:name=".MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
+        <!-- Preloaded Fonts Configuration -->
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
     </application>
 
 </manifest>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- Top Navigation and Header stay fixed -->
+    <!-- FIXED TOP HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_header_fixed"
         android:layout_width="match_parent"
@@ -125,7 +125,7 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Scrollable content area -->
+    <!-- CONTENT AREA -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view_content"
         android:layout_width="match_parent"
@@ -272,7 +272,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Footer button stays fixed at bottom -->
+    <!-- FIXED BOTTOM NEXT BUTTON -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_register_next"
         android:layout_width="match_parent"

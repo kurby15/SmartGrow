@@ -246,7 +246,7 @@
                                 android:fontFamily="@font/poppins"
                                 android:textSize="13sp"
                                 android:textColor="#333333"
-                                android:text="Plant Care"/>
+                               />
                         </LinearLayout>
 
                         <LinearLayout
@@ -268,7 +268,7 @@
                                 android:fontFamily="@font/poppins"
                                 android:textSize="13sp"
                                 android:textColor="#333333"
-                                android:text="Indoor Plants"/>
+                                />
                         </LinearLayout>
 
                         <LinearLayout
@@ -289,7 +289,7 @@
                                 android:fontFamily="@font/poppins"
                                 android:textSize="13sp"
                                 android:textColor="#333333"
-                                android:text="Herbal Gardening"/>
+                                />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

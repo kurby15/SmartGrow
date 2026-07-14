@@ -149,6 +149,7 @@
                     android:clickable="true"
                     android:focusable="true">
                     <TextView
+                        android:id="@+id/tv_choice1_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
@@ -173,6 +174,7 @@
                     android:clickable="true"
                     android:focusable="true">
                     <TextView
+                        android:id="@+id/tv_choice2_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
@@ -197,6 +199,7 @@
                     android:clickable="true"
                     android:focusable="true">
                     <TextView
+                        android:id="@+id/tv_choice3_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
@@ -221,6 +224,7 @@
                     android:clickable="true"
                     android:focusable="true">
                     <TextView
+                        android:id="@+id/tv_choice4_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
@@ -250,6 +254,8 @@
         android:backgroundTint="#0C6211"
         app:cornerRadius="16dp"
         android:elevation="4dp"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
