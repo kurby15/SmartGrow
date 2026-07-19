@@ -19,6 +19,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import android.content.SharedPreferences;
+import android.util.Base64;
+import android.widget.ImageView;
+import com.bumptech.glide.Glide;
 
 public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.DiaryViewHolder> {
 
@@ -46,6 +49,28 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
         holder.tvDate.setText("Planted: " + plant.getDatePlanted());
         holder.tvStatus.setText(plant.getHealthStatus());
 
+        // 🖼️ LOAD PLANT IMAGE (Base64 or URL)
+        if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
+            if (plant.getImageUrl().startsWith("http")) {
+                // If it's a URL
+                Glide.with(holder.itemView.getContext())
+                        .load(plant.getImageUrl())
+                        .placeholder(R.drawable.smartgrow_logo)
+                        .into(holder.imgPlant);
+            } else {
+                // 🚀 If it's Base64 Text
+                try {
+                    byte[] decodedString = Base64.decode(plant.getImageUrl(), Base64.DEFAULT);
+                    android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    holder.imgPlant.setImageBitmap(decodedByte);
+                } catch (Exception e) {
+                    holder.imgPlant.setImageResource(R.drawable.smartgrow_logo);
+                }
+            }
+        } else {
+            holder.imgPlant.setImageResource(R.drawable.smartgrow_logo);
+        }
+
         // Simple dynamic background color para sa Badge base sa status (Mula sa pinakahuling log status ng halaman)
         if (plant.getHealthStatus().equalsIgnoreCase("Healthy")) {
             holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#155724"));
@@ -66,14 +91,15 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
                 FragmentActivity activity = getActivity(v.getContext());
                 if (activity == null) return;
 
-                // 🛠️ INAYOS: Ipinasa na ang anim (6) na tamang parameters base sa lagayan sa EditPlantBottomSheet
+                // 🛠️ INAYOS: Ipinasa na ang pito (7) na tamang parameters
                 EditPlantBottomSheet editSheet = EditPlantBottomSheet.newInstance(
                         plant.getId(),
                         plant.getName(),
                         plant.getSpecies(),
-                        plant.getMedicinalUse(), // Siguraduhing may .getMedicinalUse() ang iyong PlantModel
+                        plant.getMedicinalUse(),
                         plant.getDatePlanted(),
-                        plant.getHealthStatus()
+                        plant.getHealthStatus(),
+                        plant.getImageUrl() // 🖼️ IPINASA NA ANG IMAGE URL!
                 );
 
                 editSheet.show(activity.getSupportFragmentManager(), "EditPlantBottomSheetTag");
@@ -159,6 +185,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
     // Taga-bind ng mga IDs mula sa item_plant_card.xml
     public static class DiaryViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvSpecies, tvDate, tvStatus, tvLastWatered;
+        ImageView imgPlant;
         MaterialCardView cardEditPen;
         MaterialCardView cardEditBell; // 🌟 IDINAGDAG PARA SA BELL CARD CONTAINER
         MaterialButton btnAddLog;
@@ -170,6 +197,7 @@ public class MockDiaryAdapter extends RecyclerView.Adapter<MockDiaryAdapter.Diar
             tvDate = itemView.findViewById(R.id.tv_diary_plant_timestamp);
             tvStatus = itemView.findViewById(R.id.tv_diary_health_pill_text);
             tvLastWatered = itemView.findViewById(R.id.tv_diary_last_watered_activity_date);
+            imgPlant = itemView.findViewById(R.id.img_diary_plant_visual);
 
             // 🔗 Ikonek ang mga operating panels mula sa card layout
             cardEditPen = itemView.findViewById(R.id.card_diary_item_edit_pen);

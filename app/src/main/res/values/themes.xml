@@ -3,14 +3,18 @@
     <style name="Base.Theme.SmartGrow" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:windowDisablePreview">true</item>
-        <item name="android:statusBarColor">#0C6211</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
 
-        <!-- 🎨 Solusyon 2: Gawing kakulay ng Dashboard background ang Navigation Bar sa ilalim -->
-        <item name="android:navigationBarColor">#F9FAFA</item>
+        <!-- ⚪ Standard White Status Bar para malinis tingnan -->
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
 
-        <!-- 👁️ Piliting maging dark/black ang icons (Back, Home, Recent) para litaw sa puting background -->
+        <!-- ⚪ White Navigation Bar para pantay sa ilalim -->
+        <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
+
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
     </style>
 
     <style name="Theme.SmartGrow" parent="Base.Theme.SmartGrow" />

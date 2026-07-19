@@ -11,6 +11,7 @@ public class User implements Serializable {
     private String choice2;
     private String choice3;
     private String choice4;
+    private String profilePic;
 
     public User() {
         // Required for Firebase
@@ -51,4 +52,7 @@ public class User implements Serializable {
 
     public String getChoice4() { return choice4; }
     public void setChoice4(String choice4) { this.choice4 = choice4; }
+
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 }

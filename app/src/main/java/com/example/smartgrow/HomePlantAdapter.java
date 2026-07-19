@@ -16,6 +16,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Base64;
+import com.bumptech.glide.Glide;
 
 public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.HomePlantViewHolder> {
 
@@ -56,8 +58,24 @@ public class HomePlantAdapter extends RecyclerView.Adapter<HomePlantAdapter.Home
         // Fetch Recent Activity from Firebase
         fetchRecentActivity(plant.getId(), holder);
 
-        // Default local image placeholder
-        if (holder.imgPlantPhoto != null) {
+        // 🖼️ LOAD PLANT IMAGE (Base64 or URL)
+        if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
+            if (plant.getImageUrl().startsWith("http")) {
+                Glide.with(holder.itemView.getContext())
+                        .load(plant.getImageUrl())
+                        .placeholder(R.drawable.smartgrow_logo)
+                        .into(holder.imgPlantPhoto);
+            } else {
+                // 🚀 Decoding Base64 for Dashboard
+                try {
+                    byte[] decodedString = android.util.Base64.decode(plant.getImageUrl(), android.util.Base64.DEFAULT);
+                    android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    holder.imgPlantPhoto.setImageBitmap(decodedByte);
+                } catch (Exception e) {
+                    holder.imgPlantPhoto.setImageResource(R.drawable.smartgrow_logo);
+                }
+            }
+        } else {
             holder.imgPlantPhoto.setImageResource(R.drawable.smartgrow_logo);
         }
     }

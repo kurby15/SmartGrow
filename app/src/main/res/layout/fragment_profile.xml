@@ -137,6 +137,7 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_plant" />
                             <TextView
+                                android:id="@+id/tv_stats_plants"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0 Plants"
@@ -158,6 +159,7 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_scan" />
                             <TextView
+                                android:id="@+id/tv_stats_scans"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0 Scans"
@@ -179,6 +181,7 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_post" />
                             <TextView
+                                android:id="@+id/tv_stats_posts"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0 Posts"

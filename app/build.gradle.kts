@@ -48,6 +48,7 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.firebase.database)
+    implementation(libs.firebase.storage)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
@@ -58,4 +59,7 @@ dependencies {
     // JavaMail API for sending emails
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
+
+    // Glide for Image Loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
