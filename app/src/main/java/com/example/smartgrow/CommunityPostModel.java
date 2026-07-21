@@ -1,33 +1,58 @@
-package com.example.smartgrow; // Double-check if your package matches
+package com.example.smartgrow;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommunityPostModel {
     private String postId;
     private String username;
+    private String userId;
     private String profileImageUri;
-    private String timeAgo;
+    private Long timestamp;
     private String content;
     private String postImageUri;
-    private int likesCount;
-    private int commentsCount;
+    private String location; // Bagong field para sa City/Province
+    private int likesCount = 0;
+    private int commentsCount = 0;
+    private Map<String, Boolean> likes = new HashMap<>();
 
-    public CommunityPostModel(String postId, String username, String profileImageUri, String timeAgo,
-                         String content, String postImageUri, int likesCount, int commentsCount) {
+    public CommunityPostModel() {}
+
+    public CommunityPostModel(String postId, String username, String userId, String profileImageUri, 
+                         Long timestamp, String content, String postImageUri, String location) {
         this.postId = postId;
         this.username = username;
+        this.userId = userId;
         this.profileImageUri = profileImageUri;
-        this.timeAgo = timeAgo;
+        this.timestamp = timestamp;
         this.content = content;
         this.postImageUri = postImageUri;
-        this.likesCount = likesCount;
-        this.commentsCount = commentsCount;
+        this.location = location;
     }
 
+    // Getters
     public String getPostId() { return postId; }
     public String getUsername() { return username; }
+    public String getUserId() { return userId; }
     public String getProfileImageUri() { return profileImageUri; }
-    public String getTimeAgo() { return timeAgo; }
+    public Long getTimestamp() { return timestamp; }
     public String getContent() { return content; }
     public String getPostImageUri() { return postImageUri; }
+    public String getLocation() { return location; }
     public int getLikesCount() { return likesCount; }
     public int getCommentsCount() { return commentsCount; }
+    public Map<String, Boolean> getLikes() { return likes; }
+
+    // Setters
+    public void setPostId(String postId) { this.postId = postId; }
+    public void setUsername(String username) { this.username = username; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public void setProfileImageUri(String profileImageUri) { this.profileImageUri = profileImageUri; }
+    public void setTimestamp(Long timestamp) { this.timestamp = timestamp; }
+    public void setContent(String content) { this.content = content; }
+    public void setPostImageUri(String postImageUri) { this.postImageUri = postImageUri; }
+    public void setLocation(String location) { this.location = location; }
+    public void setLikesCount(int likesCount) { this.likesCount = likesCount; }
+    public void setCommentsCount(int commentsCount) { this.commentsCount = commentsCount; }
+    public void setLikes(Map<String, Boolean> likes) { this.likes = likes; }
 }

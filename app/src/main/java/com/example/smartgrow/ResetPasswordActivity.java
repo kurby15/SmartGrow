@@ -3,8 +3,6 @@ package com.example.smartgrow;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -73,14 +71,17 @@ public class ResetPasswordActivity extends AppCompatActivity {
         btnUpdatePassword.setEnabled(false);
         Toast.makeText(this, "Updating password...", Toast.LENGTH_SHORT).show();
 
+        // 🔐 SECURE PASSWORD HASHING
+        String hashedPassword = SecurityUtils.hashPassword(newPassword);
+
         // Hanapin ang user profile node na may katapat na email address para palitan ang password field
         databaseReference.orderByChild("email").equalTo(userEmail).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                        // Palitan ang inner child field na password gamit ang bagong value
-                        userSnapshot.getRef().child("password").setValue(newPassword).addOnCompleteListener(task -> {
+                        // Palitan ang inner child field na password gamit ang hashed value
+                        userSnapshot.getRef().child("password").setValue(hashedPassword).addOnCompleteListener(task -> {
                             btnUpdatePassword.setEnabled(true);
                             if (task.isSuccessful()) {
                                 Toast.makeText(ResetPasswordActivity.this, "Password successfully updated in SmartGrow!", Toast.LENGTH_LONG).show();

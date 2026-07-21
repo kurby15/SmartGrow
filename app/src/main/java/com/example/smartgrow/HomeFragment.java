@@ -1,7 +1,6 @@
 package com.example.smartgrow;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,6 +54,7 @@ public class HomeFragment extends Fragment {
     private DatabaseReference databaseReference, userRef;
     private String currentUsername;
     private String userFullName = "SmartGrower";
+    private SharedPrefManager prefManager;
 
     private final Handler clockHandler = new Handler();
     private Runnable clockRunnable;
@@ -68,10 +68,10 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        if (getActivity() != null) {
-            SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-            currentUsername = preferences.getString("current_username", "");
-        }
+        // 🔐 SECURE DATA FETCH
+        prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUsername = prefManager.getUsername();
+        userFullName = prefManager.getFullName();
 
         // Initialize Views
         tvTaskReminder = view.findViewById(R.id.tv_task_reminder);
@@ -82,12 +82,10 @@ public class HomeFragment extends Fragment {
         rvAiHistory = view.findViewById(R.id.rv_ai_detected_history);
         rvMyPlantsList = view.findViewById(R.id.rv_my_plants_list);
 
-        // Setup AI History RecyclerView
         if (rvAiHistory != null) {
             rvAiHistory.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         }
 
-        // Setup Plants RecyclerView
         if (rvMyPlantsList != null) {
             rvMyPlantsList.setLayoutManager(new LinearLayoutManager(getContext()));
             rvMyPlantsList.setHasFixedSize(true);
@@ -96,13 +94,14 @@ public class HomeFragment extends Fragment {
         homePlantAdapter = new HomePlantAdapter(plantList);
         rvMyPlantsList.setAdapter(homePlantAdapter);
 
-        // Firebase Initialization
-        if (currentUsername != null && !currentUsername.isEmpty()) {
+        if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown")) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("plants");
             userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUsername);
 
             fetchPlantsFromFirebase();
             fetchUserProfile();
+        } else {
+            if (tvUserGreeting != null) tvUserGreeting.setText("Welcome back!");
         }
 
         setupClickListeners();
@@ -121,11 +120,11 @@ public class HomeFragment extends Fragment {
                     User user = snapshot.getValue(User.class);
                     if (user != null && user.getFullName() != null) {
                         userFullName = user.getFullName();
+                        prefManager.saveUser(user); 
                         updateLiveDateTimeAndGreeting();
                     }
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
@@ -173,11 +172,28 @@ public class HomeFragment extends Fragment {
 
         for (PlantModel p : plantList) {
             totalHealth += p.getHealthPercentage();
+            
             if (p.getHealthPercentage() < 60) {
                 needWaterCount++;
                 todayTasks.add(new TaskModel("Water " + p.getName() + " (Low Health Alert)", "Urgent", false));
             } else if (p.getHealthPercentage() < 85) {
                 todayTasks.add(new TaskModel("Check " + p.getName() + " for issues", "Today", false));
+            }
+
+            if (p.getReminders() != null) {
+                ReminderModel rem = p.getReminders();
+                String taskTime = (rem.getPreferredTime() != null && !rem.getPreferredTime().isEmpty()) 
+                        ? rem.getPreferredTime() : "Today";
+
+                if (rem.getWateringSchedule() != null && !rem.getWateringSchedule().equals("None")) {
+                    todayTasks.add(new TaskModel("Watering: " + p.getName(), taskTime, false));
+                }
+                if (rem.getSunlightSchedule() != null && !rem.getSunlightSchedule().equals("None")) {
+                    todayTasks.add(new TaskModel("Sunlight: " + p.getName(), taskTime, false));
+                }
+                if (rem.getFertilizerSchedule() != null && !rem.getFertilizerSchedule().equals("None")) {
+                    todayTasks.add(new TaskModel("Fertilizer: " + p.getName(), taskTime, false));
+                }
             }
         }
 
@@ -185,7 +201,6 @@ public class HomeFragment extends Fragment {
             int avgHealth = totalHealth / plantList.size();
             if (tvAvgHealth != null) tvAvgHealth.setText(avgHealth + "%");
         } else {
-            // Reset logic kapag walang halaman
             if (tvAvgHealth != null) tvAvgHealth.setText("0%");
         }
 
@@ -236,13 +251,28 @@ public class HomeFragment extends Fragment {
             rvTodoList.setLayoutManager(new LinearLayoutManager(getContext()));
             rvTodoList.setHasFixedSize(true);
 
+            TodoTaskAdapter taskAdapter;
             if (currentTasks.isEmpty()) {
                 List<TaskModel> emptyTasks = new ArrayList<>();
                 emptyTasks.add(new TaskModel("No pending tasks! All plants are healthy.", "Done", true));
-                rvTodoList.setAdapter(new TodoTaskAdapter(emptyTasks));
+                taskAdapter = new TodoTaskAdapter(emptyTasks);
             } else {
-                rvTodoList.setAdapter(new TodoTaskAdapter(currentTasks));
+                taskAdapter = new TodoTaskAdapter(currentTasks);
+                taskAdapter.setOnTaskStatusChangedListener(task -> {
+                    if (task.isCompleted()) {
+                        // ✨ Cute accomplishment message
+                        Toast.makeText(getContext(), "🌿 Yay! You accomplished " + task.getTaskTitle() + "! Your plant is happy! ✨", Toast.LENGTH_SHORT).show();
+                        
+                        // Optional: remove task from list or update UI
+                        new Handler().postDelayed(() -> {
+                           if (bottomSheetDialog.isShowing()) {
+                               // You could refresh the list here if needed
+                           }
+                        }, 1000);
+                    }
+                });
             }
+            rvTodoList.setAdapter(taskAdapter);
         }
         bottomSheetDialog.show();
     }
@@ -282,13 +312,25 @@ public class HomeFragment extends Fragment {
 
         int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
         String greeting = (hourOfDay < 12) ? "Good Morning" : (hourOfDay < 17) ? "Good Afternoon" : "Good Evening";
-        if (tvUserGreeting != null) tvUserGreeting.setText(greeting + ", " + userFullName + "!");
+        
+        if (tvUserGreeting != null) {
+            String displayName = (userFullName != null && !userFullName.isEmpty()) ? userFullName : "SmartGrower";
+            tvUserGreeting.setText(greeting + ", " + displayName + "!");
+        }
     }
 
     private void updateMockWeatherEngine() {
         if (tvDashboardWeatherMock == null || !isAdded()) return;
-        String[] weatherConditions = {"☀️ Sunny, 32°C", "⛅ Partly Cloudy, 29°C", "🌧️ Rainy, 26°C", "☁️ Overcast, 28°C"};
-        tvDashboardWeatherMock.setText(weatherConditions[new Random().nextInt(weatherConditions.length)]);
+
+        String[] weathers = {"Sunny", "Cloudy", "Partly Cloudy", "Light Rain"};
+        int[] temps = {28, 29, 30, 31, 32};
+        String[] icons = {"☀️", "☁️", "⛅", "🌦️"};
+
+        Random r = new Random();
+        int idx = r.nextInt(weathers.length);
+        int temp = temps[r.nextInt(temps.length)];
+
+        tvDashboardWeatherMock.setText(icons[idx] + " " + weathers[idx] + ", " + temp + "°C");
     }
 
     @Override

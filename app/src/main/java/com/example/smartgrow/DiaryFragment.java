@@ -1,7 +1,5 @@
 package com.example.smartgrow;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -38,6 +36,7 @@ public class DiaryFragment extends Fragment {
     private MockDiaryAdapter adapter;
     private DatabaseReference databaseReference;
     private String currentUsername = "";
+    private SharedPrefManager prefManager;
 
     public DiaryFragment() {
         // Required empty public constructor
@@ -48,10 +47,9 @@ public class DiaryFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_diary, container, false);
 
-        if (getActivity() != null) {
-            SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-            currentUsername = preferences.getString("current_username", "");
-        }
+        // 🔐 SECURE DATA FETCH: Gamitin ang SharedPrefManager
+        prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUsername = prefManager.getUsername();
 
         etSearchPlants = view.findViewById(R.id.et_search_plants);
         cardBtnAddNewDiary = view.findViewById(R.id.card_btn_add_new_diary);
@@ -67,9 +65,11 @@ public class DiaryFragment extends Fragment {
             rvPlantDiaryList.setAdapter(adapter);
         }
 
-        if (!currentUsername.isEmpty()) {
+        if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown")) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("plants");
             fetchPlantsFromFirebase();
+        } else {
+            Toast.makeText(getContext(), "User session not found.", Toast.LENGTH_SHORT).show();
         }
 
         setupClickListeners();
@@ -96,6 +96,8 @@ public class DiaryFragment extends Fragment {
 
                 if (etSearchPlants != null && etSearchPlants.getText() != null) {
                     filterList(etSearchPlants.getText().toString());
+                } else {
+                    filterList("");
                 }
             }
 
@@ -129,12 +131,13 @@ public class DiaryFragment extends Fragment {
 
     private void filterList(String query) {
         filteredList.clear();
-        if (query.isEmpty()) {
+        if (query == null || query.isEmpty()) {
             filteredList.addAll(plantList);
         } else {
+            String lowerCaseQuery = query.toLowerCase();
             for (PlantModel plant : plantList) {
-                if (plant.getName().toLowerCase().contains(query.toLowerCase()) ||
-                        plant.getSpecies().toLowerCase().contains(query.toLowerCase())) {
+                if ((plant.getName() != null && plant.getName().toLowerCase().contains(lowerCaseQuery)) ||
+                    (plant.getSpecies() != null && plant.getSpecies().toLowerCase().contains(lowerCaseQuery))) {
                     filteredList.add(plant);
                 }
             }

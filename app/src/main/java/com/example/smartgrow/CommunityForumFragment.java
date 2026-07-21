@@ -1,84 +1,122 @@
 package com.example.smartgrow;
 
+import android.Manifest;
+import android.app.Dialog;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ImageButton;
-import android.widget.Toast;
-
+import com.bumptech.glide.Glide;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import android.content.Context;
-import android.content.SharedPreferences;
+import java.util.Map;
 
-public class CommunityForumFragment extends Fragment {
-
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    private String mParam1;
-    private String mParam2;
+public class CommunityForumFragment extends Fragment implements CommunityPostAdapter.OnPostInteractionListener {
 
     private RecyclerView recyclerView;
     private CommunityPostAdapter adapter;
     private List<CommunityPostModel> postList;
     private MaterialCardView cardMind;
-    private ImageView btnCameraIcon;
+    private ImageView imgUserAvatar;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    private DatabaseReference postsRef, commentsRef;
+    private FusedLocationProviderClient fusedLocationClient;
 
     private ActivityResultLauncher<String> imagePickerLauncher;
     private Uri selectedImageUri = null;
+    private String currentUserId, currentUserFullName, currentUserProfilePic;
+    private String detectedLocation = ""; 
+    private String savedDraftContent = ""; 
 
-    public CommunityForumFragment() {
-        // Required empty public constructor
-    }
-
-    public static CommunityForumFragment newInstance(String param1, String param2) {
-        CommunityForumFragment fragment = new CommunityForumFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    public CommunityForumFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        postsRef = FirebaseDatabase.getInstance().getReference("posts");
+        commentsRef = FirebaseDatabase.getInstance().getReference("comments");
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        refreshUserInfo();
 
-        // Image picker launcher
-        imagePickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                    if (uri != null) {
-                        selectedImageUri = uri;
-                        // Diretsong bubuksan ang dialog at ipapakita ang piniling larawan
-                        showCreatePostDialog(true);
-                    }
-                }
-        );
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri != null) {
+                selectedImageUri = uri;
+                showCreatePostDialog();
+            }
+        });
+    }
+
+    private void refreshUserInfo() {
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUserId = prefManager.getUsername();
+        currentUserFullName = prefManager.getFullName();
+        currentUserProfilePic = prefManager.getProfilePic();
+    }
+
+    private void loadProfileImage(String profileData, ImageView imageView) {
+        if (profileData == null || profileData.isEmpty()) {
+            imageView.setImageResource(R.drawable.ic_user);
+            return;
+        }
+        try {
+            if (profileData.length() > 500) {
+                byte[] decodedString = Base64.decode(profileData, Base64.DEFAULT);
+                Glide.with(this).load(BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length)).circleCrop().into(imageView);
+            } else {
+                Glide.with(this).load(profileData).placeholder(R.drawable.ic_user).circleCrop().into(imageView);
+            }
+        } catch (Exception e) {
+            imageView.setImageResource(R.drawable.ic_user);
+        }
     }
 
     @Nullable
@@ -87,160 +125,259 @@ public class CommunityForumFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_community_forum, container, false);
 
         cardMind = view.findViewById(R.id.card_mind);
-        if (cardMind != null) {
-            cardMind.setOnClickListener(v -> showCreatePostDialog(false));
-        }
+        imgUserAvatar = view.findViewById(R.id.img_user);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_forum);
+        
+        if (imgUserAvatar != null) loadProfileImage(currentUserProfilePic, imgUserAvatar);
 
-        btnCameraIcon = view.findViewById(R.id.btn_camera_icon);
-        if (btnCameraIcon != null) {
-            btnCameraIcon.setOnClickListener(v -> {
-                imagePickerLauncher.launch("image/*");
+        if (cardMind != null) {
+            cardMind.setOnClickListener(v -> {
+                selectedImageUri = null;
+                savedDraftContent = "";
+                showCreatePostDialog();
             });
         }
+
+        view.findViewById(R.id.btn_camera_icon).setOnClickListener(v -> {
+            selectedImageUri = null;
+            savedDraftContent = "";
+            imagePickerLauncher.launch("image/*");
+        });
 
         recyclerView = view.findViewById(R.id.rv_forum_feed);
         postList = new ArrayList<>();
-        adapter = new CommunityPostAdapter(postList);
+        adapter = new CommunityPostAdapter(postList, currentUserId, this);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(adapter);
 
-        if (recyclerView != null) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerView.setHasFixedSize(true);
-            recyclerView.setAdapter(adapter);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(this::listenForPosts);
+            swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#0C6211"));
         }
 
-        loadInitialPost();
-
+        listenForPosts();
+        fetchLocationForTracking(); 
         return view;
     }
 
-    private void showCreatePostDialog(boolean autoSelectedImage) {
-        if (getContext() == null) return;
-
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_post, null);
-        bottomSheetDialog.setContentView(dialogView);
-
-        // Standard inputs at buttons
-        EditText etPostContent = dialogView.findViewById(R.id.et_create_post_box);
-        View btnAddPhoto = dialogView.findViewById(R.id.btn_add_photo);
-        Button btnPost = dialogView.findViewById(R.id.btn_submit_post);
-
-        // BAGONG BINDINGS: Kinuha natin ang references ng Preview Card elements mula sa bagong XML
-        MaterialCardView cardPreviewContainer = dialogView.findViewById(R.id.card_preview_container);
-        ImageView ivPostPreview = dialogView.findViewById(R.id.iv_post_preview);
-        ImageButton btnRemovePhoto = dialogView.findViewById(R.id.btn_remove_photo);
-
-        // CHECKER: Kung may napili nang image bago buksan ang dialog
-        if (selectedImageUri != null && cardPreviewContainer != null && ivPostPreview != null) {
-            ivPostPreview.setImageURI(selectedImageUri);
-            cardPreviewContainer.setVisibility(View.VISIBLE); // Ipakita ang photo preview
-        } else if (cardPreviewContainer != null) {
-            cardPreviewContainer.setVisibility(View.GONE); // Itago kung walang image
-        }
-
-        // PINDUTAN NG REMOVE PHOTO (Yung "x" icon sa preview)
-        if (btnRemovePhoto != null && cardPreviewContainer != null) {
-            btnRemovePhoto.setOnClickListener(v -> {
-                selectedImageUri = null; // Burahin ang hawak na URI
-                cardPreviewContainer.setVisibility(View.GONE); // I-gone ang container para sumunod ang ibang UI elements sa taas
-            });
-        }
-
-        // PINDUTAN NG ADD PHOTO SA LOOB NG DIALOG
-        if (btnAddPhoto != null) {
-            btnAddPhoto.setOnClickListener(v -> {
-                // Isasara muna ang dialog bago ilunsad ang gallery para iwas double-open bugs
-                bottomSheetDialog.dismiss();
-                imagePickerLauncher.launch("image/*");
-            });
-        }
-
-        // POST SUBMIT BUTTON
-        if (btnPost != null) {
-            btnPost.setOnClickListener(v -> {
+    private void fetchLocationForTracking() {
+        if (!isAdded() || ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null).addOnSuccessListener(location -> {
+            if (location != null && isAdded()) {
                 try {
-                    String content = etPostContent != null ? etPostContent.getText().toString().trim() : "";
-
-                    if (content.isEmpty() && selectedImageUri == null) {
-                        Toast.makeText(getContext(), "Please write something first...", Toast.LENGTH_SHORT).show();
-                        return;
+                    List<android.location.Address> addresses = new android.location.Geocoder(requireContext()).getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        detectedLocation = (addresses.get(0).getLocality() != null ? addresses.get(0).getLocality() : addresses.get(0).getAdminArea());
                     }
-
-                    String loggedInName = getLoggedInUserFullName();
-                    String formattedTime = getFormattedCurrentTime();
-                    String imageStringPath = (selectedImageUri != null) ? selectedImageUri.toString() : null;
-
-                    CommunityPostModel newPost = new CommunityPostModel(
-                            "id_" + System.currentTimeMillis(),
-                            loggedInName,
-                            null,
-                            formattedTime,
-                            content,
-                            imageStringPath,
-                            0,
-                            0
-                    );
-
-                    if (postList == null) {
-                        postList = new ArrayList<>();
-                    }
-
-                    postList.add(0, newPost);
-
-                    if (adapter != null) {
-                        adapter.notifyItemInserted(0);
-                    }
-
-                    if (recyclerView != null) {
-                        recyclerView.scrollToPosition(0);
-                    }
-
-                    // I-clear ang image state matapos makapag-post
-                    selectedImageUri = null;
-                    bottomSheetDialog.dismiss();
-
-                    Toast.makeText(getContext(), "Post submitted successfully!", Toast.LENGTH_SHORT).show();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-
-        // Kapag dinismiss ang dialog nang hindi nag-popost
-        bottomSheetDialog.setOnDismissListener(dialog -> {
-            if (!autoSelectedImage) {
-                selectedImageUri = null;
+                } catch (Exception e) { e.printStackTrace(); }
             }
         });
-
-        bottomSheetDialog.show();
     }
 
-    private String getFormattedCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
-        return sdf.format(new Date());
+    private void listenForPosts() {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
+        postsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
+                postList.clear();
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    CommunityPostModel post = postSnapshot.getValue(CommunityPostModel.class);
+                    if (post != null) {
+                        post.setPostId(postSnapshot.getKey()); 
+                        postList.add(post);
+                    }
+                }
+                Collections.sort(postList, (p1, p2) -> p2.getTimestamp().compareTo(p1.getTimestamp()));
+                adapter.notifyDataSetChanged();
+                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) { if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false); }
+        });
     }
 
-    private String getLoggedInUserFullName() {
-        if (getContext() == null) return "User Dev";
+    private void showCreatePostDialog() {
+        refreshUserInfo();
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_post, null);
+        dialog.setContentView(v);
 
-        SharedPreferences preferences = getContext().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-        return preferences.getString("user_fullname", "Active User");
+        EditText etContent = v.findViewById(R.id.et_create_post_box);
+        Button btnPost = v.findViewById(R.id.btn_submit_post);
+        ImageView imgAvatar = v.findViewById(R.id.img_create_post);
+        TextView tvName = v.findViewById(R.id.tv_identity_user_name);
+        MaterialCardView cardPreview = v.findViewById(R.id.card_preview_container);
+        ImageView ivPostPreview = v.findViewById(R.id.iv_post_preview);
+
+        if (tvName != null) tvName.setText(currentUserFullName);
+        if (imgAvatar != null) loadProfileImage(currentUserProfilePic, imgAvatar);
+        if (etContent != null) etContent.setText(savedDraftContent);
+        if (selectedImageUri != null) {
+            ivPostPreview.setImageURI(selectedImageUri);
+            cardPreview.setVisibility(View.VISIBLE);
+        }
+
+        v.findViewById(R.id.btn_add_photo).setOnClickListener(view -> {
+            savedDraftContent = etContent.getText().toString();
+            imagePickerLauncher.launch("image/*");
+            dialog.dismiss();
+        });
+
+        btnPost.setOnClickListener(view -> {
+            String content = etContent.getText().toString().trim();
+            if (content.isEmpty() && selectedImageUri == null) return;
+            if (ProfanityFilter.hasProfanity(content)) {
+                Toast.makeText(getContext(), "Prohibited words detected.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            btnPost.setEnabled(false);
+            btnPost.setText("Posting...");
+            processAndPost(content, dialog);
+        });
+
+        dialog.show();
     }
 
-    private void loadInitialPost() {
-        postList.add(new CommunityPostModel(
-                "test_init_1",
-                "Rue Sabino",
-                null,
-                "2 hours ago",
-                "My Lagundi plant has been growing really well this month! Highly recommend using organic compost.",
-                null,
-                65,
-                44
-        ));
-        adapter.notifyDataSetChanged();
+    private void processAndPost(String content, BottomSheetDialog dialog) {
+        String base64Image = "";
+        if (selectedImageUri != null) {
+            try {
+                InputStream is = requireContext().getContentResolver().openInputStream(selectedImageUri);
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                // Resize for efficiency
+                Bitmap resized = Bitmap.createScaledBitmap(bitmap, 600, (int)(600 * ((double)bitmap.getHeight()/bitmap.getWidth())), true);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                resized.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                base64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Image error, posting without photo.", Toast.LENGTH_SHORT).show();
+            }
+        }
+        savePostToDatabase(content, base64Image, dialog);
+    }
+
+    private void savePostToDatabase(String content, String imageBase64, BottomSheetDialog dialog) {
+        String postId = postsRef.push().getKey();
+        CommunityPostModel post = new CommunityPostModel(postId, currentUserFullName, currentUserId, currentUserProfilePic, System.currentTimeMillis(), content, imageBase64, detectedLocation);
+        if (postId != null) postsRef.child(postId).setValue(post).addOnSuccessListener(aVoid -> {
+            dialog.dismiss();
+            showSuccessDialog();
+            selectedImageUri = null;
+            savedDraftContent = "";
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Post failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Button btn = dialog.findViewById(R.id.btn_submit_post);
+            if (btn != null) { btn.setEnabled(true); btn.setText("Post"); }
+        });
+    }
+
+    private void showSuccessDialog() {
+        Dialog dialog = new Dialog(requireContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_post_success);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.findViewById(R.id.btn_success).setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    @Override
+    public void onLikeClick(CommunityPostModel post) {
+        postsRef.child(post.getPostId()).runTransaction(new Transaction.Handler() {
+            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData md) {
+                CommunityPostModel p = md.getValue(CommunityPostModel.class);
+                if (p == null) return Transaction.success(md);
+                Map<String, Boolean> likes = p.getLikes();
+                if (likes == null) likes = new HashMap<>();
+                if (likes.containsKey(currentUserId)) {
+                    p.setLikesCount(Math.max(0, p.getLikesCount() - 1));
+                    likes.remove(currentUserId);
+                } else {
+                    p.setLikesCount(p.getLikesCount() + 1);
+                    likes.put(currentUserId, true);
+                }
+                p.setLikes(likes);
+                md.setValue(p);
+                return Transaction.success(md);
+            }
+            @Override public void onComplete(@Nullable DatabaseError error, boolean b, @Nullable DataSnapshot ds) {}
+        });
+    }
+
+    @Override public void onCommentClick(CommunityPostModel post) { showCommentsDialog(post); }
+    @Override public void onMoreClick(View v, CommunityPostModel p) {
+        PopupMenu popup = new PopupMenu(getContext(), v);
+        popup.getMenu().add("Delete Post");
+        popup.setOnMenuItemClickListener(item -> {
+            postsRef.child(p.getPostId()).removeValue();
+            commentsRef.child(p.getPostId()).removeValue();
+            return true;
+        });
+        popup.show();
+    }
+
+    private void showCommentsDialog(CommunityPostModel post) {
+        refreshUserInfo();
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_comments, null);
+        dialog.setContentView(v);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        
+        ProgressBar pb = v.findViewById(R.id.pb_comments_loading);
+        TextView tvNoComments = v.findViewById(R.id.tv_no_comments);
+        RecyclerView rvComments = v.findViewById(R.id.rv_comments);
+        EditText etComment = v.findViewById(R.id.et_comment_input);
+        ImageButton btnSend = v.findViewById(R.id.btn_send_comment);
+        ImageView imgAvatar = v.findViewById(R.id.iv_comment_input_avatar);
+
+        if (pb != null) pb.setVisibility(View.VISIBLE);
+        if (imgAvatar != null) loadProfileImage(currentUserProfilePic, imgAvatar);
+
+        List<CommentModel> commentList = new ArrayList<>();
+        CommentAdapter commentAdapter = new CommentAdapter(commentList);
+        rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvComments.setAdapter(commentAdapter);
+
+        commentsRef.child(post.getPostId()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
+                if (pb != null) pb.setVisibility(View.GONE);
+                commentList.clear();
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    CommentModel c = snap.getValue(CommentModel.class);
+                    if (c != null) commentList.add(c);
+                }
+                if (tvNoComments != null) tvNoComments.setVisibility(commentList.isEmpty() ? View.VISIBLE : View.GONE);
+                commentAdapter.notifyDataSetChanged();
+                if (!commentList.isEmpty()) rvComments.smoothScrollToPosition(commentList.size() - 1);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) { if (pb != null) pb.setVisibility(View.GONE); }
+        });
+
+        btnSend.setOnClickListener(view -> {
+            String content = etComment.getText().toString().trim();
+            if (content.isEmpty()) return;
+            String cid = commentsRef.child(post.getPostId()).push().getKey();
+            CommentModel cm = new CommentModel(cid, currentUserFullName, currentUserProfilePic, content, System.currentTimeMillis());
+            if (cid != null) commentsRef.child(post.getPostId()).child(cid).setValue(cm).addOnSuccessListener(aVoid -> {
+                etComment.setText("");
+                updateCommentCount(post.getPostId());
+            });
+        });
+        dialog.show();
+    }
+
+    private void updateCommentCount(String postId) {
+        postsRef.child(postId).runTransaction(new Transaction.Handler() {
+            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData md) {
+                CommunityPostModel p = md.getValue(CommunityPostModel.class);
+                if (p == null) return Transaction.success(md);
+                p.setCommentsCount(p.getCommentsCount() + 1);
+                md.setValue(p);
+                return Transaction.success(md);
+            }
+            @Override public void onComplete(@Nullable DatabaseError error, boolean b, @Nullable DataSnapshot d) {}
+        });
     }
 }

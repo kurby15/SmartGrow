@@ -3,7 +3,6 @@ package com.example.smartgrow;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,8 +35,8 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
     private String plantId;
     private DatabaseReference databaseReference;
     private String currentUsername;
+    private SharedPrefManager prefManager;
 
-    // I-store ang root view para ligtas gamitin kahit saan sa class
     private View rootView;
 
     public static AddLogBottomSheet newInstance(String plantId) {
@@ -55,10 +54,11 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
             plantId = getArguments().getString("key_plant_id");
         }
 
-        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-        currentUsername = preferences.getString("current_username", "");
+        // 🔐 SECURE DATA FETCH
+        prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUsername = prefManager.getUsername();
 
-        if (!currentUsername.isEmpty() && plantId != null) {
+        if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown") && plantId != null) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users")
                     .child(currentUsername).child("plants").child(plantId).child("logs");
         }
@@ -70,7 +70,6 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
 
         if (dialog.getWindow() != null) {
-            // Ligtas na keyboard adjustment configuration
             dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
@@ -81,8 +80,6 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
                 behavior.setHideable(true);
                 behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
-                // Responsive layout calculation para sa scroll control
                 int displayHeight = requireContext().getResources().getDisplayMetrics().heightPixels;
                 behavior.setMaxHeight((int) (displayHeight * 0.90));
                 behavior.setSkipCollapsed(true);
@@ -97,7 +94,6 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.dialog_add_log_sheet, container, false);
 
-        // Bind layouts at interactive elements
         etLogDate = rootView.findViewById(R.id.et_log_date);
         etLogNotes = rootView.findViewById(R.id.et_log_notes);
         imgCalendarIcon = rootView.findViewById(R.id.img_log_calendar_icon);
@@ -107,18 +103,21 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
         rgHealth = rootView.findViewById(R.id.rg_log_health);
         btnSubmitLog = rootView.findViewById(R.id.btn_submit_log);
 
-        // Calendar Click Listeners
         View.OnClickListener dateListener = v -> showDatePickerDialog();
         etLogDate.setOnClickListener(dateListener);
         imgCalendarIcon.setOnClickListener(dateListener);
 
-        // Action Click Submit
         btnSubmitLog.setOnClickListener(v -> saveLogToFirebase());
 
         return rootView;
     }
 
     private void saveLogToFirebase() {
+        if (databaseReference == null) {
+            Toast.makeText(getContext(), "Session error. Please login again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String date = etLogDate.getText().toString().trim();
         String notes = etLogNotes.getText().toString().trim();
 
@@ -160,11 +159,6 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
             }
         }
 
-        if (databaseReference == null) {
-            Toast.makeText(getContext(), "Error: Database reference not found.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String logId = databaseReference.push().getKey();
         if (logId == null) return;
 
@@ -184,7 +178,7 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
 
                 plantRef.updateChildren(updates);
 
-                Toast.makeText(getContext(), "New Plant Growth Log Saved!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Log Saved!", Toast.LENGTH_SHORT).show();
                 dismiss();
             } else {
                 Toast.makeText(getContext(), "Failed to save log.", Toast.LENGTH_SHORT).show();

@@ -9,21 +9,20 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:fillViewport="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="80dp">
 
             <TextView
                 android:id="@+id/tv_user_greeting"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:text="Good Morning, Isha!"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#333333"
@@ -37,7 +36,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:gravity="center_vertical"
                 app:layout_constraintTop_toBottomOf="@id/tv_user_greeting">
 
@@ -55,7 +54,7 @@
                     android:layout_width="1dp"
                     android:layout_height="12dp"
                     android:background="#CCCCCC"
-                    android:layout_marginHorizontal="8dp"/>
+                    android:layout_marginHorizontal="10dp"/>
 
                 <TextView
                     android:id="@+id/tv_dashboard_weather_mock"
@@ -75,7 +74,7 @@
                 android:textColor="#0C6211"
                 android:textSize="13sp"
                 android:fontFamily="@font/poppins"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 app:layout_constraintTop_toBottomOf="@id/layout_date_weather_row"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
@@ -91,53 +90,49 @@
                 android:layout_marginTop="4dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 app:layout_constraintTop_toBottomOf="@id/tv_plant_status_summary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <LinearLayout
-                android:id="@+id/grid_status_container"
+                android:id="@+id/layout_cards_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 app:layout_constraintTop_toBottomOf="@id/tv_task_reminder">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:baselineAligned="false"
                     android:weightSum="2">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         android:layout_marginBottom="12dp"
-                        android:minHeight="80dp"
-                        app:cardCornerRadius="12dp"
+                        app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="#FFFFFF"
                         app:strokeWidth="0dp">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:padding="12dp">
+                            android:paddingHorizontal="12dp">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
                                 android:src="@drawable/ic_total_plants" />
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:layout_marginStart="10dp">
+                                android:layout_marginStart="8dp">
                                 <TextView
                                     android:id="@+id/tv_count_total_plants"
                                     android:layout_width="wrap_content"
@@ -158,31 +153,29 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:layout_marginBottom="12dp"
-                        android:minHeight="80dp"
-                        app:cardCornerRadius="12dp"
+                        app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="#FFFFFF"
                         app:strokeWidth="0dp">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:padding="12dp">
+                            android:paddingHorizontal="12dp">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
                                 android:src="@drawable/ic_water_drop" />
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:layout_marginStart="10dp">
+                                android:layout_marginStart="8dp">
                                 <TextView
                                     android:id="@+id/tv_count_need_water"
                                     android:layout_width="wrap_content"
@@ -206,35 +199,32 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:baselineAligned="false"
                     android:weightSum="2">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        android:minHeight="80dp"
-                        app:cardCornerRadius="12dp"
+                        app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="#FFFFFF"
                         app:strokeWidth="0dp">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:padding="12dp">
+                            android:paddingHorizontal="12dp">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
                                 android:src="@drawable/ic_health_sun" />
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:layout_marginStart="10dp">
+                                android:layout_marginStart="8dp">
                                 <TextView
                                     android:id="@+id/tv_value_avg_health"
                                     android:layout_width="wrap_content"
@@ -255,30 +245,28 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        android:minHeight="80dp"
-                        app:cardCornerRadius="12dp"
+                        app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="#FFFFFF"
                         app:strokeWidth="0dp">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:padding="12dp">
+                            android:paddingHorizontal="12dp">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
                                 android:src="@drawable/ic_pest_alert" />
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:layout_marginStart="10dp">
+                                android:layout_marginStart="8dp">
                                 <TextView
                                     android:id="@+id/tv_count_pest_alerts"
                                     android:layout_width="wrap_content"
@@ -290,23 +278,21 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Pest Alerts"
+                                    android:text="Pests Alerts"
                                     android:textSize="11sp"
                                     android:textColor="#777777"/>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
-
             </LinearLayout>
 
             <RelativeLayout
-                android:id="@+id/layout_detection_history_header"
+                android:id="@+id/layout_history_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@id/grid_status_container">
-
+                android:layout_marginTop="28dp"
+                app:layout_constraintTop_toBottomOf="@id/layout_cards_container">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -315,24 +301,17 @@
                     android:textStyle="bold"
                     android:textColor="#333333"
                     android:fontFamily="@font/poppins"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"/>
-
+                    android:layout_alignParentStart="true" />
                 <TextView
                     android:id="@+id/tv_action_view_all_history"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View Chat Logs"
-                    android:textSize="12sp"
+                    android:text="View All"
+                    android:textSize="13sp"
                     android:textColor="#0C6211"
                     android:textStyle="bold"
                     android:fontFamily="@font/poppins"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="4dp"/>
+                    android:layout_alignParentEnd="true" />
             </RelativeLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -341,26 +320,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/layout_detection_history_header" />
+                app:layout_constraintTop_toBottomOf="@id/layout_history_header" />
 
-            <RelativeLayout
-                android:id="@+id/layout_plants_header_strip"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_my_plants_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@id/rv_ai_detected_history">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="My Plants"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="#0C6211"
-                    android:fontFamily="@font/poppins"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"/>
-            </RelativeLayout>
+                android:text="My Plants"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#0C6211"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="28dp"
+                app:layout_constraintTop_toBottomOf="@id/rv_ai_detected_history"
+                app:layout_constraintStart_toStartOf="parent"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_my_plants_list"
@@ -368,8 +341,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:nestedScrollingEnabled="false"
-                android:layout_marginBottom="24dp"
-                app:layout_constraintTop_toBottomOf="@id/layout_plants_header_strip" />
+                app:layout_constraintTop_toBottomOf="@id/tv_my_plants_label" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

@@ -11,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
-import android.content.SharedPreferences;
 
 public class GetStartedActivity extends AppCompatActivity {
 
@@ -19,38 +18,31 @@ public class GetStartedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check if user is already logged in
-        SharedPreferences preferences = getSharedPreferences("SmartGrowPrefs", MODE_PRIVATE);
-        if (preferences.getBoolean("is_logged_in", false)) {
-            Intent intent = new Intent(GetStartedActivity.this, MainActivity.class);
-            startActivity(intent);
+        // 🔄 FIX: Gamitin ang SharedPrefManager para sa tamang login check
+        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
+            startActivity(new Intent(GetStartedActivity.this, MainActivity.class));
             finish();
             return;
         }
 
         setContentView(R.layout.activity_get_started);
 
-        // Itago ang default action bar kung mayroon man
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
-        // 🌿 2. Bind ng iyong Original Views (Inalis ang layoutLogoTitle dahil wala na ito sa XML)
         ImageView imgLogo = findViewById(R.id.img_logo);
-        TextView tvAppName = findViewById(R.id.tv_app_name); // Inadd natin ito para ma-animate ang text title
+        TextView tvAppName = findViewById(R.id.tv_app_name); 
         TextView tvTagline = findViewById(R.id.tv_tagline);
         MaterialButton btnGetStarted = findViewById(R.id.btn_get_started);
 
-        // 🍃 3. Bind ng mga Bagong Dagdag na Decorative Views
         ImageView leafTop = findViewById(R.id.leaf_bg_top);
         ImageView leafBottom = findViewById(R.id.leaf_bg_bottom);
         View viewGlow = findViewById(R.id.view_glow);
 
-        // 🔄 4. Patakbuhin AGAD ang banayad na floating loops para sa mga dahon sa likod
         if (leafTop != null) startFloatingAnimation(leafTop, 15f, 4000);
         if (leafBottom != null) startFloatingAnimation(leafBottom, -15f, 4500);
 
-        // 🌞 5. Buhayin ang umiindayog o nag-p-pulse na solar glow ring sa likod ng logo niyo
         if (viewGlow != null) {
             AlphaAnimation glowPulse = new AlphaAnimation(0.15f, 0.45f);
             glowPulse.setDuration(1600);
@@ -59,25 +51,21 @@ public class GetStartedActivity extends AppCompatActivity {
             viewGlow.startAnimation(glowPulse);
         }
 
-        // 🎬 6. I-load ang iyong mga orihinal na XML Animations mula sa res/anim
         Animation fadeSlideUpFast = AnimationUtils.loadAnimation(this, R.anim.fade_slide_up_fast);
         Animation fadeSlideUpDelayed = AnimationUtils.loadAnimation(this, R.anim.fade_slide_up_delayed);
         final Animation floatingLogo = AnimationUtils.loadAnimation(this, R.anim.floating_effect);
 
-        // 🚀 7. Patakbuhin ang mga Animations sa mga indibidwal na views
         if (imgLogo != null) imgLogo.startAnimation(fadeSlideUpFast);
         if (tvAppName != null) tvAppName.startAnimation(fadeSlideUpFast);
         if (tvTagline != null) tvTagline.startAnimation(fadeSlideUpDelayed);
         if (btnGetStarted != null) btnGetStarted.startAnimation(fadeSlideUpDelayed);
 
-        // 🔄 8. Animation Listener para sa logo (Kapag natapos ang fadeSlideUp, magsisimula ang floating effect)
         fadeSlideUpFast.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {}
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                // Pagkatapos ng pambungad na animation, sisimulan ang dahan-dahang pag-float ng main logo
                 if (imgLogo != null) {
                     imgLogo.startAnimation(floatingLogo);
                 }
@@ -87,20 +75,15 @@ public class GetStartedActivity extends AppCompatActivity {
             public void onAnimationRepeat(Animation animation) {}
         });
 
-        // 🖱️ 9. Iyong orihinal na Click Listener papuntang Login Screen
         if (btnGetStarted != null) {
-            btnGetStarted.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(GetStartedActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                }
+            btnGetStarted.setOnClickListener(v -> {
+                Intent intent = new Intent(GetStartedActivity.this, LoginActivity.class);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             });
         }
     }
 
-    // ✨ Ang helper function para sa walang katapusang dahan-dahang paggalaw ng mga dahon sa background
     private void startFloatingAnimation(View view, float translationY, int duration) {
         android.animation.ObjectAnimator animator = android.animation.ObjectAnimator.ofFloat(
                 view, "translationY", 0f, translationY);

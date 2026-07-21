@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -51,6 +50,7 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     private DatabaseReference databaseReference;
     private String currentUsername;
     private Bitmap selectedBitmap = null;
+    private SharedPrefManager prefManager;
 
     public static EditPlantBottomSheet newInstance(String plantId, String name, String species, String medicinalUse, String date, String status, String imageUrl) {
         EditPlantBottomSheet fragment = new EditPlantBottomSheet();
@@ -70,8 +70,9 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-        currentUsername = preferences.getString("current_username", "");
+        // 🔐 SECURE DATA FETCH
+        prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUsername = prefManager.getUsername();
 
         if (getArguments() != null) {
             plantId = getArguments().getString("key_id");
@@ -87,7 +88,7 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             currentStatus = getArguments().getString("key_status");
         }
 
-        if (!currentUsername.isEmpty() && plantId != null) {
+        if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown") && plantId != null) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users")
                     .child(currentUsername).child("plants").child(plantId);
         }
@@ -215,12 +216,11 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             }
 
             if (databaseReference == null) {
-                Toast.makeText(getContext(), "Error: Database reference not found.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Session error. Please login again.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             btnSave.setEnabled(false);
-            Toast.makeText(getContext(), "Updating plant details...", Toast.LENGTH_SHORT).show();
 
             Map<String, Object> updates = new HashMap<>();
             updates.put("name", updatedName);
@@ -229,7 +229,6 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             updates.put("datePlanted", updatedDate);
 
             if (selectedBitmap != null) {
-                // 🚀 Convert to Base64 for updating
                 Bitmap resized = Bitmap.createScaledBitmap(selectedBitmap, 400, 400, true);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 resized.compress(Bitmap.CompressFormat.JPEG, 70, baos);
@@ -240,7 +239,7 @@ public class EditPlantBottomSheet extends BottomSheetDialogFragment {
             databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
                 btnSave.setEnabled(true);
                 if (task.isSuccessful()) {
-                    Toast.makeText(getContext(), "Changes Saved for " + updatedName + "!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Changes Saved!", Toast.LENGTH_SHORT).show();
                     dismiss();
                 } else {
                     Toast.makeText(getContext(), "Failed to update plant.", Toast.LENGTH_SHORT).show();

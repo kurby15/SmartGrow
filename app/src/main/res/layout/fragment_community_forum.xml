@@ -2,123 +2,113 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://tools.android.com/tools"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA"
-    android:padding="16dp">
+    android:background="#F9FAFA">
 
-    <!-- Title - Flexible Width (0dp) para iwas clipping sa makikitid na phone -->
-    <TextView
-        android:id="@+id/tv_community_forum_title"
-        android:layout_width="0dp"
+    <!-- Fixed Header Section -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_forum_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Community Forum"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:fontFamily="@font/poppins"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:background="#FFFFFF"
+        android:padding="16dp"
+        android:elevation="2dp"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Subtitle - Flexible Width (0dp) -->
-    <TextView
-        android:id="@+id/tv_community_forum_subtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Connect with fellow plant enthusiasts"
-        android:textColor="#666666"
-        android:textSize="14sp"
-        android:layout_marginTop="2dp"
-        android:fontFamily="@font/poppins"
-        app:layout_constraintTop_toBottomOf="@id/tv_community_forum_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Mind Input Box Card - Ginawang clickable ang buong card para mas madaling pindutin sa phone -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_mind"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="#FFFFFF"
-        app:strokeWidth="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_community_forum_subtitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_community_forum_title"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:padding="12dp">
+            android:text="Community Forum"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:fontFamily="@font/poppins"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/img_user"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_user"
-                app:backgroundColor="#EAEAEA"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/CircleImageView"
-                tools:srcCompat="@tools:sample/avatars" />
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_mind"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#F0F2F5"
+            app:strokeWidth="0dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_community_forum_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Nilagyan ng sapat na end margin para hindi mag-overlap ang mahabang text sa camera icon -->
-            <TextView
-                android:id="@+id/tv_mind"
-                android:layout_width="0dp"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:text="What's on your mind?"
-                android:textColor="#888888"
-                android:textSize="14sp"
-                android:fontFamily="@font/poppins"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btn_camera_icon"
-                app:layout_constraintStart_toEndOf="@+id/img_user"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:padding="10dp">
 
-            <ImageView
-                android:id="@+id/btn_camera_icon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginEnd="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="2dp"
-                android:src="@drawable/ic_camera"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:contentDescription="Upload Photo" />
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/img_user"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_user"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/CircleImageView" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/tv_mind"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="What's on your mind?"
+                    android:textColor="#65676B"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/poppins"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/btn_camera_icon"
+                    app:layout_constraintStart_toEndOf="@+id/img_user"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- RecyclerView - Ngayong wala na ito sa loob ng ScrollView, sasakupin na nito ang natitirang taas ng kahit anong screen -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_forum_feed"
-        android:layout_width="0dp"
+                <ImageView
+                    android:id="@+id/btn_camera_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_camera"
+                    app:tint="#45BD62"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Swipe to Refresh Wrapper -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_forum"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:scrollbars="vertical"
-        android:overScrollMode="never"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@+id/card_mind"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_forum_post" />
+        app:layout_constraintTop_toBottomOf="@id/layout_forum_header"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_forum_feed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="80dp"
+            tools:listitem="@layout/item_forum_post" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

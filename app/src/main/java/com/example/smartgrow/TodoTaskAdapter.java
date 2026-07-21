@@ -12,9 +12,18 @@ import java.util.List;
 public class TodoTaskAdapter extends RecyclerView.Adapter<TodoTaskAdapter.TaskViewHolder> {
 
     private List<TaskModel> taskList;
+    private OnTaskStatusChangedListener listener;
+
+    public interface OnTaskStatusChangedListener {
+        void onTaskCompleted(TaskModel task);
+    }
 
     public TodoTaskAdapter(List<TaskModel> taskList) {
         this.taskList = taskList;
+    }
+
+    public void setOnTaskStatusChangedListener(OnTaskStatusChangedListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -31,13 +40,14 @@ public class TodoTaskAdapter extends RecyclerView.Adapter<TodoTaskAdapter.TaskVi
         holder.tvTaskTitle.setText(task.getTaskTitle());
         holder.tvTaskTime.setText(task.getTaskTime());
 
-        // Alisin muna ang listener bago i-set ang state para maiwasan ang maling check trigger sa recycler scrolling
         holder.cbTaskStatus.setOnCheckedChangeListener(null);
         holder.cbTaskStatus.setChecked(task.isCompleted());
 
-        // Kapag pinindot ang checkbox, mag-a-update ang state sa runtime memory
         holder.cbTaskStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
             task.setCompleted(isChecked);
+            if (isChecked && listener != null) {
+                listener.onTaskCompleted(task);
+            }
         });
     }
 

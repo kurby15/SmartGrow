@@ -47,17 +47,13 @@ public class RegisterStep5Activity extends AppCompatActivity {
         EditText etFullName = findViewById(R.id.et_fullname);
         EditText etEmail = findViewById(R.id.et_email);
 
-        // Inayos ang casting papuntang TextInputEditText base sa XML declaration
         TextInputEditText etPassword = findViewById(R.id.et_password);
         TextInputEditText etConfirmPassword = findViewById(R.id.et_confirm_password);
 
-        // I-initialize ang custom loading animation dialog
         setupLoadingDialog();
 
-        // Slide animation pabalik sa Step 4
         btnBack.setOnClickListener(v -> goBack());
 
-        // Main Action: Simulan ang account creation at animation
         btnSignUp.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
             String fullName = etFullName.getText().toString().trim();
@@ -89,19 +85,20 @@ public class RegisterStep5Activity extends AppCompatActivity {
                 return;
             }
 
-            // I-disable muna ang sign-up button para iwas-double tap glitch habang naglo-load
+            // 🔐 PASSWORD HASHING (Confidentiality)
+            // Instead of saving plain text, we hash the password using PBKDF2
+            String hashedPassword = SecurityUtils.hashPassword(pass);
+
             btnSignUp.setEnabled(false);
 
-            // I-update ang User Object
             if (userData == null) {
                 userData = new User();
             }
             userData.setUsername(user);
             userData.setFullName(fullName);
             userData.setEmail(email);
-            userData.setPassword(pass);
+            userData.setPassword(hashedPassword); // Save the HASH, not the plain text
 
-            // Simulan ang custom loading screen
             loadingDialog.show();
 
             TextView tvPercentage = loadingDialog.findViewById(R.id.tv_progress_percentage);
@@ -112,7 +109,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
             ImageView leaf3 = loadingDialog.findViewById(R.id.leaf_top_left);
             ImageView leaf4 = loadingDialog.findViewById(R.id.leaf_bottom_right);
 
-            // 📈 Core Progress Animation Engine (0 to 100 within 4 seconds)
             ValueAnimator animator = ValueAnimator.ofInt(0, 100);
             animator.setDuration(4000);
             animator.addUpdateListener(animation -> {
@@ -135,7 +131,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
                     }
                 }
 
-                // Sequential leaf sprouting benchmarks
                 if (progressValue >= 20) sproutLeafAnimation(leaf1);
                 if (progressValue >= 45) sproutLeafAnimation(leaf2);
                 if (progressValue >= 70) sproutLeafAnimation(leaf3);
@@ -147,7 +142,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
 
-                    // I-save ang kabuuang user registration data sa Firebase Database
                     databaseReference.child(user).setValue(userData).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             if (loadingDialog != null && loadingDialog.isShowing()) {
@@ -156,18 +150,14 @@ public class RegisterStep5Activity extends AppCompatActivity {
 
                             Toast.makeText(RegisterStep5Activity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
 
-                            // Dadalhin na ang user sa Login Activity
                             Intent intent = new Intent(RegisterStep5Activity.this, LoginActivity.class);
                             startActivity(intent);
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-
-                            // Lilinisin ang backstack para hindi na makabalik ang user sa registration gamit ang back button
                             finishAffinity();
                         } else {
                             if (loadingDialog != null && loadingDialog.isShowing()) {
                                 loadingDialog.dismiss();
                             }
-                            // Re-enable button para makasubok ulit sakaling mag-fail ang connection/Firebase
                             btnSignUp.setEnabled(true);
                             Toast.makeText(RegisterStep5Activity.this, "Failed to create account: " +
                                             (task.getException() != null ? task.getException().getMessage() : "Unknown Error"),
@@ -180,7 +170,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
             animator.start();
         });
 
-        // Ligtas na pag-handle sa physical back button ng device
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {

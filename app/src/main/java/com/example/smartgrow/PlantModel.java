@@ -11,12 +11,12 @@ public class PlantModel implements Serializable {
     private String healthStatus;
     private int healthPercentage;
     private String imageUrl;
+    private ReminderModel reminders; // Added to capture scheduled tasks
 
     public PlantModel() {
         // Required for Firebase
     }
 
-    // Constructor for old entries
     public PlantModel(String name, String species, String datePlanted, String healthStatus) {
         this.name = name;
         this.species = species;
@@ -26,7 +26,6 @@ public class PlantModel implements Serializable {
         this.healthPercentage = 100;
     }
 
-    // Constructor for new entries
     public PlantModel(String name, String species, String datePlanted, String healthStatus, String medicinalUse, int healthPercentage) {
         this.name = name;
         this.species = species;
@@ -60,4 +59,7 @@ public class PlantModel implements Serializable {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public ReminderModel getReminders() { return reminders; }
+    public void setReminders(ReminderModel reminders) { this.reminders = reminders; }
 }

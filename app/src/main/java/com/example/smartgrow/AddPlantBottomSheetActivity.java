@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -48,6 +47,7 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     private DatabaseReference databaseReference;
     private String currentUsername;
     private Bitmap selectedBitmap = null;
+    private SharedPrefManager prefManager;
 
     public static AddPlantBottomSheetActivity newInstance() {
         return new AddPlantBottomSheetActivity();
@@ -56,9 +56,12 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences preferences = getActivity().getSharedPreferences("SmartGrowPrefs", Context.MODE_PRIVATE);
-        currentUsername = preferences.getString("current_username", "");
-        if (!currentUsername.isEmpty()) {
+        
+        // 🔐 SECURE DATA FETCH: Gamitin ang SharedPrefManager
+        prefManager = SharedPrefManager.getInstance(requireContext());
+        currentUsername = prefManager.getUsername();
+        
+        if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown")) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("plants");
         }
     }
@@ -103,10 +106,12 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Bundle extras = result.getData().getExtras();
-                    selectedBitmap = (Bitmap) extras.get("data");
-                    imgPlantPreview.setImageBitmap(selectedBitmap);
-                    imgPlantPreview.setVisibility(View.VISIBLE);
-                    layoutImagePlaceholder.setVisibility(View.GONE);
+                    if (extras != null) {
+                        selectedBitmap = (Bitmap) extras.get("data");
+                        imgPlantPreview.setImageBitmap(selectedBitmap);
+                        imgPlantPreview.setVisibility(View.VISIBLE);
+                        layoutImagePlaceholder.setVisibility(View.GONE);
+                    }
                 }
             });
 
@@ -147,6 +152,11 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     }
 
     private void executePlantSubmission() {
+        if (databaseReference == null) {
+            Toast.makeText(getContext(), "Session error. Please re-login.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String name = etName.getText().toString().trim();
         String species = etSpecies.getText().toString().trim();
         String medicinal = etMedicinalUse.getText().toString().trim();
@@ -160,7 +170,6 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
         btnSubmit.setEnabled(false);
         String base64Image = "";
         if (selectedBitmap != null) {
-            // 🚀 Resize to save space in Realtime DB
             Bitmap resized = Bitmap.createScaledBitmap(selectedBitmap, 400, 400, true);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             resized.compress(Bitmap.CompressFormat.JPEG, 70, baos);
@@ -170,7 +179,7 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
         String id = databaseReference.push().getKey();
         PlantModel plant = new PlantModel(name, species, date, "Healthy", medicinal, 100);
         plant.setId(id);
-        plant.setImageUrl(base64Image); // Text string na ang isesave natin
+        plant.setImageUrl(base64Image);
 
         databaseReference.child(id).setValue(plant).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -178,7 +187,7 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
                 dismiss();
             } else {
                 btnSubmit.setEnabled(true);
-                Toast.makeText(getContext(), "Failed to save.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Failed to save: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
