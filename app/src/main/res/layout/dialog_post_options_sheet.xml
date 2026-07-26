@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_rounded"
+    android:padding="20dp">
+
+    <View
+        android:id="@+id/view_drag_handle"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:background="#DDDDDD"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/layout_owner_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/view_drag_handle">
+
+        <!-- Edit Post -->
+        <LinearLayout
+            android:id="@+id/item_edit_post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="14dp"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_edit_pencil"
+                app:tint="#444444"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Edit Post"
+                android:textColor="#111111"
+                android:textSize="15sp"
+                android:fontFamily="@font/poppins"/>
+        </LinearLayout>
+
+        <!-- Move to Archive -->
+        <LinearLayout
+            android:id="@+id/item_archive_post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="14dp"
+            android:gravity="center_vertical"
+            android:background="?attr/selectableItemBackground">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_diary_book"
+                app:tint="#444444"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Move to Archive"
+                android:textColor="#111111"
+                android:textSize="15sp"
+                android:fontFamily="@font/poppins"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginVertical="4dp"/>
+
+        <!-- Move to Trash -->
+        <LinearLayout
+            android:id="@+id/item_move_trash"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="14dp"
+            android:background="?attr/selectableItemBackground">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_logout"
+                    app:tint="#FF3B30"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Move to Trash"
+                    android:textColor="#FF3B30"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins"/>
+            </LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="38dp"
+                android:text="Items in your trash will be permanently deleted after 30 days."
+                android:textColor="#888888"
+                android:textSize="11sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_other_user_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/view_drag_handle">
+
+        <!-- Hide Post -->
+        <LinearLayout
+            android:id="@+id/item_hide_post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="14dp"
+            android:background="?attr/selectableItemBackground">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_search_gray"
+                    app:tint="#111111"
+                    android:rotation="45"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="I don't want to see this post"
+                    android:textColor="#111111"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/poppins"/>
+            </LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="38dp"
+                android:text="Hide this post from your feed."
+                android:textColor="#888888"
+                android:textSize="11sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

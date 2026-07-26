@@ -5,6 +5,11 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +46,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 🔔 Request Notification Permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_bar);
         cardNavChatAssistant = findViewById(R.id.card_nav_chat_assistant);
@@ -83,6 +95,38 @@ public class MainActivity extends AppCompatActivity {
         if (cardNavChatAssistant != null) {
             cardNavChatAssistant.setOnClickListener(v -> showAiChatAssistantBottomSheet());
         }
+
+        // 🚀 LISTEN FOR FRAGMENT CHANGES TO HIDE/SHOW BARS
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment instanceof UserProfileFragment || currentFragment instanceof ArchiveFragment) {
+                hideSystemBars();
+            } else {
+                showSystemBars();
+            }
+        });
+    }
+
+    private void hideSystemBars() {
+        if (findViewById(R.id.layout_top_header) != null) 
+            findViewById(R.id.layout_top_header).setVisibility(View.GONE);
+        if (findViewById(R.id.bottom_navigation_bar) != null) 
+            findViewById(R.id.bottom_navigation_bar).setVisibility(View.GONE);
+        if (cardNavChatAssistant != null) 
+            cardNavChatAssistant.setVisibility(View.GONE);
+        if (findViewById(R.id.view_nav_shadow) != null)
+            findViewById(R.id.view_nav_shadow).setVisibility(View.GONE);
+    }
+
+    private void showSystemBars() {
+        if (findViewById(R.id.layout_top_header) != null) 
+            findViewById(R.id.layout_top_header).setVisibility(View.VISIBLE);
+        if (findViewById(R.id.bottom_navigation_bar) != null) 
+            findViewById(R.id.bottom_navigation_bar).setVisibility(View.VISIBLE);
+        if (cardNavChatAssistant != null) 
+            cardNavChatAssistant.setVisibility(View.VISIBLE);
+        if (findViewById(R.id.view_nav_shadow) != null)
+            findViewById(R.id.view_nav_shadow).setVisibility(View.VISIBLE);
     }
 
     // 🟢 GLOBAL LISTENERS: Iisang deklarasyon, gumagana sa kahit anong active tab!

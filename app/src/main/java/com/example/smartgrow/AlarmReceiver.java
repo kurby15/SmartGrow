@@ -10,8 +10,13 @@ import androidx.core.app.NotificationManagerCompat;
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+        String plantId = intent.getStringExtra("plantId");
         String plantName = intent.getStringExtra("plantName");
         String taskType = intent.getStringExtra("taskType");
+        String timeStr = intent.getStringExtra("timeStr");
+        String frequency = intent.getStringExtra("frequency");
+
+        if (plantName == null) plantName = "your plant";
 
         String title = "SmartGrow Reminder 🌿";
         String message = "It's time to " + taskType.toLowerCase() + " your " + plantName + "! Happy growing! ✨";
@@ -19,13 +24,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         Intent notifyIntent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 
-                0, 
+                (plantName + taskType).hashCode(), 
                 notifyIntent, 
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_leaf) // Make sure this icon exists or use a default one
+                .setSmallIcon(R.drawable.ic_leaf)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -37,6 +42,11 @@ public class AlarmReceiver extends BroadcastReceiver {
             notificationManager.notify((plantName + taskType).hashCode(), builder.build());
         } catch (SecurityException e) {
             e.printStackTrace();
+        }
+
+        // 🚀 RESCHEDULE FOR NEXT TIME (Dahil ang setExactAndAllowWhileIdle ay isang beses lang)
+        if (plantId != null && timeStr != null && frequency != null && !frequency.equalsIgnoreCase("None")) {
+            NotificationHelper.scheduleReminder(context, plantId, plantName, taskType, timeStr, frequency);
         }
     }
 }

@@ -28,7 +28,23 @@
             android:fontFamily="@font/poppins"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toStartOf="@+id/btn_my_profile" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/btn_my_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_user"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintBottom_toBottomOf="@id/tv_community_forum_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_community_forum_title"
+            app:shapeAppearanceOverlay="@style/CircleImageView"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_mind"

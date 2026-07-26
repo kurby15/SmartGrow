@@ -122,10 +122,18 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                     
                     if (!waterSched.equals("None")) 
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Water", timeSet, waterSched);
+                    else
+                        NotificationHelper.cancelReminder(requireContext(), plantId, "Water");
+
                     if (!sunSched.equals("None")) 
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Sunlight", timeSet, sunSched);
+                    else
+                        NotificationHelper.cancelReminder(requireContext(), plantId, "Sunlight");
+
                     if (!fertSched.equals("None")) 
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Fertilize", timeSet, fertSched);
+                    else
+                        NotificationHelper.cancelReminder(requireContext(), plantId, "Fertilize");
 
                     Toast.makeText(getContext(), "Schedule saved! I will remind you at " + timeSet + "! 🌿", Toast.LENGTH_SHORT).show();
                     dismiss();

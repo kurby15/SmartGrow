@@ -15,7 +15,7 @@ public class GMailSender {
 
 
     private static final String SENDER_EMAIL = "29ljdiodos@gmail.com";
-    private static final String SENDER_PASSWORD = "lwslrtjitqfbhnvw";
+    private static final String SENDER_PASSWORD = "docnhhjfclpbfyiz";
 
     public interface EmailListener {
         void onSuccess();
@@ -53,7 +53,7 @@ public class GMailSender {
                 props.put("mail.smtp.auth", "true");
                 props.put("mail.smtp.port", "465");
 
-                Session session = Session.getDefaultInstance(props, new Authenticator() {
+                Session session = Session.getInstance(props, new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
                         return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);

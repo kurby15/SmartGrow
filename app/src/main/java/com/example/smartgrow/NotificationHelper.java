@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
 import java.util.Calendar;
 
 public class NotificationHelper {
@@ -43,22 +45,19 @@ public class NotificationHelper {
             calendar.set(Calendar.HOUR_OF_DAY, hour);
             calendar.set(Calendar.MINUTE, minute);
             calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
 
-            // If time has already passed today, schedule for the next interval
-            if (calendar.before(Calendar.getInstance())) {
-                calendar.add(Calendar.DATE, 1);
+            // If time has already passed today, schedule for tomorrow
+            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
             }
 
-            long interval = AlarmManager.INTERVAL_DAY; // Default
-            if (frequency.equalsIgnoreCase("Every 2 Days")) interval = AlarmManager.INTERVAL_DAY * 2;
-            else if (frequency.equalsIgnoreCase("Every 3 Days")) interval = AlarmManager.INTERVAL_DAY * 3;
-            else if (frequency.equalsIgnoreCase("Weekly") || frequency.equalsIgnoreCase("Every Week")) interval = AlarmManager.INTERVAL_DAY * 7;
-            else if (frequency.equalsIgnoreCase("Every 2 Weeks")) interval = AlarmManager.INTERVAL_DAY * 14;
-            else if (frequency.equalsIgnoreCase("Monthly")) interval = AlarmManager.INTERVAL_DAY * 30;
-
             Intent intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra("plantId", plantId);
             intent.putExtra("plantName", plantName);
             intent.putExtra("taskType", taskType);
+            intent.putExtra("timeStr", timeStr);
+            intent.putExtra("frequency", frequency);
             
             int requestCode = (plantId + taskType).hashCode();
             PendingIntent pendingIntent = PendingIntent.getBroadcast(
@@ -70,12 +69,30 @@ public class NotificationHelper {
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
-                alarmManager.setRepeating(
-                        AlarmManager.RTC_WAKEUP,
-                        calendar.getTimeInMillis(),
-                        interval,
-                        pendingIntent
-                );
+                // 🚀 USE setExactAndAllowWhileIdle for better reliability when phone is "off" (idle)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms()) {
+                        alarmManager.setExactAndAllowWhileIdle(
+                                AlarmManager.RTC_WAKEUP,
+                                calendar.getTimeInMillis(),
+                                pendingIntent
+                        );
+                    } else {
+                        // Fallback if permission not granted
+                        alarmManager.setAndAllowWhileIdle(
+                                AlarmManager.RTC_WAKEUP,
+                                calendar.getTimeInMillis(),
+                                pendingIntent
+                        );
+                    }
+                } else {
+                    alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.getTimeInMillis(),
+                            pendingIntent
+                    );
+                }
+                Log.d("NotificationHelper", "Alarm scheduled for " + plantName + " - " + taskType + " at " + calendar.getTime().toString());
             }
         } catch (Exception e) {
             e.printStackTrace();

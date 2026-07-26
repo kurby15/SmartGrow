@@ -65,7 +65,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     private CommunityPostAdapter adapter;
     private List<CommunityPostModel> postList;
     private MaterialCardView cardMind;
-    private ImageView imgUserAvatar;
+    private ImageView imgUserAvatar, btnMyProfile;
     private SwipeRefreshLayout swipeRefreshLayout;
 
     private DatabaseReference postsRef, commentsRef;
@@ -126,9 +126,14 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         cardMind = view.findViewById(R.id.card_mind);
         imgUserAvatar = view.findViewById(R.id.img_user);
+        btnMyProfile = view.findViewById(R.id.btn_my_profile);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_forum);
         
         if (imgUserAvatar != null) loadProfileImage(currentUserProfilePic, imgUserAvatar);
+        if (btnMyProfile != null) {
+            loadProfileImage(currentUserProfilePic, btnMyProfile);
+            btnMyProfile.setOnClickListener(v -> onUserClick(currentUserId));
+        }
 
         if (cardMind != null) {
             cardMind.setOnClickListener(v -> {
@@ -136,6 +141,10 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 savedDraftContent = "";
                 showCreatePostDialog();
             });
+        }
+        
+        if (imgUserAvatar != null) {
+            imgUserAvatar.setOnClickListener(v -> onUserClick(currentUserId));
         }
 
         view.findViewById(R.id.btn_camera_icon).setOnClickListener(v -> {
@@ -176,24 +185,45 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     private void listenForPosts() {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
-        postsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded()) return;
-                postList.clear();
-                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
-                    CommunityPostModel post = postSnapshot.getValue(CommunityPostModel.class);
-                    if (post != null) {
-                        post.setPostId(postSnapshot.getKey()); 
-                        postList.add(post);
+        
+        // 1. Get user's hidden posts first
+        FirebaseDatabase.getInstance().getReference("users").child(currentUserId).child("hiddenPosts")
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot hiddenSnapshot) {
+                    Map<String, Boolean> hiddenIds = new HashMap<>();
+                    if (hiddenSnapshot.exists()) {
+                        for (DataSnapshot h : hiddenSnapshot.getChildren()) {
+                            hiddenIds.put(h.getKey(), true);
+                        }
                     }
+
+                    // 2. Fetch all posts
+                    postsRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (!isAdded()) return;
+                            postList.clear();
+                            for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                                CommunityPostModel post = postSnapshot.getValue(CommunityPostModel.class);
+                                if (post != null) {
+                                    post.setPostId(postSnapshot.getKey()); 
+                                    
+                                    // 🚀 FILTER: Hide if it's archived OR hidden by user
+                                    if (!post.isArchived() && !hiddenIds.containsKey(post.getPostId())) {
+                                        postList.add(post);
+                                    }
+                                }
+                            }
+                            Collections.sort(postList, (p1, p2) -> p2.getTimestamp().compareTo(p1.getTimestamp()));
+                            adapter.notifyDataSetChanged();
+                            if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError error) { if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false); }
+                    });
                 }
-                Collections.sort(postList, (p1, p2) -> p2.getTimestamp().compareTo(p1.getTimestamp()));
-                adapter.notifyDataSetChanged();
-                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) { if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false); }
-        });
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
     }
 
     private void showCreatePostDialog() {
@@ -209,7 +239,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         MaterialCardView cardPreview = v.findViewById(R.id.card_preview_container);
         ImageView ivPostPreview = v.findViewById(R.id.iv_post_preview);
 
-        if (tvName != null) tvName.setText(currentUserFullName);
+        if (tvName != null) tvName.setText(currentUserId); // 🚀 Username instead of Full Name
         if (imgAvatar != null) loadProfileImage(currentUserProfilePic, imgAvatar);
         if (etContent != null) etContent.setText(savedDraftContent);
         if (selectedImageUri != null) {
@@ -259,7 +289,8 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     private void savePostToDatabase(String content, String imageBase64, BottomSheetDialog dialog) {
         String postId = postsRef.push().getKey();
-        CommunityPostModel post = new CommunityPostModel(postId, currentUserFullName, currentUserId, currentUserProfilePic, System.currentTimeMillis(), content, imageBase64, detectedLocation);
+        // 🚀 FIX: username should be currentUserId (which is the actual username from prefs)
+        CommunityPostModel post = new CommunityPostModel(postId, currentUserId, currentUserId, currentUserProfilePic, System.currentTimeMillis(), content, imageBase64, detectedLocation);
         if (postId != null) postsRef.child(postId).setValue(post).addOnSuccessListener(aVoid -> {
             dialog.dismiss();
             showSuccessDialog();
@@ -305,15 +336,130 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     }
 
     @Override public void onCommentClick(CommunityPostModel post) { showCommentsDialog(post); }
-    @Override public void onMoreClick(View v, CommunityPostModel p) {
-        PopupMenu popup = new PopupMenu(getContext(), v);
-        popup.getMenu().add("Delete Post");
-        popup.setOnMenuItemClickListener(item -> {
-            postsRef.child(p.getPostId()).removeValue();
-            commentsRef.child(p.getPostId()).removeValue();
-            return true;
+    @Override public void onUserClick(String username) {
+        if (isAdded()) {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, UserProfileFragment.newInstance(username))
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
+    @Override public void onMoreClick(View v, CommunityPostModel post) {
+        if (getContext() == null) return;
+        
+        BottomSheetDialog optionsSheet = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_post_options_sheet, null);
+        optionsSheet.setContentView(sheetView);
+
+        LinearLayout layoutOwner = sheetView.findViewById(R.id.layout_owner_options);
+        LinearLayout layoutOther = sheetView.findViewById(R.id.layout_other_user_options);
+
+        // 🛡️ CHECK OWNER: Lilitaw ang Edit/Trash kung ikaw ang may-ari
+        if (post.getUserId() != null && post.getUserId().equals(currentUserId)) {
+            layoutOwner.setVisibility(View.VISIBLE);
+            layoutOther.setVisibility(View.GONE);
+        } else {
+            layoutOwner.setVisibility(View.GONE);
+            layoutOther.setVisibility(View.VISIBLE);
+        }
+
+        // 🔗 ACTION HANDLERS
+        sheetView.findViewById(R.id.item_edit_post).setOnClickListener(view -> {
+            optionsSheet.dismiss();
+            showEditPostDialog(post);
         });
-        popup.show();
+
+        sheetView.findViewById(R.id.item_archive_post).setOnClickListener(view -> {
+            optionsSheet.dismiss();
+            postsRef.child(post.getPostId()).child("archived").setValue(true).addOnSuccessListener(aVoid -> {
+                Toast.makeText(getContext(), "Post moved to Archive.", Toast.LENGTH_SHORT).show();
+            });
+        });
+
+        sheetView.findViewById(R.id.item_move_trash).setOnClickListener(view -> {
+            optionsSheet.dismiss();
+            // Show a simple confirmation dialog for trash
+            new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Move to Trash?")
+                .setMessage("This post will be permanently deleted after 30 days.")
+                .setPositiveButton("Move", (d, w) -> {
+                    postsRef.child(post.getPostId()).removeValue();
+                    commentsRef.child(post.getPostId()).removeValue();
+                    Toast.makeText(getContext(), "Post moved to trash.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        });
+
+        sheetView.findViewById(R.id.item_hide_post).setOnClickListener(view -> {
+            optionsSheet.dismiss();
+            // 🚀 REAL HIDE: Save to user's hidden posts
+            FirebaseDatabase.getInstance().getReference("users")
+                .child(currentUserId).child("hiddenPosts").child(post.getPostId()).setValue(true)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Post hidden. You won't see this again.", Toast.LENGTH_SHORT).show();
+                });
+        });
+
+        optionsSheet.show();
+    }
+
+    private void showEditPostDialog(CommunityPostModel post) {
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_post, null);
+        dialog.setContentView(v);
+
+        EditText etContent = v.findViewById(R.id.et_edit_post_box);
+        Button btnUpdate = v.findViewById(R.id.btn_update_post);
+        MaterialCardView cardPreview = v.findViewById(R.id.card_edit_preview_container);
+        ImageView ivPreview = v.findViewById(R.id.iv_edit_post_preview);
+        ImageButton btnRemovePhoto = v.findViewById(R.id.btn_remove_edit_photo);
+
+        etContent.setText(post.getContent());
+        
+        final String[] updatedImageBase64 = {post.getPostImageUri()};
+
+        if (post.getPostImageUri() != null && !post.getPostImageUri().isEmpty()) {
+            cardPreview.setVisibility(View.VISIBLE);
+            if (post.getPostImageUri().length() > 1000) {
+                byte[] decodedString = Base64.decode(post.getPostImageUri(), Base64.DEFAULT);
+                ivPreview.setImageBitmap(BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length));
+            } else {
+                Glide.with(this).load(post.getPostImageUri()).into(ivPreview);
+            }
+        }
+
+        btnRemovePhoto.setOnClickListener(view -> {
+            cardPreview.setVisibility(View.GONE);
+            updatedImageBase64[0] = "";
+        });
+
+        btnUpdate.setOnClickListener(view -> {
+            String newContent = etContent.getText().toString().trim();
+            if (newContent.isEmpty() && (updatedImageBase64[0] == null || updatedImageBase64[0].isEmpty())) {
+                Toast.makeText(getContext(), "Post cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            btnUpdate.setEnabled(false);
+            btnUpdate.setText("Updating...");
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("content", newContent);
+            updates.put("postImageUri", updatedImageBase64[0]);
+
+            postsRef.child(post.getPostId()).updateChildren(updates).addOnSuccessListener(aVoid -> {
+                dialog.dismiss();
+                Toast.makeText(getContext(), "Post updated! ✨", Toast.LENGTH_SHORT).show();
+            }).addOnFailureListener(e -> {
+                btnUpdate.setEnabled(true);
+                btnUpdate.setText("Update Post");
+                Toast.makeText(getContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        });
+
+        dialog.show();
     }
 
     private void showCommentsDialog(CommunityPostModel post) {
@@ -321,6 +467,24 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_comments, null);
         dialog.setContentView(v);
+
+        // 🚀 FORCE EXPAND and SET HEIGHT (Full Screen Logic)
+        dialog.setOnShowListener(dialogInterface -> {
+            BottomSheetDialog d = (BottomSheetDialog) dialogInterface;
+            FrameLayout bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                behavior.setSkipCollapsed(true);
+
+                // Gawing 90% ng screen height para siguradong malaki at kitang-kita
+                int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                ViewGroup.LayoutParams lp = bottomSheet.getLayoutParams();
+                lp.height = (int) (screenHeight * 0.9);
+                bottomSheet.setLayoutParams(lp);
+            }
+        });
+
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         
         ProgressBar pb = v.findViewById(R.id.pb_comments_loading);
@@ -335,22 +499,29 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         List<CommentModel> commentList = new ArrayList<>();
         CommentAdapter commentAdapter = new CommentAdapter(commentList);
+        commentAdapter.setOnUserClickListener(this::onUserClick);
         rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
         rvComments.setAdapter(commentAdapter);
 
         commentsRef.child(post.getPostId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded()) return;
                 if (pb != null) pb.setVisibility(View.GONE);
                 commentList.clear();
                 for (DataSnapshot snap : snapshot.getChildren()) {
                     CommentModel c = snap.getValue(CommentModel.class);
-                    if (c != null) commentList.add(c);
+                    if (c != null) {
+                        c.setCommentId(snap.getKey());
+                        commentList.add(c);
+                    }
                 }
                 if (tvNoComments != null) tvNoComments.setVisibility(commentList.isEmpty() ? View.VISIBLE : View.GONE);
                 commentAdapter.notifyDataSetChanged();
-                if (!commentList.isEmpty()) rvComments.smoothScrollToPosition(commentList.size() - 1);
+                
+                // 🚀 Scroll to bottom
+                if (!commentList.isEmpty()) {
+                    rvComments.post(() -> rvComments.smoothScrollToPosition(commentList.size() - 1));
+                }
             }
             @Override public void onCancelled(@NonNull DatabaseError error) { if (pb != null) pb.setVisibility(View.GONE); }
         });
@@ -359,7 +530,8 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             String content = etComment.getText().toString().trim();
             if (content.isEmpty()) return;
             String cid = commentsRef.child(post.getPostId()).push().getKey();
-            CommentModel cm = new CommentModel(cid, currentUserFullName, currentUserProfilePic, content, System.currentTimeMillis());
+            // 🚀 FIX: Use currentUserId (actual username)
+            CommentModel cm = new CommentModel(cid, currentUserId, currentUserId, currentUserProfilePic, content, System.currentTimeMillis());
             if (cid != null) commentsRef.child(post.getPostId()).child(cid).setValue(cm).addOnSuccessListener(aVoid -> {
                 etComment.setText("");
                 updateCommentCount(post.getPostId());

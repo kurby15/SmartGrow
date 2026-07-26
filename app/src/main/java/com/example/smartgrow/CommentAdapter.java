@@ -18,6 +18,15 @@ import java.util.List;
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
 
     private final List<CommentModel> commentList;
+    private OnUserClickListener userClickListener;
+
+    public interface OnUserClickListener {
+        void onUserClick(String username);
+    }
+
+    public void setOnUserClickListener(OnUserClickListener listener) {
+        this.userClickListener = listener;
+    }
 
     public CommentAdapter(List<CommentModel> commentList) {
         this.commentList = commentList;
@@ -34,19 +43,35 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         CommentModel comment = commentList.get(position);
 
-        holder.tvUsername.setText(comment.getUsername());
-        holder.tvContent.setText(comment.getContent());
+        if (holder.tvUsername != null) {
+            holder.tvUsername.setText(comment.getUsername());
+        }
+        if (holder.tvContent != null) holder.tvContent.setText(comment.getContent());
 
-        if (comment.getTimestamp() != null) {
-            CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
-                    comment.getTimestamp(),
-                    System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS);
-            holder.tvTime.setText(timeAgo);
+        View.OnClickListener clickListener = v -> {
+            if (userClickListener != null) {
+                String id = comment.getUserId() != null ? comment.getUserId() : comment.getUsername();
+                userClickListener.onUserClick(id);
+            }
+        };
+        if (holder.tvUsername != null) holder.tvUsername.setOnClickListener(clickListener);
+        if (holder.ivAvatar != null) holder.ivAvatar.setOnClickListener(clickListener);
+
+        if (holder.tvTime != null && comment.getTimestamp() != null) {
+            try {
+                CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+                        comment.getTimestamp(),
+                        System.currentTimeMillis(),
+                        DateUtils.MINUTE_IN_MILLIS);
+                holder.tvTime.setText(timeAgo);
+            } catch (Exception e) {
+                holder.tvTime.setText("");
+            }
         }
 
-        // 👤 PROFILE PIC SYNC (Base64 or URL)
-        loadProfileImage(comment.getProfileImageUri(), holder.ivAvatar);
+        if (holder.ivAvatar != null) {
+            loadProfileImage(comment.getProfileImageUri(), holder.ivAvatar);
+        }
     }
 
     private void loadProfileImage(String profileData, ImageView imageView) {
@@ -56,11 +81,11 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         }
 
         try {
-            if (profileData.length() > 500) { // Base64 detected
+            if (profileData.length() > 500) {
                 byte[] decodedString = Base64.decode(profileData, Base64.DEFAULT);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 Glide.with(imageView.getContext()).load(decodedByte).circleCrop().into(imageView);
-            } else { // URL
+            } else {
                 Glide.with(imageView.getContext()).load(profileData).placeholder(R.drawable.ic_user).circleCrop().into(imageView);
             }
         } catch (Exception e) {

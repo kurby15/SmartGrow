@@ -12,12 +12,18 @@ public class User implements Serializable {
     private String choice3;
     private String choice4;
     private String profilePic;
+    private String bio;
+    private int followersCount = 0;
+    private int followingCount = 0;
+    private java.util.Map<String, Boolean> followers;
+    private java.util.Map<String, Boolean> following;
+    private java.util.Map<String, Boolean> hiddenPosts;
 
     public User() {
         // Required for Firebase
     }
 
-    public User(String fullName, String username, String email, String password, String choice1, String choice2, String choice3, String choice4) {
+    public User(String fullName, String username, String email, String password, String choice1, String choice2, String choice3, String choice4, String profilePic, String bio) {
         this.fullName = fullName;
         this.username = username;
         this.email = email;
@@ -26,6 +32,8 @@ public class User implements Serializable {
         this.choice2 = choice2;
         this.choice3 = choice3;
         this.choice4 = choice4;
+        this.profilePic = profilePic;
+        this.bio = bio;
     }
 
     // Getters and Setters
@@ -55,4 +63,22 @@ public class User implements Serializable {
 
     public String getProfilePic() { return profilePic; }
     public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+
+    public int getFollowersCount() { return followersCount; }
+    public void setFollowersCount(int followersCount) { this.followersCount = followersCount; }
+
+    public int getFollowingCount() { return followingCount; }
+    public void setFollowingCount(int followingCount) { this.followingCount = followingCount; }
+
+    public java.util.Map<String, Boolean> getFollowers() { return followers; }
+    public void setFollowers(java.util.Map<String, Boolean> followers) { this.followers = followers; }
+
+    public java.util.Map<String, Boolean> getFollowing() { return following; }
+    public void setFollowing(java.util.Map<String, Boolean> following) { this.following = following; }
+
+    public java.util.Map<String, Boolean> getHiddenPosts() { return hiddenPosts; }
+    public void setHiddenPosts(java.util.Map<String, Boolean> hiddenPosts) { this.hiddenPosts = hiddenPosts; }
 }

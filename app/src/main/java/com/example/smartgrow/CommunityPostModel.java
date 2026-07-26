@@ -11,7 +11,8 @@ public class CommunityPostModel {
     private Long timestamp;
     private String content;
     private String postImageUri;
-    private String location; // Bagong field para sa City/Province
+    private String location; 
+    private boolean archived = false;
     private int likesCount = 0;
     private int commentsCount = 0;
     private Map<String, Boolean> likes = new HashMap<>();
@@ -39,6 +40,7 @@ public class CommunityPostModel {
     public String getContent() { return content; }
     public String getPostImageUri() { return postImageUri; }
     public String getLocation() { return location; }
+    public boolean isArchived() { return archived; }
     public int getLikesCount() { return likesCount; }
     public int getCommentsCount() { return commentsCount; }
     public Map<String, Boolean> getLikes() { return likes; }
@@ -52,6 +54,7 @@ public class CommunityPostModel {
     public void setContent(String content) { this.content = content; }
     public void setPostImageUri(String postImageUri) { this.postImageUri = postImageUri; }
     public void setLocation(String location) { this.location = location; }
+    public void setArchived(boolean archived) { this.archived = archived; }
     public void setLikesCount(int likesCount) { this.likesCount = likesCount; }
     public void setCommentsCount(int commentsCount) { this.commentsCount = commentsCount; }
     public void setLikes(Map<String, Boolean> likes) { this.likes = likes; }

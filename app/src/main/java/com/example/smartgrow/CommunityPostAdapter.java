@@ -1,5 +1,6 @@
 package com.example.smartgrow;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -28,6 +30,7 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         void onCommentClick(CommunityPostModel post);
         void onLikeClick(CommunityPostModel post);
         void onMoreClick(View view, CommunityPostModel post);
+        void onUserClick(String username);
     }
 
     public CommunityPostAdapter(List<CommunityPostModel> postList, String currentUserId, OnPostInteractionListener listener) {
@@ -35,6 +38,9 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         this.currentUserId = currentUserId;
         this.listener = listener;
     }
+
+    private boolean showArchivedOnly = false; // 🚀 NEW
+    public void setShowArchivedOnly(boolean show) { this.showArchivedOnly = show; }
 
     @NonNull
     @Override
@@ -60,17 +66,25 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
             holder.tvTime.setText(timeAgo);
         }
 
-        // 📍 LOCATION: HIDDEN FROM UI
         holder.tvLocation.setVisibility(View.GONE);
         holder.tvDotSeparator.setVisibility(View.GONE);
 
-        // 👤 PROFILE PIC
         loadProfileImage(post.getProfileImageUri(), holder.ivUserAvatar);
 
-        // 🖼️ POST IMAGE (Base64 or URL Handling)
+        View.OnClickListener userClickListener = v -> {
+            if (listener != null) listener.onUserClick(post.getUserId());
+        };
+        holder.tvUsername.setOnClickListener(userClickListener);
+        holder.ivUserAvatar.setOnClickListener(userClickListener);
+
         if (post.getPostImageUri() != null && !post.getPostImageUri().isEmpty()) {
             holder.cardPostImage.setVisibility(View.VISIBLE);
             displayPostImage(post.getPostImageUri(), holder.ivPostImage);
+            
+            // 🚀 CLICK TO VIEW FULL IMAGE
+            holder.ivPostImage.setOnClickListener(v -> {
+                showFullImageDialog(v.getContext(), post.getPostImageUri());
+            });
         } else {
             holder.cardPostImage.setVisibility(View.GONE);
         }
@@ -83,18 +97,17 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         holder.btnComment.setOnClickListener(v -> { if (listener != null) listener.onCommentClick(post); });
         holder.btnMore.setOnClickListener(v -> { if (listener != null) listener.onMoreClick(v, post); });
         
-        if (post.getUserId() != null) {
-            holder.btnMore.setVisibility(post.getUserId().equals(currentUserId) ? View.VISIBLE : View.GONE);
-        }
+        // 🚀 ALWAYS SHOW MORE BUTTON (Para makita ang Report options ng ibang user)
+        holder.btnMore.setVisibility(View.VISIBLE);
     }
 
     private void displayPostImage(String imageData, ImageView imageView) {
         try {
-            if (imageData.length() > 1000) { // Base64 detected
+            if (imageData.length() > 1000) {
                 byte[] decodedString = Base64.decode(imageData, Base64.DEFAULT);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 Glide.with(imageView.getContext()).load(decodedByte).into(imageView);
-            } else { // Direct URL
+            } else {
                 Glide.with(imageView.getContext()).load(imageData).into(imageView);
             }
         } catch (Exception e) {
@@ -118,6 +131,29 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         } catch (Exception e) {
             imageView.setImageResource(R.drawable.ic_user);
         }
+    }
+
+    private void showFullImageDialog(android.content.Context context, String imageData) {
+        Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        dialog.setContentView(R.layout.dialog_full_image);
+        
+        ImageView imageView = dialog.findViewById(R.id.iv_full_image_viewer);
+        ImageButton btnClose = dialog.findViewById(R.id.btn_close_image);
+        
+        if (imageData.length() > 1000) {
+            try {
+                byte[] decodedString = Base64.decode(imageData, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                imageView.setImageBitmap(decodedByte);
+            } catch (Exception e) {
+                Toast.makeText(context, "Error loading image", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Glide.with(context).load(imageData).into(imageView);
+        }
+        
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     @Override

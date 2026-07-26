@@ -260,8 +260,8 @@ public class HomeFragment extends Fragment {
                 taskAdapter = new TodoTaskAdapter(currentTasks);
                 taskAdapter.setOnTaskStatusChangedListener(task -> {
                     if (task.isCompleted()) {
-                        // ✨ Cute accomplishment message
-                        Toast.makeText(getContext(), "🌿 Yay! You accomplished " + task.getTaskTitle() + "! Your plant is happy! ✨", Toast.LENGTH_SHORT).show();
+                        // ✨ Shortened and clearer message
+                        Toast.makeText(getContext(), "🌿 Task Done: " + task.getTaskTitle() + "! ✨", Toast.LENGTH_LONG).show();
                         
                         // Optional: remove task from list or update UI
                         new Handler().postDelayed(() -> {

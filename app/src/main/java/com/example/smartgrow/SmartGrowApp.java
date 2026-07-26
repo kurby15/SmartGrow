@@ -15,5 +15,8 @@ public class SmartGrowApp extends Application {
            Awtomatikong mag-sy-sync ang data kapag bumalik ang connection.
         */
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
+        // 🔔 Initialize Notification Channel
+        NotificationHelper.createNotificationChannel(this);
     }
 }
