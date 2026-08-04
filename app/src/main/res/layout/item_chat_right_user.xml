@@ -9,10 +9,26 @@
     android:gravity="end">
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_chat_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:strokeWidth="0dp">
+        <ImageView
+            android:id="@+id/iv_chat_image"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_chat_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
-        app:cardBackgroundColor="#0C6211"
+        app:cardBackgroundColor="@color/primary_green"
         app:strokeWidth="0dp"
         app:cardElevation="0dp">
         <TextView
@@ -20,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="How to cure white spots on Lagundi leaves?"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:textSize="14sp"
             android:fontFamily="@font/poppins"
             android:paddingHorizontal="14dp"
@@ -33,7 +49,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="10:31 AM"
-        android:textColor="#999999"
+        android:textColor="@color/text_secondary"
         android:textSize="10sp"
         android:fontFamily="@font/poppins"
         android:layout_marginTop="2dp"

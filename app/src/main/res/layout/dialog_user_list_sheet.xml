@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_bottom_sheet_rounded">
+    android:background="@color/card_background">
 
     <View
         android:id="@+id/view_drag_handle"
         android:layout_width="45dp"
         android:layout_height="4dp"
         android:layout_marginTop="12dp"
-        android:background="#DDDDDD"
+        android:background="@color/divider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         android:fontFamily="@font/poppins"
         android:text="User List"
-        android:textColor="#111111"
+        android:textColor="@color/text_primary"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="12dp"
-        android:background="#EEEEEE"
+        android:background="@color/divider"
         app:layout_constraintTop_toBottomOf="@id/tv_list_title" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/poppins"
         android:text="No users found."
-        android:textColor="#999999"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -1,15 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Base.Theme.SmartGrow" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@color/background</item>
         <item name="android:windowDisablePreview">true</item>
 
-        <!-- ⚪ Standard White Status Bar para malinis tingnan -->
-        <item name="android:statusBarColor">#FFFFFF</item>
+        <!-- Status Bar Colors -->
+        <item name="android:statusBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">true</item>
 
-        <!-- ⚪ White Navigation Bar para pantay sa ilalim -->
-        <item name="android:navigationBarColor">#FFFFFF</item>
+        <!-- Navigation Bar Colors -->
+        <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
 
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>

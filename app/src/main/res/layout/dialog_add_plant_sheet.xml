@@ -5,7 +5,7 @@
     android:id="@+id/bottom_sheet_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet_rounded"
+    android:background="@color/card_background"
     android:paddingTop="16dp"
     android:paddingHorizontal="24dp">
 
@@ -14,7 +14,7 @@
         android:id="@+id/view_drag_handle"
         android:layout_width="40dp"
         android:layout_height="4dp"
-        android:background="#CCCCCC"
+        android:background="@color/divider"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -47,13 +47,13 @@
                 android:text="Add New Plant"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:fontFamily="@font/poppins" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#EAEAEA"
+                android:background="@color/divider"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp" />
 
@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:text="Name:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins" />
 
@@ -75,17 +75,17 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <EditText
                     android:id="@+id/et_add_plant_name"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:hint="e.g., My Healing Plant"
-                    android:textColorHint="#94A3B3"
-                    android:textColor="#111111"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:fontFamily="@font/poppins"
                     android:paddingHorizontal="16dp"
@@ -101,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:text="Species/Type:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -113,17 +113,17 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <EditText
                     android:id="@+id/et_add_plant_species"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:hint="e.g., Lagundi"
-                    android:textColorHint="#94A3B3"
-                    android:textColor="#111111"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:fontFamily="@font/poppins"
                     android:paddingHorizontal="16dp"
@@ -139,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:text="Medicinal Use / Purpose:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -151,17 +151,17 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <EditText
                     android:id="@+id/et_add_plant_medicinal_use"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:hint="e.g., For Cough, Asthma, &amp; Fever"
-                    android:textColorHint="#94A3B3"
-                    android:textColor="#111111"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:fontFamily="@font/poppins"
                     android:paddingHorizontal="16dp"
@@ -178,7 +178,7 @@
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/poppins"
                 android:text="Date Planted:"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -189,9 +189,9 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -203,8 +203,8 @@
                         android:layout_toStartOf="@id/img_calendar_icon"
                         android:background="@android:color/transparent"
                         android:hint="dd/mm/yyyy"
-                        android:textColorHint="#94A3B3"
-                        android:textColor="#111111"
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:focusable="false"
                         android:clickable="true"
@@ -218,7 +218,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_calendar_gray"
-                        app:tint="#555555"
+                        app:tint="@color/text_secondary"
                         android:contentDescription="Select Date" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -230,7 +230,7 @@
                 android:layout_height="wrap_content"
                 android:text="Default Health Status:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -265,7 +265,7 @@
                 android:layout_height="wrap_content"
                 android:text="Plant Photo:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -280,9 +280,9 @@
                 android:background="?attr/selectableItemBackground"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F8F9FA"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#DDE2E5">
+                app:strokeColor="@color/divider">
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -297,13 +297,13 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_camera"
-                            app:tint="#A0AAB2"
+                            app:tint="@color/text_secondary"
                             android:contentDescription="Upload Icon" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Take a photo or Upload"
-                            android:textColor="#7A869A"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:fontFamily="@font/poppins"
                             android:layout_marginTop="4dp" />
@@ -326,11 +326,11 @@
                 android:layout_marginTop="24dp"
                 android:text="Add Plant"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/poppins"
-                app:backgroundTint="#0C6211"
+                app:backgroundTint="@color/primary_green"
                 app:cornerRadius="12dp" />
 
         </LinearLayout>

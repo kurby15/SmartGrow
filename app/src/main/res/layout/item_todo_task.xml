@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
     app:cardCornerRadius="14dp"
-    app:cardBackgroundColor="#F7F8F8"
+    app:cardBackgroundColor="@color/card_background"
     app:cardElevation="0dp"
     app:strokeWidth="0dp"
     android:clickable="true"
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:minWidth="0dp"
             android:minHeight="0dp"
-            app:buttonTint="#0C6211" />
+            app:buttonTint="@color/primary_green" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Water Lagundi"
-                android:textColor="#333333"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins" />
 
@@ -48,7 +48,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="10:00 AM"
-                android:textColor="#999999"
+                android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="2dp" />

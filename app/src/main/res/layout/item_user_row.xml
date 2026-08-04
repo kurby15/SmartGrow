@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
             android:text="username"
-            android:textColor="#111111"
+            android:textColor="@color/text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
             android:text="Full Name"
-            android:textColor="#777777"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp" />
     </LinearLayout>
 

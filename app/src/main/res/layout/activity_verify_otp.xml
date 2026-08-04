@@ -48,7 +48,7 @@
                 android:textSize="36sp"
                 android:fontFamily="@font/poppins"
                 android:textStyle="bold"
-                android:textColor="#0C6211"
+                android:textColor="@color/primary_green"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -60,7 +60,7 @@
                 android:text="Enter the 4-digit code sent to your email."
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
-                android:textColor="#555555"
+                android:textColor="@color/text_secondary"
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 app:layout_constraintTop_toBottomOf="@id/tv_otp_title" />
@@ -79,7 +79,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="6dp"
                     app:cardElevation="4dp"
-                    app:cardCornerRadius="12dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/card_background">
                     <EditText
                         android:id="@+id/et_otp_1"
                         android:layout_width="match_parent"
@@ -90,7 +91,7 @@
                         android:maxLength="1"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:textColor="@color/text_primary"/>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
@@ -98,7 +99,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="6dp"
                     app:cardElevation="4dp"
-                    app:cardCornerRadius="12dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/card_background">
                     <EditText
                         android:id="@+id/et_otp_2"
                         android:layout_width="match_parent"
@@ -109,7 +111,7 @@
                         android:maxLength="1"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:textColor="@color/text_primary"/>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
@@ -117,7 +119,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="6dp"
                     app:cardElevation="4dp"
-                    app:cardCornerRadius="12dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/card_background">
                     <EditText
                         android:id="@+id/et_otp_3"
                         android:layout_width="match_parent"
@@ -128,7 +131,7 @@
                         android:maxLength="1"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:textColor="@color/text_primary"/>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
@@ -136,7 +139,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="6dp"
                     app:cardElevation="4dp"
-                    app:cardCornerRadius="12dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="@color/card_background">
                     <EditText
                         android:id="@+id/et_otp_4"
                         android:layout_width="match_parent"
@@ -147,7 +151,7 @@
                         android:maxLength="1"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:textColor="@color/text_primary"/>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
@@ -160,7 +164,7 @@
                 android:fontFamily="@font/poppins"
                 android:textStyle="bold"
                 android:textColor="@color/white"
-                android:backgroundTint="#0C6211"
+                android:backgroundTint="@color/primary_green"
                 app:cornerRadius="16dp"
                 android:layout_marginTop="36dp"
                 app:layout_constraintTop_toBottomOf="@id/layout_otp_boxes" />
@@ -170,7 +174,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Resend code in 0:59"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:fontFamily="@font/poppins"
                 android:textSize="14sp"
                 android:layout_marginTop="20dp"

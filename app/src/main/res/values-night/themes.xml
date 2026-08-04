@@ -1,15 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.SmartGrow" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="android:windowBackground">@color/background</item>
 
-        <!-- 🟢 Standard Dark Status Bar -->
-        <item name="android:statusBarColor">#121212</item>
+        <!-- Status Bar Colors -->
+        <item name="android:statusBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">false</item>
 
-        <!-- 🔵 Standard Dark Navigation Bar -->
-        <item name="android:navigationBarColor">#121212</item>
+        <!-- Navigation Bar Colors -->
+        <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
 
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>

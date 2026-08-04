@@ -5,7 +5,7 @@
     android:id="@+id/bottom_sheet_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet_rounded"
+    android:background="@color/card_background"
     android:paddingTop="16dp"
     android:paddingHorizontal="24dp">
 
@@ -14,7 +14,7 @@
         android:id="@+id/view_log_drag_handle"
         android:layout_width="40dp"
         android:layout_height="4dp"
-        android:background="#CCCCCC"
+        android:background="@color/divider"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -45,13 +45,13 @@
                 android:text="Add Daily Observation Log"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:fontFamily="@font/poppins" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#EAEAEA"
+                android:background="@color/divider"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp" />
 
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:text="Date:"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins" />
 
@@ -71,9 +71,9 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -85,8 +85,8 @@
                         android:layout_toStartOf="@id/img_log_calendar_icon"
                         android:background="@android:color/transparent"
                         android:hint="dd/mm/yyyy"
-                        android:textColorHint="#94A3B3"
-                        android:textColor="#111111"
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:focusable="false"
                         android:clickable="true"
@@ -100,7 +100,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_calendar_gray"
-                        app:tint="#555555"
+                        app:tint="@color/text_secondary"
                         android:contentDescription="Select Date" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -111,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:text="Did you water the plant? (watered)"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -127,18 +127,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Yes"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
                     android:layout_marginEnd="24dp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_water_no"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="No"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
             </RadioGroup>
 
             <!-- Fertilizer Question -->
@@ -147,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:text="Did you apply fertilizer? (fertilized)"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -163,18 +165,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Yes"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
                     android:layout_marginEnd="24dp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_fertilizer_no"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="No"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
             </RadioGroup>
 
             <!-- Sunlight Exposure -->
@@ -183,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:text="Sunlight Exposure: (sunlight_exposure)"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -198,25 +202,28 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Full Sun (6+ hours)"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_sun_partial"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Partial Sun (3-5 hours)"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_sun_shade"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Shade (less than 3 hours)"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
             </RadioGroup>
 
             <!-- Health Status -->
@@ -225,7 +232,7 @@
                 android:layout_height="wrap_content"
                 android:text="Health Status: (health_status)"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -240,33 +247,37 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Healthy"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_health_fair"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Fair"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_health_attention"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Needs Attention"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
                 <RadioButton
                     android:id="@+id/rb_health_critical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Critical"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:textSize="14sp"
-                    android:buttonTint="#0C6211" />
+                    android:buttonTint="@color/primary_green" />
             </RadioGroup>
 
             <!-- Notes -->
@@ -275,7 +286,7 @@
                 android:layout_height="wrap_content"
                 android:text="Notes (Optional): (notes)"
                 android:textStyle="bold"
-                android:textColor="#111111"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="16dp" />
@@ -286,9 +297,9 @@
                 android:layout_marginTop="6dp"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3FBF2"
+                app:cardBackgroundColor="@color/background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#E2F2E1">
+                app:strokeColor="@color/divider">
                 <EditText
                     android:id="@+id/et_log_notes"
                     android:layout_width="match_parent"
@@ -296,8 +307,8 @@
                     android:minHeight="100dp"
                     android:background="@android:color/transparent"
                     android:hint="Any observations about your plant..."
-                    android:textColorHint="#94A3B3"
-                    android:textColor="#111111"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:fontFamily="@font/poppins"
                     android:padding="12dp"
@@ -314,11 +325,11 @@
                 android:layout_marginTop="24dp"
                 android:text="Add Log"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/poppins"
-                app:backgroundTint="#0C6211"
+                app:backgroundTint="@color/primary_green"
                 app:cornerRadius="12dp" />
 
         </LinearLayout>

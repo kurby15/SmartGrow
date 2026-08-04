@@ -8,7 +8,7 @@
     android:layout_marginHorizontal="2dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="3dp"
-    app:cardBackgroundColor="#FFFFFF"
+    app:cardBackgroundColor="@color/card_background"
     app:strokeWidth="0dp"
     android:clickable="true"
     android:focusable="true"
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="14dp"
             android:text="Yerba Buena"
-            android:textColor="#333333"
+            android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="@font/poppins"
@@ -49,7 +49,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Minty Fresh"
-            android:textColor="#777777"
+            android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:fontFamily="@font/poppins"
             app:layout_constraintTop_toBottomOf="@id/tv_plant_name"
@@ -71,7 +71,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_water_drop"
-                app:tint="#777777" />
+                app:tint="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tv_plant_next_action"
@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:text="Next: Tomorrow"
-                android:textColor="#555555"
+                android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:fontFamily="@font/poppins" />
         </LinearLayout>
@@ -89,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="80%"
-            android:textColor="#0C6211"
+            android:textColor="@color/primary_green"
             android:textSize="16sp"
             android:textStyle="bold"
             android:fontFamily="@font/poppins"

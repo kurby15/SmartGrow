@@ -126,7 +126,7 @@
         android:stateListAnimator="@null"
         android:text="Get Started"
         android:textAllCaps="false"
-        android:textColor="#12A703"
+        android:textColor="@color/primary_green"
         android:textSize="18sp"
         app:cornerRadius="28dp"
         app:layout_constraintBottom_toBottomOf="parent"

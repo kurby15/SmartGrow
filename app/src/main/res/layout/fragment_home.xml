@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA">
+    android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -25,7 +25,7 @@
                 android:text="Good Morning, Isha!"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#333333"
+                android:textColor="@color/text_primary"
                 android:fontFamily="@font/poppins"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -45,7 +45,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Monday, 10:30 AM"
-                    android:textColor="#555555"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:fontFamily="@font/poppins" />
@@ -53,7 +53,7 @@
                 <View
                     android:layout_width="1dp"
                     android:layout_height="12dp"
-                    android:background="#CCCCCC"
+                    android:background="@color/divider"
                     android:layout_marginHorizontal="10dp"/>
 
                 <TextView
@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="☀️ Sunny, 31°C"
-                    android:textColor="#0C6211"
+                    android:textColor="@color/primary_green"
                     android:textSize="13sp"
                     android:fontFamily="@font/poppins" />
             </LinearLayout>
@@ -71,7 +71,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Your plants are growing well today."
-                android:textColor="#0C6211"
+                android:textColor="@color/primary_green"
                 android:textSize="13sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="12dp"
@@ -84,7 +84,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="You have 2 tasks pending today. See Task"
-                android:textColor="#555555"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="4dp"
@@ -116,7 +116,7 @@
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
-                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardBackgroundColor="@color/card_background"
                         app:strokeWidth="0dp">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -140,13 +140,13 @@
                                     android:text="0"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/text_primary"/>
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Total Plants"
                                     android:textSize="11sp"
-                                    android:textColor="#777777"/>
+                                    android:textColor="@color/text_secondary"/>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -159,7 +159,7 @@
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
-                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardBackgroundColor="@color/card_background"
                         app:strokeWidth="0dp">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -183,13 +183,13 @@
                                     android:text="0"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/text_primary"/>
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Need Water"
                                     android:textSize="11sp"
-                                    android:textColor="#777777"/>
+                                    android:textColor="@color/text_secondary"/>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -208,7 +208,7 @@
                         android:layout_marginEnd="6dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
-                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardBackgroundColor="@color/card_background"
                         app:strokeWidth="0dp">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -232,13 +232,13 @@
                                     android:text="0%"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/text_primary"/>
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Avg Health"
                                     android:textSize="11sp"
-                                    android:textColor="#777777"/>
+                                    android:textColor="@color/text_secondary"/>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -250,7 +250,7 @@
                         android:layout_marginStart="6dp"
                         app:cardCornerRadius="14dp"
                         app:cardElevation="2dp"
-                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardBackgroundColor="@color/card_background"
                         app:strokeWidth="0dp">
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -274,13 +274,13 @@
                                     android:text="0"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/text_primary"/>
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Pests Alerts"
                                     android:textSize="11sp"
-                                    android:textColor="#777777"/>
+                                    android:textColor="@color/text_secondary"/>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -299,7 +299,7 @@
                     android:text="Recently AI Detected"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="@font/poppins"
                     android:layout_alignParentStart="true" />
                 <TextView
@@ -308,7 +308,7 @@
                     android:layout_height="wrap_content"
                     android:text="View All"
                     android:textSize="13sp"
-                    android:textColor="#0C6211"
+                    android:textColor="@color/primary_green"
                     android:textStyle="bold"
                     android:fontFamily="@font/poppins"
                     android:layout_alignParentEnd="true" />
@@ -329,7 +329,7 @@
                 android:text="My Plants"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#0C6211"
+                android:textColor="@color/primary_green"
                 android:fontFamily="@font/poppins"
                 android:layout_marginTop="28dp"
                 app:layout_constraintTop_toBottomOf="@id/rv_ai_detected_history"

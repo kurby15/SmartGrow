@@ -8,8 +8,8 @@
     android:layout_marginVertical="6dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="#FFFFFF"
-    app:strokeColor="#EAF4EB"
+    app:cardBackgroundColor="@color/card_background"
+    app:strokeColor="@color/divider"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -33,7 +33,7 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/smartgrow_logo"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent"
-                app:strokeColor="#12A703"
+                app:strokeColor="@color/primary_green"
                 app:strokeWidth="1dp" />
         </FrameLayout>
 
@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Oregano"
-            android:textColor="#333333"
+            android:textColor="@color/text_primary"
             android:textSize="11sp"
             android:textStyle="bold"
             android:fontFamily="@font/poppins"
@@ -55,11 +55,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="AI Log"
-            android:textColor="#12A703"
+            android:textColor="@color/primary_green"
             android:textSize="8sp"
             android:textStyle="bold"
             android:fontFamily="@font/poppins"
-            android:background="#EAF4EB"
+            android:background="@color/divider"
             android:paddingHorizontal="5dp"
             android:paddingVertical="1dp"
             android:layout_marginTop="3dp" />

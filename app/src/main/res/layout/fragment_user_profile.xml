@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA">
+    android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -27,7 +27,7 @@
                 android:src="@drawable/ic_back"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="#333333" />
+                app:tint="@color/text_primary" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_header"
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:layout_marginHorizontal="16dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
                 app:strokeWidth="0dp"
@@ -64,7 +64,7 @@
                         android:layout_marginTop="12dp"
                         android:fontFamily="@font/poppins"
                         android:text="\@username"
-                        android:textColor="#0C6211"
+                        android:textColor="@color/primary_green"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -77,7 +77,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/poppins"
                         android:text="Full Name"
-                        android:textColor="#333333"
+                        android:textColor="@color/text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -92,7 +92,8 @@
                         android:fontFamily="@font/poppins"
                         android:gravity="center"
                         android:hint="No bio yet."
-                        android:textColor="#666666"
+                        android:textColor="@color/text_secondary"
+                        android:textColorHint="@color/text_secondary"
                         android:textSize="14sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -124,14 +125,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textStyle="bold"
-                                android:textColor="#111111"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:fontFamily="@font/poppins" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Followers"
-                                android:textColor="#888888"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="11sp"
                                 android:fontFamily="@font/poppins" />
                         </LinearLayout>
@@ -139,7 +140,7 @@
                         <View
                             android:layout_width="1dp"
                             android:layout_height="24dp"
-                            android:background="#EEEEEE"
+                            android:background="@color/divider"
                             android:layout_gravity="center_vertical" />
 
                         <LinearLayout
@@ -158,14 +159,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textStyle="bold"
-                                android:textColor="#111111"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:fontFamily="@font/poppins" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Following"
-                                android:textColor="#888888"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="11sp"
                                 android:fontFamily="@font/poppins" />
                         </LinearLayout>
@@ -182,7 +183,7 @@
                         android:textStyle="bold"
                         android:visibility="gone"
                         app:cornerRadius="20dp"
-                        app:backgroundTint="#0C6211"
+                        app:backgroundTint="@color/primary_green"
                         app:layout_constraintTop_toBottomOf="@id/layout_stats_social"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent" />
@@ -194,13 +195,13 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Edit Bio"
-                        android:textColor="#0C6211"
+                        android:textColor="@color/primary_green"
                         android:textSize="12sp"
                         app:cornerRadius="15dp"
                         android:visibility="gone"
                         app:icon="@drawable/ic_edit_pencil"
                         app:iconSize="14dp"
-                        app:iconTint="#0C6211"
+                        app:iconTint="@color/primary_green"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/layout_stats_social" />
@@ -211,11 +212,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="See Archive"
-                        android:textColor="#666666"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         app:icon="@drawable/ic_diary_book"
                         app:iconSize="14dp"
-                        app:iconTint="#666666"
+                        app:iconTint="@color/text_secondary"
                         android:visibility="gone"
                         app:layout_constraintTop_toBottomOf="@id/btn_edit_bio"
                         app:layout_constraintStart_toStartOf="parent"
@@ -232,7 +233,7 @@
                 android:layout_marginTop="24dp"
                 android:fontFamily="@font/poppins"
                 android:text="User Posts"
-                android:textColor="#333333"
+                android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -253,7 +254,7 @@
                 android:layout_marginTop="40dp"
                 android:fontFamily="@font/poppins"
                 android:text="No posts yet."
-                android:textColor="#999999"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -4,4 +4,13 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primary_green">#0C6211</color>
     <color name="gray_nav">#777777</color>
+
+    <!-- Theme Colors -->
+    <color name="background">#F9FAFA</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#111111</color>
+    <color name="text_secondary">#666666</color>
+    <color name="divider">#EEEEEE</color>
+    <color name="switch_thumb">#0C6211</color>
+    <color name="switch_track">#C8E6C9</color>
 </resources>

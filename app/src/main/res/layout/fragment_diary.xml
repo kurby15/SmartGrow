@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA">
+    android:background="@color/background">
 
     <!-- Fixed Header Area -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +23,7 @@
             android:text="Plant Diary"
             android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="#111111"
+            android:textColor="@color/text_primary"
             android:fontFamily="@font/poppins"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -34,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Track your plant growth journey"
-            android:textColor="#666666"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:fontFamily="@font/poppins"
             android:layout_marginTop="2dp"
@@ -57,9 +57,9 @@
                 android:layout_weight="1"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/card_background"
                 app:strokeWidth="1dp"
-                app:strokeColor="#EAEAEA">
+                app:strokeColor="@color/divider">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_search_gray"
-                        app:tint="#555555" />
+                        app:tint="@color/text_secondary" />
 
                     <EditText
                         android:id="@+id/et_search_plants"
@@ -80,7 +80,8 @@
                         android:layout_height="match_parent"
                         android:background="@android:color/transparent"
                         android:hint="Search plants"
-                        android:textColorHint="#999999"
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:fontFamily="@font/poppins"
                         android:paddingStart="8dp"
@@ -97,7 +98,7 @@
                 android:layout_marginStart="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="3dp"
-                app:cardBackgroundColor="#0C6211"
+                app:cardBackgroundColor="@color/primary_green"
                 app:strokeWidth="0dp"
                 android:clickable="true"
                 android:focusable="true">
@@ -105,7 +106,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_add_plus_green"
-                    app:tint="#FFFFFF"
+                    app:tint="@color/white"
                     android:layout_gravity="center" />
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

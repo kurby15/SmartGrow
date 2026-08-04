@@ -5,14 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFA">
+    android:background="@color/background">
 
     <!-- Fixed Header Section -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_forum_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/card_background"
         android:padding="16dp"
         android:elevation="2dp"
         app:layout_constraintTop_toTopOf="parent">
@@ -24,7 +24,7 @@
             android:text="Community Forum"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="#111111"
+            android:textColor="@color/text_primary"
             android:fontFamily="@font/poppins"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -43,7 +43,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tv_community_forum_title"
             app:shapeAppearanceOverlay="@style/CircleImageView"
-            app:strokeColor="#E0E0E0"
+            app:strokeColor="@color/divider"
             app:strokeWidth="1dp" />
 
         <com.google.android.material.card.MaterialCardView
@@ -55,7 +55,7 @@
             android:focusable="true"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#F0F2F5"
+            app:cardBackgroundColor="@color/background"
             app:strokeWidth="0dp"
             app:layout_constraintTop_toBottomOf="@id/tv_community_forum_title"
             app:layout_constraintStart_toStartOf="parent"
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="What's on your mind?"
-                    android:textColor="#65676B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="14sp"
                     android:fontFamily="@font/poppins"
                     app:layout_constraintBottom_toBottomOf="parent"
