@@ -40,15 +40,32 @@ public class SharedPrefManager {
     public void saveUser(User user) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         
+        if (user.getUid() != null) editor.putString("uid", user.getUid());
         if (user.getUsername() != null && !user.getUsername().isEmpty() && !user.getUsername().equals("unknown")) {
             editor.putString("username", user.getUsername());
         }
         
         if (user.getFullName() != null) editor.putString("fullname", user.getFullName());
+        if (user.getEmail() != null) editor.putString("email", user.getEmail());
+        if (user.getAddress() != null) editor.putString("address", user.getAddress());
+        if (user.getPhone() != null) editor.putString("phone", user.getPhone());
         if (user.getProfilePic() != null) editor.putString("profile_pic", user.getProfilePic());
         
         editor.putBoolean("is_logged_in", true);
         editor.apply();
+    }
+
+    public User getUser() {
+        if (!isLoggedIn()) return null;
+        User user = new User();
+        user.setUid(sharedPreferences.getString("uid", null));
+        user.setUsername(getUsername());
+        user.setFullName(getFullName());
+        user.setEmail(sharedPreferences.getString("email", null));
+        user.setAddress(sharedPreferences.getString("address", null));
+        user.setPhone(sharedPreferences.getString("phone", null));
+        user.setProfilePic(getProfilePic());
+        return user;
     }
 
     public void saveProfilePic(String profilePic) {

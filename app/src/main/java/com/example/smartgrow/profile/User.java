@@ -1,13 +1,17 @@
 package com.example.smartgrow.profile;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class User implements Serializable {
+    private String uid;
     private String fullName;
     private String username;
     private String email;
     private String password;
+    private String address;
+    private String phone;
     private String choice1;
     private String choice2;
     private String choice3;
@@ -16,19 +20,51 @@ public class User implements Serializable {
     private String bio;
     private int followersCount = 0;
     private int followingCount = 0;
-    private Map<String, Boolean> followers;
-    private Map<String, Boolean> following;
-    private Map<String, Boolean> hiddenPosts;
+    private Map<String, Boolean> followers = new HashMap<>();
+    private Map<String, Boolean> following = new HashMap<>();
+    private Map<String, Boolean> hiddenPosts = new HashMap<>();
 
+    // Required empty constructor for Firebase Firestore deserialization
     public User() {
-        // Required for Firebase
     }
 
-    public User(String fullName, String username, String email, String password, String choice1, String choice2, String choice3, String choice4, String profilePic, String bio) {
+    // Simplified Constructor for Basic Registration
+    public User(String uid, String fullName, String username, String email) {
+        this.uid = uid;
+        this.fullName = fullName;
+        this.username = username;
+        this.email = email;
+    }
+
+    // Full Parameterized Constructor (without UID)
+    public User(String fullName, String username, String email, String password,
+                String address, String phone, String choice1, String choice2,
+                String choice3, String choice4, String profilePic, String bio) {
         this.fullName = fullName;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.address = address;
+        this.phone = phone;
+        this.choice1 = choice1;
+        this.choice2 = choice2;
+        this.choice3 = choice3;
+        this.choice4 = choice4;
+        this.profilePic = profilePic;
+        this.bio = bio;
+    }
+
+    // Full Parameterized Constructor (with UID)
+    public User(String uid, String fullName, String username, String email, String password,
+                String address, String phone, String choice1, String choice2,
+                String choice3, String choice4, String profilePic, String bio) {
+        this.uid = uid;
+        this.fullName = fullName;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.address = address;
+        this.phone = phone;
         this.choice1 = choice1;
         this.choice2 = choice2;
         this.choice3 = choice3;
@@ -38,48 +74,147 @@ public class User implements Serializable {
     }
 
     // Getters and Setters
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getUid() {
+        return uid;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
-    public String getChoice1() { return choice1; }
-    public void setChoice1(String choice1) { this.choice1 = choice1; }
+    public String getUsername() {
+        return username;
+    }
 
-    public String getChoice2() { return choice2; }
-    public void setChoice2(String choice2) { this.choice2 = choice2; }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public String getChoice3() { return choice3; }
-    public void setChoice3(String choice3) { this.choice3 = choice3; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getChoice4() { return choice4; }
-    public void setChoice4(String choice4) { this.choice4 = choice4; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getProfilePic() { return profilePic; }
-    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
+    public String getPassword() {
+        return password;
+    }
 
-    public String getBio() { return bio; }
-    public void setBio(String bio) { this.bio = bio; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public int getFollowersCount() { return followersCount; }
-    public void setFollowersCount(int followersCount) { this.followersCount = followersCount; }
+    public String getAddress() {
+        return address;
+    }
 
-    public int getFollowingCount() { return followingCount; }
-    public void setFollowingCount(int followingCount) { this.followingCount = followingCount; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public Map<String, Boolean> getFollowers() { return followers; }
-    public void setFollowers(Map<String, Boolean> followers) { this.followers = followers; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public Map<String, Boolean> getFollowing() { return following; }
-    public void setFollowing(Map<String, Boolean> following) { this.following = following; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public Map<String, Boolean> getHiddenPosts() { return hiddenPosts; }
-    public void setHiddenPosts(Map<String, Boolean> hiddenPosts) { this.hiddenPosts = hiddenPosts; }
+    public String getChoice1() {
+        return choice1;
+    }
+
+    public void setChoice1(String choice1) {
+        this.choice1 = choice1;
+    }
+
+    public String getChoice2() {
+        return choice2;
+    }
+
+    public void setChoice2(String choice2) {
+        this.choice2 = choice2;
+    }
+
+    public String getChoice3() {
+        return choice3;
+    }
+
+    public void setChoice3(String choice3) {
+        this.choice3 = choice3;
+    }
+
+    public String getChoice4() {
+        return choice4;
+    }
+
+    public void setChoice4(String choice4) {
+        this.choice4 = choice4;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public int getFollowersCount() {
+        return followersCount;
+    }
+
+    public void setFollowersCount(int followersCount) {
+        this.followersCount = followersCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
+    }
+
+    public void setFollowingCount(int followingCount) {
+        this.followingCount = followingCount;
+    }
+
+    public Map<String, Boolean> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Map<String, Boolean> followers) {
+        this.followers = followers;
+    }
+
+    public Map<String, Boolean> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Map<String, Boolean> following) {
+        this.following = following;
+    }
+
+    public Map<String, Boolean> getHiddenPosts() {
+        return hiddenPosts;
+    }
+
+    public void setHiddenPosts(Map<String, Boolean> hiddenPosts) {
+        this.hiddenPosts = hiddenPosts;
+    }
 }

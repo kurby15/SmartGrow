@@ -2,35 +2,43 @@ package com.example.smartgrow.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SharedPrefManager;
-import com.example.smartgrow.core.SecurityUtils;
 import com.example.smartgrow.profile.User;
+import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
+// Firebase Imports
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
-    private DatabaseReference databaseReference;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        databaseReference = FirebaseDatabase.getInstance().getReference("users");
         setContentView(R.layout.activity_login);
 
-        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // Check if user is already logged in
+        if (mAuth.getCurrentUser() != null && SharedPrefManager.getInstance(this).isLoggedIn()) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
             return;
@@ -43,49 +51,173 @@ public class LoginActivity extends AppCompatActivity {
         TextView tvGoToRegister = findViewById(R.id.tv_go_to_register);
 
         btnLogin.setOnClickListener(v -> {
-            String username = etUsername.getText().toString().trim();
+            String input = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
+            if (input.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please enter username/email and password", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             btnLogin.setEnabled(false);
             btnLogin.setText("Signing in...");
 
-            databaseReference.child(username).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    btnLogin.setEnabled(true);
-                    btnLogin.setText("Sign in");
-                    
-                    if (snapshot.exists()) {
-                        User user = snapshot.getValue(User.class);
-                        if (user != null && SecurityUtils.verifyPassword(password, user.getPassword())) {
-                            user.setUsername(username); 
-                            SharedPrefManager.getInstance(LoginActivity.this).saveUser(user);
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
-                        }
+            // If input is an email address
+            if (Patterns.EMAIL_ADDRESS.matcher(input).matches()) {
+                loginWithEmailAndPassword(input, password, btnLogin);
+            } else {
+                // Search users to resolve encrypted username to authentic email
+                findEmailByUsername(input, (foundEmail) -> {
+                    if (foundEmail != null) {
+                        loginWithEmailAndPassword(foundEmail, password, btnLogin);
                     } else {
-                        Toast.makeText(LoginActivity.this, "User does not exist", Toast.LENGTH_SHORT).show();
+                        resetButton(btnLogin);
+                        Toast.makeText(LoginActivity.this, "Username does not exist", Toast.LENGTH_SHORT).show();
                     }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    btnLogin.setEnabled(true);
-                    btnLogin.setText("Sign in");
-                    Toast.makeText(LoginActivity.this, "Database Error", Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+            }
         });
 
-        tvForgotPassword.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+        tvForgotPassword.setOnClickListener(v -> showResetPasswordDialog());
         tvGoToRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterStep1Activity.class)));
+    }
+
+    private void loginWithEmailAndPassword(String email, String password, MaterialButton btnLogin) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                        fetchUserProfile(mAuth.getCurrentUser().getUid(), btnLogin);
+                    } else {
+                        resetButton(btnLogin);
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Authentication failed";
+                        Toast.makeText(LoginActivity.this, "Login Failed: " + errorMsg, Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void fetchUserProfile(String uid, MaterialButton btnLogin) {
+        // Retrieve directly by document key (UID)
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    resetButton(btnLogin);
+                    if (doc.exists()) {
+                        User user = new User();
+                        user.setUid(uid);
+
+                        // DECRYPT ENCRYPTED FIELDS USING UID
+                        String encUsername = doc.getString("username");
+                        String encEmail = doc.getString("email");
+                        String encFullName = doc.getString("fullName");
+                        String encAddress = doc.getString("address");
+                        String encPhone = doc.getString("phone");
+
+                        user.setUsername(encUsername != null ? FirebaseCryptoUtils.decrypt(encUsername, uid) : "");
+                        user.setEmail(encEmail != null ? FirebaseCryptoUtils.decrypt(encEmail, uid) : "");
+                        user.setFullName(encFullName != null ? FirebaseCryptoUtils.decrypt(encFullName, uid) : "");
+                        user.setAddress(encAddress != null ? FirebaseCryptoUtils.decrypt(encAddress, uid) : "");
+                        user.setPhone(encPhone != null ? FirebaseCryptoUtils.decrypt(encPhone, uid) : "");
+
+                        user.setProfilePic(doc.getString("profilePic"));
+                        user.setChoice1(doc.getString("choice1"));
+                        user.setChoice2(doc.getString("choice2"));
+                        user.setChoice3(doc.getString("choice3"));
+                        user.setChoice4(doc.getString("choice4"));
+
+                        // Save decrypted profile into shared preferences
+                        SharedPrefManager.getInstance(LoginActivity.this).saveUser(user);
+
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    resetButton(btnLogin);
+                    Toast.makeText(LoginActivity.this, "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private interface OnEmailFoundListener {
+        void onResult(String email);
+    }
+
+    private void findEmailByUsername(String targetUsername, OnEmailFoundListener listener) {
+        db.collection("users").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        String docUid = doc.getId();
+                        String encUsername = doc.getString("username");
+                        if (encUsername != null) {
+                            String decryptedUsername = FirebaseCryptoUtils.decrypt(encUsername, docUid);
+                            if (targetUsername.equalsIgnoreCase(decryptedUsername)) {
+                                String encEmail = doc.getString("email");
+                                String decryptedEmail = encEmail != null ? FirebaseCryptoUtils.decrypt(encEmail, docUid) : null;
+                                listener.onResult(decryptedEmail);
+                                return;
+                            }
+                        }
+                    }
+                    listener.onResult(null);
+                })
+                .addOnFailureListener(e -> listener.onResult(null));
+    }
+
+    private void showResetPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reset Password");
+
+        final EditText input = new EditText(this);
+        input.setHint("Enter your email or username");
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        String prefilledText = etUsername.getText().toString().trim();
+        if (!prefilledText.isEmpty()) {
+            input.setText(prefilledText);
+        }
+
+        builder.setView(input);
+
+        builder.setPositiveButton("Send Reset Link", (dialog, which) -> {
+            String target = input.getText().toString().trim();
+            if (target.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Please enter your email or username", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (Patterns.EMAIL_ADDRESS.matcher(target).matches()) {
+                sendResetEmail(target);
+            } else {
+                findEmailByUsername(target, email -> {
+                    if (email != null && !email.isEmpty()) {
+                        sendResetEmail(email);
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Username not found.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void sendResetEmail(String email) {
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this, "Password reset link sent to " + email, Toast.LENGTH_LONG).show();
+                    } else {
+                        String error = task.getException() != null ? task.getException().getMessage() : "Failed to send reset email";
+                        Toast.makeText(LoginActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void resetButton(MaterialButton btn) {
+        btn.setEnabled(true);
+        btn.setText("Sign in");
     }
 }

@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.smartgrow" />
-                  <option name="mobileSdkAppId" value="1:948708493094:android:b712c31c3b1aa8d2e423e7" />
-                  <option name="projectId" value="smartgrow-8d6a4" />
-                  <option name="projectNumber" value="948708493094" />
+                  <option name="mobileSdkAppId" value="1:773195136032:android:f1624cc0130b6f12b05045" />
+                  <option name="projectId" value="smartgrow-23ed0" />
+                  <option name="projectNumber" value="773195136032" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

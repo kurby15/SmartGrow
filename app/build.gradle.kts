@@ -68,15 +68,21 @@ android {
 }
 
 dependencies {
+    // Standard Libraries
     implementation(libs.appcompat)
-    implementation(libs.firebase.database)
-    implementation(libs.firebase.storage)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.swiperefreshlayout)
     implementation(libs.play.services.location)
     implementation(libs.androidx.security.crypto)
+
+    // Firebase (Using BoM for version management)
+    implementation(platform("com.google.firebase:firebase-bom:34.17.0"))
+    implementation("com.google.firebase:firebase-auth")      // Firebase Authentication
+    implementation("com.google.firebase:firebase-firestore") // Cloud Firestore
+    implementation(libs.firebase.database)                  // Realtime Database
+    implementation(libs.firebase.storage)                   // Firebase Storage
 
     // CameraX Integration
     val cameraxVersion = "1.3.1"

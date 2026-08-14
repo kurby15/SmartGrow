@@ -1,6 +1,5 @@
 package com.example.smartgrow.community;
 
-import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -13,13 +12,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import com.bumptech.glide.Glide;
-import com.example.smartgrow.R;
-import com.example.smartgrow.core.SharedPrefManager;
-import com.example.smartgrow.profile.User;
-import com.google.android.material.card.MaterialCardView;
-import android.widget.PopupMenu;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,40 +21,47 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.bumptech.glide.Glide;
+import com.example.smartgrow.R;
+import com.example.smartgrow.profile.User;
+import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.card.MaterialCardView;
+
+// Modern Firebase Imports
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class UserProfileFragment extends Fragment implements CommunityPostAdapter.OnPostInteractionListener {
 
-    private String targetUsername;
-    private String currentUsername;
+    private String targetUid;
+    private String currentUid;
     private TextView tvUsername, tvFullName, tvBio, tvNoPosts;
-    private TextView tvFollowersCount, tvFollowingCount;
     private ImageView ivProfilePic;
-    private View btnEditBio, btnSeeArchive, layoutFollowers, layoutFollowing;
-    private com.google.android.material.button.MaterialButton btnFollow;
+    private View btnEditBio, btnSeeArchive;
     private RecyclerView rvPosts;
     private CommunityPostAdapter adapter;
     private List<CommunityPostModel> postList;
-    private DatabaseReference userRef, postsRef, currentUserFollowingRef;
 
-    public static UserProfileFragment newInstance(String username) {
+    // Firebase Auth & Firestore
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private ListenerRegistration userListenerRegistration, postsListenerRegistration;
+
+    public static UserProfileFragment newInstance(String userUid) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
-        args.putString("target_username", username);
+        args.putString("target_uid", userUid);
         fragment.setArguments(args);
         return fragment;
     }
@@ -70,13 +69,18 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            targetUsername = getArguments().getString("target_username");
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        if (mAuth.getCurrentUser() != null) {
+            currentUid = mAuth.getCurrentUser().getUid();
         }
-        currentUsername = SharedPrefManager.getInstance(requireContext()).getUsername();
-        userRef = FirebaseDatabase.getInstance().getReference("users").child(targetUsername);
-        currentUserFollowingRef = FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("following");
-        postsRef = FirebaseDatabase.getInstance().getReference("posts");
+
+        if (getArguments() != null) {
+            targetUid = getArguments().getString("target_uid");
+        } else {
+            targetUid = currentUid;
+        }
     }
 
     @Nullable
@@ -88,43 +92,50 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
         tvFullName = view.findViewById(R.id.tv_full_name);
         tvBio = view.findViewById(R.id.tv_bio);
         tvNoPosts = view.findViewById(R.id.tv_no_posts);
-        tvFollowersCount = view.findViewById(R.id.tv_followers_count);
-        tvFollowingCount = view.findViewById(R.id.tv_following_count);
         ivProfilePic = view.findViewById(R.id.iv_profile_pic);
         btnEditBio = view.findViewById(R.id.btn_edit_bio);
         btnSeeArchive = view.findViewById(R.id.btn_see_archive);
-        btnFollow = view.findViewById(R.id.btn_follow);
         rvPosts = view.findViewById(R.id.rv_user_posts);
-        
-        // Social Layouts
-        layoutFollowers = view.findViewById(R.id.layout_followers_click);
-        layoutFollowing = view.findViewById(R.id.layout_following_click);
+
+        // Hide old social/followers layouts if present in XML
+        View layoutFollowers = view.findViewById(R.id.layout_followers_click);
+        View layoutFollowing = view.findViewById(R.id.layout_following_click);
+        View btnFollow = view.findViewById(R.id.btn_follow);
+        if (layoutFollowers != null) layoutFollowers.setVisibility(View.GONE);
+        if (layoutFollowing != null) layoutFollowing.setVisibility(View.GONE);
+        if (btnFollow != null) btnFollow.setVisibility(View.GONE);
 
         view.findViewById(R.id.btn_back).setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
-        if (targetUsername.equals(currentUsername)) {
-            btnEditBio.setVisibility(View.VISIBLE);
-            btnSeeArchive.setVisibility(View.VISIBLE);
-            btnFollow.setVisibility(View.GONE);
-            btnEditBio.setOnClickListener(v -> showModernEditBioSheet());
-            tvBio.setOnClickListener(v -> showModernEditBioSheet());
-            btnSeeArchive.setOnClickListener(v -> openArchive());
+        if (targetUid != null && targetUid.equals(currentUid)) {
+            if (btnEditBio != null) {
+                btnEditBio.setVisibility(View.VISIBLE);
+                btnEditBio.setOnClickListener(v -> showModernEditBioSheet());
+            }
+            if (btnSeeArchive != null) {
+                btnSeeArchive.setVisibility(View.VISIBLE);
+                btnSeeArchive.setOnClickListener(v -> openArchive());
+            }
+            if (tvBio != null) {
+                tvBio.setOnClickListener(v -> showModernEditBioSheet());
+            }
         } else {
-            btnEditBio.setVisibility(View.GONE);
-            btnFollow.setVisibility(View.VISIBLE);
-            checkIfFollowing();
-            btnFollow.setOnClickListener(v -> toggleFollow());
+            if (btnEditBio != null) btnEditBio.setVisibility(View.GONE);
+            if (btnSeeArchive != null) btnSeeArchive.setVisibility(View.GONE);
         }
-
-        // Click listeners for social lists
-        if (layoutFollowers != null) layoutFollowers.setOnClickListener(v -> showUserListSheet("Followers", "followers"));
-        if (layoutFollowing != null) layoutFollowing.setOnClickListener(v -> showUserListSheet("Following", "following"));
 
         setupRecyclerView();
         fetchUserData();
         fetchUserPosts();
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (userListenerRegistration != null) userListenerRegistration.remove();
+        if (postsListenerRegistration != null) postsListenerRegistration.remove();
     }
 
     private void showModernEditBioSheet() {
@@ -138,159 +149,16 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
 
         v.findViewById(R.id.btn_save_bio).setOnClickListener(view -> {
             String newBio = etInput.getText().toString().trim();
-            userRef.child("bio").setValue(newBio).addOnSuccessListener(aVoid -> {
-                sheet.dismiss();
-                Toast.makeText(getContext(), "Bio updated! 🌿", Toast.LENGTH_SHORT).show();
-            });
+            db.collection("users").document(targetUid)
+                    .update("bio", newBio)
+                    .addOnSuccessListener(aVoid -> {
+                        sheet.dismiss();
+                        Toast.makeText(getContext(), "Bio updated! 🌿", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update bio: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
 
         sheet.show();
-    }
-
-    private void showUserListSheet(String title, String nodeName) {
-        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
-        View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_user_list_sheet, null);
-        sheet.setContentView(v);
-
-        // Make it full screenish
-        View bottomSheet = sheet.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-        if (bottomSheet != null) {
-            BottomSheetBehavior.from(bottomSheet).setState(BottomSheetBehavior.STATE_EXPANDED);
-            int screenHeight = getResources().getDisplayMetrics().heightPixels;
-            bottomSheet.getLayoutParams().height = (int)(screenHeight * 0.8);
-        }
-
-        TextView tvTitle = v.findViewById(R.id.tv_list_title);
-        tvTitle.setText(title);
-        
-        ProgressBar pb = v.findViewById(R.id.pb_loading);
-        TextView tvEmpty = v.findViewById(R.id.tv_empty_message);
-        RecyclerView rv = v.findViewById(R.id.rv_user_list);
-        
-        List<User> userList = new ArrayList<>();
-        UserListAdapter userAdapter = new UserListAdapter(userList, username -> {
-            sheet.dismiss();
-            onUserClick(username);
-        });
-        rv.setLayoutManager(new LinearLayoutManager(getContext()));
-        rv.setAdapter(userAdapter);
-
-        pb.setVisibility(View.VISIBLE);
-        userRef.child(nodeName).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    pb.setVisibility(View.GONE);
-                    tvEmpty.setVisibility(View.VISIBLE);
-                    return;
-                }
-
-                int total = (int) snapshot.getChildrenCount();
-                final int[] loaded = {0};
-
-                for (DataSnapshot snap : snapshot.getChildren()) {
-                    String uid = snap.getKey();
-                    FirebaseDatabase.getInstance().getReference("users").child(uid)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot userSnap) {
-                                    User u = userSnap.getValue(User.class);
-                                    if (u != null) userList.add(u);
-                                    loaded[0]++;
-                                    if (loaded[0] == total) {
-                                        pb.setVisibility(View.GONE);
-                                        userAdapter.notifyDataSetChanged();
-                                        tvEmpty.setVisibility(userList.isEmpty() ? View.VISIBLE : View.GONE);
-                                    }
-                                }
-                                @Override public void onCancelled(@NonNull DatabaseError error) {}
-                            });
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) { pb.setVisibility(View.GONE); }
-        });
-
-        sheet.show();
-    }
-
-    private void checkIfFollowing() {
-        currentUserFollowingRef.child(targetUsername).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded()) return;
-                if (snapshot.exists()) {
-                    btnFollow.setText("Unfollow");
-                    btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.GRAY));
-                } else {
-                    btnFollow.setText("Follow");
-                    btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#0C6211")));
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void toggleFollow() {
-        btnFollow.setEnabled(false);
-        currentUserFollowingRef.child(targetUsername).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    unfollowUser();
-                } else {
-                    followUser();
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) { btnFollow.setEnabled(true); }
-        });
-    }
-
-    private void followUser() {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("users/" + currentUsername + "/following/" + targetUsername, true);
-        updates.put("users/" + targetUsername + "/followers/" + currentUsername, true);
-        
-        FirebaseDatabase.getInstance().getReference().updateChildren(updates).addOnCompleteListener(task -> {
-            btnFollow.setEnabled(true);
-            if (task.isSuccessful()) {
-                updateFollowCounts(1);
-            }
-        });
-    }
-
-    private void unfollowUser() {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("users/" + currentUsername + "/following/" + targetUsername, null);
-        updates.put("users/" + targetUsername + "/followers/" + currentUsername, null);
-
-        FirebaseDatabase.getInstance().getReference().updateChildren(updates).addOnCompleteListener(task -> {
-            btnFollow.setEnabled(true);
-            if (task.isSuccessful()) {
-                updateFollowCounts(-1);
-            }
-        });
-    }
-
-    private void updateFollowCounts(int increment) {
-        FirebaseDatabase.getInstance().getReference("users").child(currentUsername).child("followingCount").runTransaction(new Transaction.Handler() {
-            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData md) {
-                Long current = md.getValue(Long.class);
-                if (current == null) current = 0L;
-                md.setValue(Math.max(0, current + increment));
-                return Transaction.success(md);
-            }
-            @Override public void onComplete(@Nullable DatabaseError error, boolean b, @Nullable DataSnapshot ds) {}
-        });
-
-        userRef.child("followersCount").runTransaction(new Transaction.Handler() {
-            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData md) {
-                Long current = md.getValue(Long.class);
-                if (current == null) current = 0L;
-                md.setValue(Math.max(0, current + increment));
-                return Transaction.success(md);
-            }
-            @Override public void onComplete(@Nullable DatabaseError error, boolean b, @Nullable DataSnapshot ds) {}
-        });
     }
 
     private void openArchive() {
@@ -304,36 +172,62 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
 
     private void setupRecyclerView() {
         postList = new ArrayList<>();
-        adapter = new CommunityPostAdapter(postList, currentUsername, this);
+        adapter = new CommunityPostAdapter(postList, currentUid, this);
         rvPosts.setLayoutManager(new LinearLayoutManager(getContext()));
         rvPosts.setAdapter(adapter);
     }
 
     private void fetchUserData() {
-        userRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded() || !snapshot.exists()) return;
-                User user = snapshot.getValue(User.class);
-                if (user != null) {
-                    tvUsername.setText("@" + user.getUsername());
-                    tvFullName.setText(user.getFullName());
-                    tvFollowersCount.setText(String.valueOf(user.getFollowersCount()));
-                    tvFollowingCount.setText(String.valueOf(user.getFollowingCount()));
-                    
-                    String bioText = user.getBio();
-                    if (bioText == null || bioText.isEmpty()) {
-                        tvBio.setText("No bio yet.");
-                        tvBio.setAlpha(0.5f);
+        // Query user doc by docId or UID field
+        db.collection("users").whereEqualTo("uid", targetUid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!isAdded()) return;
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        populateUserProfile(doc);
                     } else {
-                        tvBio.setText(bioText);
-                        tvBio.setAlpha(1.0f);
+                        // Fallback: Check if targetUid is used directly as document ID
+                        db.collection("users").document(targetUid).get().addOnSuccessListener(doc -> {
+                            if (isAdded() && doc.exists()) {
+                                populateUserProfile(doc);
+                            }
+                        });
                     }
-                    loadProfileImage(user.getProfilePic());
+                });
+    }
+
+    private void populateUserProfile(DocumentSnapshot snapshot) {
+        User user = snapshot.toObject(User.class);
+        if (user != null) {
+            String userUid = user.getUid() != null ? user.getUid() : targetUid;
+
+            tvUsername.setText("@" + user.getUsername());
+
+            // Decrypt Full Name
+            String rawFullName = snapshot.getString("fullName");
+            if (rawFullName != null && !rawFullName.isEmpty()) {
+                try {
+                    String decryptedName = FirebaseCryptoUtils.decrypt(rawFullName, userUid);
+                    tvFullName.setText(decryptedName);
+                } catch (Exception e) {
+                    tvFullName.setText(rawFullName); // Fallback to raw string
                 }
+            } else {
+                tvFullName.setText(user.getUsername());
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
+
+            String bioText = snapshot.getString("bio");
+            if (bioText == null || bioText.isEmpty()) {
+                tvBio.setText("No bio yet.");
+                tvBio.setAlpha(0.5f);
+            } else {
+                tvBio.setText(bioText);
+                tvBio.setAlpha(1.0f);
+            }
+
+            loadProfileImage(user.getProfilePic());
+        }
     }
 
     private void loadProfileImage(String profileData) {
@@ -341,72 +235,77 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
             ivProfilePic.setImageResource(R.drawable.ic_user);
             return;
         }
-        try {
-            byte[] decodedString = Base64.decode(profileData, Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            ivProfilePic.setImageBitmap(bitmap);
-        } catch (Exception e) {
-            ivProfilePic.setImageResource(R.drawable.ic_user);
+        if (profileData.startsWith("http")) {
+            Glide.with(this).load(profileData).into(ivProfilePic);
+        } else {
+            try {
+                byte[] decodedString = Base64.decode(profileData, Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                ivProfilePic.setImageBitmap(bitmap);
+            } catch (Exception e) {
+                ivProfilePic.setImageResource(R.drawable.ic_user);
+            }
         }
     }
 
     private void fetchUserPosts() {
-        postsRef.orderByChild("username").equalTo(targetUsername).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded()) return;
-                postList.clear();
-                for (DataSnapshot snap : snapshot.getChildren()) {
-                    CommunityPostModel post = snap.getValue(CommunityPostModel.class);
-                    if (post != null) {
-                        post.setPostId(snap.getKey());
-                        postList.add(post);
+        postsListenerRegistration = db.collection("posts")
+                .whereEqualTo("userId", targetUid)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (!isAdded() || error != null || querySnapshot == null) return;
+
+                    postList.clear();
+                    for (DocumentSnapshot snap : querySnapshot.getDocuments()) {
+                        CommunityPostModel post = snap.toObject(CommunityPostModel.class);
+                        if (post != null) {
+                            post.setPostId(snap.getId());
+                            postList.add(post);
+                        }
                     }
-                }
-                Collections.sort(postList, (p1, p2) -> p2.getTimestamp().compareTo(p1.getTimestamp()));
-                adapter.notifyDataSetChanged();
-                tvNoPosts.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+                    adapter.notifyDataSetChanged();
+                    tvNoPosts.setVisibility(postList.isEmpty() ? View.VISIBLE : View.GONE);
+                });
+    }
+
+    @Override
+    public void onLikeClick(CommunityPostModel post) {
+        if (currentUid == null) return;
+        DocumentReference postRef = db.collection("posts").document(post.getPostId());
+        DocumentReference likeRef = postRef.collection("likes").document(currentUid);
+
+        db.runTransaction(transaction -> {
+            DocumentSnapshot likeSnap = transaction.get(likeRef);
+            if (likeSnap.exists()) {
+                transaction.delete(likeRef);
+                transaction.update(postRef, "likesCount", FieldValue.increment(-1));
+            } else {
+                Map<String, Object> likeData = new HashMap<>();
+                likeData.put("timestamp", FieldValue.serverTimestamp());
+                transaction.set(likeRef, likeData);
+                transaction.update(postRef, "likesCount", FieldValue.increment(1));
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+            return null;
         });
     }
 
-    @Override public void onLikeClick(CommunityPostModel post) {
-        postsRef.child(post.getPostId()).runTransaction(new Transaction.Handler() {
-            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData md) {
-                CommunityPostModel p = md.getValue(CommunityPostModel.class);
-                if (p == null) return Transaction.success(md);
-                Map<String, Boolean> likes = p.getLikes();
-                if (likes == null) likes = new HashMap<>();
-                if (likes.containsKey(currentUsername)) {
-                    p.setLikesCount(Math.max(0, p.getLikesCount() - 1));
-                    likes.remove(currentUsername);
-                } else {
-                    p.setLikesCount(p.getLikesCount() + 1);
-                    likes.put(currentUsername, true);
-                }
-                p.setLikes(likes);
-                md.setValue(p);
-                return Transaction.success(md);
-            }
-            @Override public void onComplete(@Nullable DatabaseError error, boolean b, @Nullable DataSnapshot ds) {}
-        });
-    }
-
-    @Override public void onCommentClick(CommunityPostModel post) {
+    @Override
+    public void onCommentClick(CommunityPostModel post) {
         Toast.makeText(getContext(), "Open comments from main forum", Toast.LENGTH_SHORT).show();
     }
 
-    @Override public void onUserClick(String username) {
-        if (!username.equals(targetUsername)) {
+    @Override
+    public void onUserClick(String userUid) {
+        if (!userUid.equals(targetUid)) {
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, UserProfileFragment.newInstance(username))
+                    .replace(R.id.fragment_container, UserProfileFragment.newInstance(userUid))
                     .addToBackStack(null)
                     .commit();
         }
     }
 
-    @Override public void onMoreClick(View v, CommunityPostModel post) {
+    @Override
+    public void onMoreClick(View v, CommunityPostModel post) {
         if (getContext() == null) return;
         BottomSheetDialog optionsSheet = new BottomSheetDialog(requireContext());
         View sheetView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_post_options_sheet, null);
@@ -415,7 +314,7 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
         LinearLayout layoutOwner = sheetView.findViewById(R.id.layout_owner_options);
         LinearLayout layoutOther = sheetView.findViewById(R.id.layout_other_user_options);
 
-        if (post.getUserId() != null && post.getUserId().equals(currentUsername)) {
+        if (post.getUserId() != null && post.getUserId().equals(currentUid)) {
             layoutOwner.setVisibility(View.VISIBLE);
             layoutOther.setVisibility(View.GONE);
         } else {
@@ -435,8 +334,7 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
 
         sheetView.findViewById(R.id.item_move_trash).setOnClickListener(view -> {
             optionsSheet.dismiss();
-            postsRef.child(post.getPostId()).removeValue();
-            FirebaseDatabase.getInstance().getReference("comments").child(post.getPostId()).removeValue();
+            db.collection("posts").document(post.getPostId()).delete();
             Toast.makeText(getContext(), "Post moved to trash.", Toast.LENGTH_SHORT).show();
         });
 
@@ -460,16 +358,16 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
         ImageButton btnRemovePhoto = v.findViewById(R.id.btn_remove_edit_photo);
 
         etContent.setText(post.getContent());
-        
+
         final String[] updatedImageBase64 = {post.getPostImageUri()};
 
         if (post.getPostImageUri() != null && !post.getPostImageUri().isEmpty()) {
             cardPreview.setVisibility(View.VISIBLE);
-            if (post.getPostImageUri().length() > 1000) {
+            if (post.getPostImageUri().startsWith("http")) {
+                Glide.with(this).load(post.getPostImageUri()).into(ivPreview);
+            } else if (post.getPostImageUri().length() > 1000) {
                 byte[] decodedString = Base64.decode(post.getPostImageUri(), Base64.DEFAULT);
                 ivPreview.setImageBitmap(BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length));
-            } else {
-                Glide.with(this).load(post.getPostImageUri()).into(ivPreview);
             }
         }
 
@@ -492,14 +390,17 @@ public class UserProfileFragment extends Fragment implements CommunityPostAdapte
             updates.put("content", newContent);
             updates.put("postImageUri", updatedImageBase64[0]);
 
-            postsRef.child(post.getPostId()).updateChildren(updates).addOnSuccessListener(aVoid -> {
-                dialog.dismiss();
-                Toast.makeText(getContext(), "Post updated! ✨", Toast.LENGTH_SHORT).show();
-            }).addOnFailureListener(e -> {
-                btnUpdate.setEnabled(true);
-                btnUpdate.setText("Update Post");
-                Toast.makeText(getContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
+            db.collection("posts").document(post.getPostId())
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        dialog.dismiss();
+                        Toast.makeText(getContext(), "Post updated! ✨", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnUpdate.setEnabled(true);
+                        btnUpdate.setText("Update Post");
+                        Toast.makeText(getContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         });
 
         dialog.show();

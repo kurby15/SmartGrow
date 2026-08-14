@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "948708493094",
-    "project_id": "smartgrow-8d6a4",
-    "storage_bucket": "smartgrow-8d6a4.firebasestorage.app"
+    "project_number": "773195136032",
+    "project_id": "smartgrow-23ed0",
+    "storage_bucket": "smartgrow-23ed0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:948708493094:android:b712c31c3b1aa8d2e423e7",
+        "mobilesdk_app_id": "1:773195136032:android:f1624cc0130b6f12b05045",
         "android_client_info": {
           "package_name": "com.example.smartgrow"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "773195136032-e0gat5bt1laobkd94jgaelnstgqj9j6u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBurnwWiVnTae0a1lbxEH18TARzHNdoDT0"
+          "current_key": "AIzaSyAUMWNsJniE_JS90FfNptP5HbG5FZP6rnk"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "773195136032-e0gat5bt1laobkd94jgaelnstgqj9j6u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
