@@ -11,10 +11,16 @@ import java.util.List;
 
 public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.ViewHolder> {
 
-    private final List<String> detectedPlantsList;
+    private final List<ChatSessionModel> sessionList;
+    private final OnSessionClickListener listener;
 
-    public AiHistoryAdapter(List<String> detectedPlantsList) {
-        this.detectedPlantsList = detectedPlantsList;
+    public interface OnSessionClickListener {
+        void onSessionClick(ChatSessionModel session);
+    }
+
+    public AiHistoryAdapter(List<ChatSessionModel> sessionList, OnSessionClickListener listener) {
+        this.sessionList = sessionList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -26,16 +32,22 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String plantName = detectedPlantsList.get(position);
+        ChatSessionModel session = sessionList.get(position);
 
         if (holder.tvHistoryPlantName != null) {
-            holder.tvHistoryPlantName.setText(plantName);
+            holder.tvHistoryPlantName.setText(session.getTitle());
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onSessionClick(session);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return detectedPlantsList != null ? detectedPlantsList.size() : 0;
+        return sessionList != null ? sessionList.size() : 0;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

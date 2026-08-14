@@ -243,14 +243,34 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupAiHistoryList() {
-        if (rvAiHistory != null) {
-            List<String> mockDetectedPlantsList = new ArrayList<>();
-            mockDetectedPlantsList.add("Oregano");
-            mockDetectedPlantsList.add("Sambong");
-            mockDetectedPlantsList.add("Lagundi");
-            aiHistoryAdapter = new AiHistoryAdapter(mockDetectedPlantsList);
-            rvAiHistory.setAdapter(aiHistoryAdapter);
-        }
+        if (rvAiHistory == null || !isAdded()) return;
+
+        com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(currentUser.getUid())
+                .collection("ai_history")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isAdded()) return;
+
+                    List<com.example.smartgrow.camera.ChatSessionModel> sessionList = new ArrayList<>();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        com.example.smartgrow.camera.ChatSessionModel session = doc.toObject(com.example.smartgrow.camera.ChatSessionModel.class);
+                        sessionList.add(session);
+                    }
+
+                    aiHistoryAdapter = new AiHistoryAdapter(sessionList, session -> {
+                        if (getActivity() instanceof MainActivity) {
+                            ((MainActivity) getActivity()).showAiChatAssistantBottomSheet();
+                        }
+                    });
+
+                    rvAiHistory.setAdapter(aiHistoryAdapter);
+                });
     }
 
     private void startRealTimeClock() {

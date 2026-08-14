@@ -1,17 +1,24 @@
 package com.example.smartgrow.camera;
 
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +69,37 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (message.hasImage()) {
                 userHolder.cardImage.setVisibility(View.VISIBLE);
                 userHolder.ivChatImage.setImageBitmap(message.getImageBitmap());
+
+                // Click listener to expand image into a full-screen preview dialog
+                View.OnClickListener imageClickListener = v -> {
+                    if (message.getImageBitmap() != null) {
+                        Dialog previewDialog = new Dialog(v.getContext());
+                        previewDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+                        // Inflate image view dynamically for preview
+                        ImageView previewImageView = new ImageView(v.getContext());
+                        previewImageView.setLayoutParams(new ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT));
+                        previewImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        previewImageView.setImageBitmap(message.getImageBitmap());
+
+                        previewDialog.setContentView(previewImageView);
+                        if (previewDialog.getWindow() != null) {
+                            previewDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+                            previewDialog.getWindow().setLayout(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT);
+                        }
+
+                        // Tap anywhere on preview image to dismiss
+                        previewImageView.setOnClickListener(imgView -> previewDialog.dismiss());
+                        previewDialog.show();
+                    }
+                };
+
+                userHolder.ivChatImage.setOnClickListener(imageClickListener);
+                userHolder.cardImage.setOnClickListener(imageClickListener);
             } else {
                 userHolder.cardImage.setVisibility(View.GONE);
                 userHolder.ivChatImage.setImageBitmap(null);

@@ -136,21 +136,25 @@ public class PlantAnalyzer {
         JSONArray partsArray = new JSONArray();
 
         if (imageBitmap != null) {
-            // Vision Prompt Configuration (Updated with philippine_name constraint)
-            String basePrompt = "You are an expert agronomist and botanical computer vision engine. First, determine if the image contains a plant. " +
-                    "If it is NOT a plant, return a JSON object containing exactly: {\"is_plant\": false}. " +
-                    "If it IS a plant, return a JSON object conforming precisely to this scheme:\n\n" +
+            // Vision Prompt Configuration
+            String basePrompt = "You are an expert agronomist and botanical computer vision engine. First, determine if the image contains a plant (real or artificial/fake).\n" +
+                    "If it is NOT a plant at all, return a JSON object containing exactly: {\"is_plant\": false}.\n\n" +
+                    "If it IS a plant (or artificial plant), check carefully whether it is an artificial/faux/plastic/synthetic plant. " +
+                    "Look for clues like plastic tendrils, molded stems, uniform texture, plastic sheen, printed veins, or unnaturally perfect defect-free leaves.\n\n" +
+                    "Return a JSON object conforming precisely to this scheme:\n" +
                     "{\n" +
                     "  \"is_plant\": true,\n" +
+                    "  \"is_artificial\": true/false,\n" +
+                    "  \"artificial_details\": [\"Detail 1 showing it is faux (e.g. plastic tendrils, uniform sheen)\"],\n" +
                     "  \"plant_profile\": {\"name\": \"Scientific (Common Name)\", \"philippine_name\": \"Local Tagalog/Philippine name if applicable, or N/A\", \"origin\": \"Origin region\", \"type\": \"Succulent/Tree/Herb etc\"},\n" +
-                    "  \"health_scanner\": {\"status\": \"Healthy/Diseased/Indeterminate\", \"confidence\": \"0-100%\", \"tissue_damage\": \"Visual observation of leaf/stem integrity\"},\n" +
-                    "  \"hydration_scanner\": {\"turgor_pressure\": \"High/Optimal/Low/Wilting\", \"moisture_estimate\": \"Dry/Moist/Saturated\"},\n" +
+                    "  \"health_scanner\": {\"status\": \"Healthy/Diseased/Indeterminate/Faux\", \"confidence\": \"0-100%\", \"tissue_damage\": \"Visual observation of leaf/stem integrity\"},\n" +
+                    "  \"hydration_scanner\": {\"turgor_pressure\": \"High/Optimal/Low/Wilting/N/A (Artificial)\", \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"},\n" +
                     "  \"ecosystem\": {\"humidity_preference\": \"High/Medium/Low\", \"temp_range\": \"Min-Max Ideal Celsius\", \"soil_type\": \"Sandy/Loam/Clay/Well-draining\"},\n" +
                     "  \"symptoms_checklist\": [\"Symptom observed 1\", \"Symptom observed 2\"],\n" +
                     "  \"intervention_strategy\": {\"immediate_action\": \"Next 24h action\", \"long_term_care\": \"Maintenance adjustments\"},\n" +
                     "  \"smart_grow_lesson\": \"A quick educational takeaway about this specific condition or plant biology\"\n" +
                     "}\n\n" +
-                    "Output ONLY the valid JSON structure block. Do not include markdown wrappers.";
+                    "Output ONLY valid JSON string block. Do not output conversational text or markdown standard prose outside JSON.";
 
             JSONObject textPart = new JSONObject();
             textPart.put("text", basePrompt);
@@ -306,21 +310,25 @@ public class PlantAnalyzer {
                 return REJECT_MESSAGE;
             }
 
-            JSONObject profile = root.getJSONObject("plant_profile");
-            String nameString = profile.optString("name", "N/A");
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile == null) {
+                return REJECT_MESSAGE;
+            }
 
+            String nameString = profile.optString("name", "N/A");
             if ("N/A".equalsIgnoreCase(nameString) || nameString.trim().isEmpty()) {
                 return REJECT_MESSAGE;
             }
 
-            // Extract the new Philippine local name field
+            boolean isArtificial = root.optBoolean("is_artificial", false);
+            JSONArray artificialDetails = root.optJSONArray("artificial_details");
             String localPhName = profile.optString("philippine_name", "N/A");
 
-            JSONObject health = root.getJSONObject("health_scanner");
-            JSONObject hydration = root.getJSONObject("hydration_scanner");
-            JSONObject ecosystem = root.getJSONObject("ecosystem");
+            JSONObject health = root.optJSONObject("health_scanner");
+            JSONObject hydration = root.optJSONObject("hydration_scanner");
+            JSONObject ecosystem = root.optJSONObject("ecosystem");
             JSONArray symptoms = root.optJSONArray("symptoms_checklist");
-            JSONObject intervention = root.getJSONObject("intervention_strategy");
+            JSONObject intervention = root.optJSONObject("intervention_strategy");
 
             String commonName = nameString;
             String scientificName = "Not specified";
@@ -334,34 +342,65 @@ public class PlantAnalyzer {
             }
 
             StringBuilder sb = new StringBuilder();
+
+            if (isArtificial) {
+                sb.append("⚠️ Artificial / Fake Plant Detected\n");
+                sb.append("This image appears to be an artificial or faux ").append(commonName).append(".\n");
+
+                if (artificialDetails != null && artificialDetails.length() > 0) {
+                    sb.append("Noticeable details:\n");
+                    for (int i = 0; i < artificialDetails.length(); i++) {
+                        String detail = artificialDetails.optString(i, "");
+                        if (!detail.trim().isEmpty()) {
+                            sb.append("• ").append(detail).append("\n");
+                        }
+                    }
+                }
+                sb.append("\nHere is general care info for the real species:\n\n");
+            }
+
             sb.append("🌿 Plant Profile\n");
             sb.append("• Name: ").append(commonName).append("\n");
             sb.append("• Scientific Name: ").append(scientificName).append("\n");
 
-            // Render local name only if the AI returns a valid, non-empty response
             if (!"N/A".equalsIgnoreCase(localPhName) && !localPhName.trim().isEmpty()) {
                 sb.append("• Local Name: ").append(localPhName).append("\n");
             }
 
-            sb.append("• Type: ").append(profile.optString("type", "N/A")).append("\n");
-            sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
-            sb.append("• Native Origin: ").append(profile.optString("origin", "N/A")).append("\n\n");
+            if (profile.has("type")) {
+                sb.append("• Type: ").append(profile.optString("type", "N/A")).append("\n");
+            }
+            if (ecosystem != null && ecosystem.has("soil_type")) {
+                sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
+            }
+            if (profile.has("origin")) {
+                sb.append("• Native Origin: ").append(profile.optString("origin", "N/A")).append("\n\n");
+            }
 
-            sb.append("🩺 Health Assessment\n");
-            sb.append("• Condition: ").append(health.optString("status", "N/A")).append("\n");
-            sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
+            if (health != null) {
+                sb.append("🩺 Health Assessment\n");
+                sb.append("• Condition: ").append(isArtificial ? "Artificial (N/A)" : health.optString("status", "N/A")).append("\n");
+                sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
+            }
 
-            sb.append("💧 Care Guide\n");
-            sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A")).append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
-            sb.append("• Soil: ").append(ecosystem.optString("soil_type", "N/A")).append("\n");
-            sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append(" °C\n");
-            sb.append("• Humidity: ").append(ecosystem.optString("humidity_preference", "N/A")).append("\n");
+            if (hydration != null || ecosystem != null) {
+                sb.append("💧 Care Guide\n");
+                if (hydration != null) {
+                    sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A"))
+                            .append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
+                }
+                if (ecosystem != null) {
+                    sb.append("• Soil: ").append(ecosystem.optString("soil_type", "N/A")).append("\n");
+                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append(" °C\n");
+                    sb.append("• Humidity: ").append(ecosystem.optString("humidity_preference", "N/A")).append("\n");
+                }
+            }
 
-            if (symptoms != null && symptoms.length() > 0) {
+            if (!isArtificial && symptoms != null && symptoms.length() > 0) {
                 boolean hasRealSymptoms = false;
                 StringBuilder symptomsBuilder = new StringBuilder();
                 for (int i = 0; i < symptoms.length(); i++) {
-                    String symptom = symptoms.getString(i);
+                    String symptom = symptoms.optString(i, "");
                     if (!symptom.trim().isEmpty() && !"N/A".equalsIgnoreCase(symptom)) {
                         symptomsBuilder.append("• ").append(symptom).append("\n");
                         hasRealSymptoms = true;
@@ -372,9 +411,11 @@ public class PlantAnalyzer {
                 }
             }
 
-            sb.append("\n✅ Recommendations\n");
-            sb.append("• Immediate: ").append(intervention.optString("immediate_action", "N/A")).append("\n");
-            sb.append("• Long-term: ").append(intervention.optString("long_term_care", "N/A")).append("\n\n");
+            if (intervention != null) {
+                sb.append("\n✅ Recommendations\n");
+                sb.append("• Immediate: ").append(intervention.optString("immediate_action", "N/A")).append("\n");
+                sb.append("• Long-term: ").append(intervention.optString("long_term_care", "N/A")).append("\n\n");
+            }
 
             String lesson = root.optString("smart_grow_lesson", "");
             if (!lesson.trim().isEmpty()) {
@@ -384,11 +425,14 @@ public class PlantAnalyzer {
             return sb.toString();
 
         } catch (Exception e) {
-            Log.e(TAG, "Parsing breakdown, utilizing fallback presentation strategy", e);
-            if (jsonRawString.contains("does not appear to contain a plant") || jsonRawString.contains("is_plant\": false")) {
+            Log.e(TAG, "JSON parsing error", e);
+            if (jsonRawString.contains("does not appear to contain a plant") || jsonRawString.contains("\"is_plant\": false")) {
                 return REJECT_MESSAGE;
             }
-            return "Plant Analysis Context Loaded:\n" + jsonRawString;
+            // Strip out raw curly braces / JSON tags if parsing fails completely
+            return jsonRawString.replaceAll("[\\{\\}\"\\[\\]]", "")
+                    .replaceAll("(?m)^[ \t]*[a-zA-Z_]+:\\s*", "• ")
+                    .trim();
         }
     }
 
@@ -396,12 +440,14 @@ public class PlantAnalyzer {
         if (raw == null) return "{}";
         raw = raw.trim();
 
-        Pattern pattern = Pattern.compile("```json\\s*(\\{.*?\\})\\s*```", Pattern.DOTALL);
+        // Check for markdown json block ```json ... ```
+        Pattern pattern = Pattern.compile("```(?:json)?\\s*(\\{[\\s\\S]*?\\})\\s*```", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(raw);
         if (matcher.find()) {
             return matcher.group(1).trim();
         }
 
+        // Extract anything between the first '{' and last '}'
         int firstBrace = raw.indexOf('{');
         int lastBrace = raw.lastIndexOf('}');
         if (firstBrace != -1 && lastBrace > firstBrace) {
