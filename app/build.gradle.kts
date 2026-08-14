@@ -25,7 +25,7 @@ android {
             localPropertiesFile.inputStream().use { properties.load(it) }
         }
 
-        // Existing keys
+        // API Key Configurations
         val geminiApiKey = properties.getProperty("GEMINI_API_KEY") ?: ""
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
 
@@ -35,7 +35,6 @@ android {
         val xaiApiKey = properties.getProperty("XAI_API_KEY") ?: ""
         buildConfigField("String", "XAI_API_KEY", "\"$xaiApiKey\"")
 
-        // New: SambaNova API key configuration
         val sambanovaApiKey = properties.getProperty("SAMBANOVA_API_KEY") ?: ""
         buildConfigField("String", "SAMBANOVA_API_KEY", "\"$sambanovaApiKey\"")
     }
@@ -63,7 +62,6 @@ android {
     }
 
     compileOptions {
-        // FIXED: Upgraded to Java 17 for modern Android compatibility and OkHttp stability
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -79,9 +77,14 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     implementation(libs.play.services.location)
     implementation(libs.androidx.security.crypto)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+
+    // CameraX Integration
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation("com.google.guava:guava:31.1-android")
 
     // Email
     implementation("com.sun.mail:android-mail:1.6.7")
@@ -97,4 +100,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+
+    // Testing
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }

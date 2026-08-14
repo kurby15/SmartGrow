@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- 1. Live CameraX Viewfinder Stream -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 2. Custom AI Lens Overlay -->
+    <!-- Corrected package name to prevent ClassNotFoundException -->
+    <com.example.smartgrow.camera.ScannerOverlayView
+        android:id="@+id/scanner_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 3. Top Action Bar Controls -->
+    <RelativeLayout
+        android:id="@+id/layout_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:paddingHorizontal="16dp">
+
+        <ImageButton
+            android:id="@+id/btn_close_scanner"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#FFFFFF" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_help"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:contentDescription="Help"
+                android:padding="6dp"
+                android:src="@android:drawable/ic_menu_help"
+                app:tint="#FFFFFF" />
+
+            <ImageButton
+                android:id="@+id/btn_flash"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:contentDescription="Flash"
+                android:padding="6dp"
+                android:src="@drawable/flash"
+                app:tint="#A9A7A7" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- 4. Center Prompt Text -->
+    <TextView
+        android:id="@+id/tv_focus_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:shadowColor="#80000000"
+        android:shadowDx="1"
+        android:shadowDy="2"
+        android:shadowRadius="4"
+        android:text="Place the plant in focus"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- 5. Interactive Vertical Torch Strength Slider -->
+    <RelativeLayout
+        android:id="@+id/layout_slider_container"
+        android:layout_width="48dp"
+        android:layout_height="180dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="16dp"
+        android:clipChildren="false">
+
+        <!-- Track Line -->
+        <View
+            android:id="@+id/slider_track"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:background="#FFFFFF" />
+
+        <!-- Draggable Thumb Circle -->
+        <View
+            android:id="@+id/slider_thumb"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/bg_circle_translucent"
+            android:backgroundTint="#FFFFFF" />
+    </RelativeLayout>
+
+    <!-- 6. Bottom Navigation Controls -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:background="#15FFFFFF"
+        android:paddingHorizontal="40dp">
+
+        <ImageButton
+            android:id="@+id/btn_gallery_shortcut"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Gallery"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_gallery"
+            app:tint="#FFFFFF" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_capture_photo"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_centerInParent="true"
+            app:cardBackgroundColor="#00C853"
+            app:cardCornerRadius="36dp"
+            app:cardElevation="6dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -8,10 +8,9 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <!-- 🖼️ Photo & Gallery Permissions (Fixed for Android 13, 14, and 15+) -->
+    <!-- 🖼️ Photo & Gallery Permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <!-- FIXED: Required for users to pick photos smoothly on Android 14 (API 34) and up -->
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
     <!-- 🌐 Network and Internet Permissions -->
@@ -30,7 +29,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:name=".SmartGrowApp"
+        android:name=".core.SmartGrowApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -43,7 +42,7 @@
 
         <!-- 🚀 1. Splash / Launcher Activity -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".auth.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -53,53 +52,53 @@
 
         <!-- 🏁 2. Onboarding / Authentication Entry -->
         <activity
-            android:name=".GetStartedActivity"
+            android:name=".auth.GetStartedActivity"
             android:exported="false" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".auth.LoginActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <!-- 📝 3. Registration Flow Steps -->
         <activity
-            android:name=".RegisterStep1Activity"
+            android:name=".auth.RegisterStep1Activity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".RegisterStep2Activity"
+            android:name=".auth.RegisterStep2Activity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".RegisterStep3Activity"
+            android:name=".auth.RegisterStep3Activity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".RegisterStep4Activity"
+            android:name=".auth.RegisterStep4Activity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".RegisterStep5Activity"
+            android:name=".auth.RegisterStep5Activity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <!-- 🔐 4. Password Recovery / OTP -->
         <activity
-            android:name=".ForgotPasswordActivity"
+            android:name=".auth.ForgotPasswordActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".VerifyOTPActivity"
+            android:name=".auth.VerifyOTPActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity
-            android:name=".ResetPasswordActivity"
+            android:name=".auth.ResetPasswordActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
@@ -109,14 +108,20 @@
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
+        <!-- 📷 6. Full-Screen AI Camera Scanner -->
+        <activity
+            android:name=".camera.CameraScannerActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
         <!-- 🔔 Alarm & Boot Receivers -->
         <receiver
-            android:name=".AlarmReceiver"
+            android:name=".core.AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <receiver
-            android:name=".BootReceiver"
+            android:name=".core.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

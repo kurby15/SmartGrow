@@ -1,15 +1,38 @@
+# IDE
 *.iml
 .gradle
-/local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+.idea/shelf
+.idea/assetWizardSettings.xml
 .DS_Store
+
+# Build outputs
 /build
+/app/build
 /captures
+
+# Native build
 .externalNativeBuild
 .cxx
+
+# Local configuration files
 local.properties
+secrets.properties
+
+# Signing files
+*.jks
+*.keystore
+
+# Firebase
+google-services.json
+
+# Log files
+*.log
+
+# Other
+.navigation/
