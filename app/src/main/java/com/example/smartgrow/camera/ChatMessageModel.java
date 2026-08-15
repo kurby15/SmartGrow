@@ -1,6 +1,8 @@
 package com.example.smartgrow.camera;
 
 import android.graphics.Bitmap;
+import com.google.firebase.firestore.Exclude;
+
 import java.util.ArrayList;
 
 public class ChatMessageModel {
@@ -12,9 +14,11 @@ public class ChatMessageModel {
     private String messageTime;
     private int messageType;
     private boolean isUser;
-    private Bitmap imageBitmap;
-    private String imageBase64; // Added for Firestore persistence
 
+    @Exclude
+    private Bitmap imageBitmap;
+
+    private String imageBase64; // Added for Firestore persistence
     private ArrayList<String> followUpSuggestions = new ArrayList<>();
 
     // Required empty constructor for Firebase Firestore deserialization
@@ -58,9 +62,12 @@ public class ChatMessageModel {
     public String getTime() { return messageTime; }
 
     public int getMessageType() { return messageType; }
+
+    @Exclude
     public boolean isUser() { return isUser; }
 
-    // Ignore imageBitmap during Firestore auto-serialization (handled via Base64)
+    // EXCLUDE Bitmap from Firestore auto-serialization (handled via Base64)
+    @Exclude
     public Bitmap getImageBitmap() { return imageBitmap; }
 
     public String getImageBase64() { return imageBase64; }
@@ -72,7 +79,10 @@ public class ChatMessageModel {
         this.messageType = messageType;
         this.isUser = (messageType == TYPE_USER);
     }
+
+    @Exclude
     public void setImageBitmap(Bitmap imageBitmap) { this.imageBitmap = imageBitmap; }
+
     public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
 
     public ArrayList<String> getFollowUpSuggestions() {
@@ -83,6 +93,7 @@ public class ChatMessageModel {
         this.followUpSuggestions = followUpSuggestions;
     }
 
+    @Exclude
     public boolean hasImage() {
         return imageBitmap != null || (imageBase64 != null && !imageBase64.isEmpty());
     }

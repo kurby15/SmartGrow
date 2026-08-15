@@ -29,6 +29,7 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartgrow.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -36,6 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,7 +46,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraScannerActivity";
     public static final String EXTRA_IMAGE_PATH = "extra_scanned_image_path";
-    private static final String TEMP_IMAGE_NAME = "temp_scanned_plant.jpg";
+    public static final String TEMP_IMAGE_NAME = "temp_scanned_plant.jpg";
 
     private PreviewView viewFinder;
     private ScannerOverlayView overlayView;
@@ -68,7 +70,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         cameraExecutor = Executors.newSingleThreadExecutor();
 
         try {
-            // Ensure the layout exists and the ScannerOverlayView package is correct in XML
             setContentView(R.layout.activity_camera_scanner);
         } catch (Exception e) {
             Log.e(TAG, "Failed to inflate layout", e);
@@ -139,6 +140,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
         imageCapture = new ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetRotation(viewFinder.getDisplay().getRotation())
                 .build();
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
@@ -163,7 +165,6 @@ public class CameraScannerActivity extends AppCompatActivity {
             return;
         }
 
-        // Save to temporary file to avoid keeping large raw bitmaps in memory
         File photoFile = new File(getFilesDir(), "raw_capture.jpg");
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(photoFile).build();
 
@@ -176,48 +177,79 @@ public class CameraScannerActivity extends AppCompatActivity {
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
                 Log.e(TAG, "Photo capture failed", exception);
-                runOnUiThread(() -> Toast.makeText(CameraScannerActivity.this, "Capture failed", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        Toast.makeText(CameraScannerActivity.this, "Capture failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
 
     private void processSavedImage(File file) {
         try {
+            int exifRotation = getExifRotationDegrees(file.getAbsolutePath());
+
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(file.getAbsolutePath(), options);
 
-            // Sub-sample image to save memory during decoding
             int maxSize = 1024;
             options.inSampleSize = calculateInSampleSize(options, maxSize, maxSize);
             options.inJustDecodeBounds = false;
 
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
             if (bitmap != null) {
-                // Correct orientation and scale precisely
-                Bitmap processed = resizeAndRotatePrecise(bitmap, 0);
-                
+                Bitmap processed = resizeAndRotatePrecise(bitmap, exifRotation);
+
                 try (FileOutputStream fos = openFileOutput(TEMP_IMAGE_NAME, Context.MODE_PRIVATE)) {
                     processed.compress(Bitmap.CompressFormat.JPEG, 85, fos);
-                    
-                    // Cleanup memory immediately
+
                     if (processed != bitmap) {
                         processed.recycle();
                     }
                     bitmap.recycle();
 
                     runOnUiThread(() -> {
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
-                        setResult(Activity.RESULT_OK, resultIntent);
-                        finish();
+                        if (!isFinishing() && !isDestroyed()) {
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
+                            setResult(Activity.RESULT_OK, resultIntent);
+                            finish();
+                        }
                     });
+                    if (file.exists()) file.delete();
+                    return;
                 }
             }
             if (file.exists()) file.delete();
         } catch (Exception e) {
             Log.e(TAG, "Error processing saved image", e);
-            runOnUiThread(() -> finish());
+        }
+
+        // Graceful error handling if file parsing fails
+        runOnUiThread(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(CameraScannerActivity.this, "Unable to process captured photo", Toast.LENGTH_SHORT).show();
+                setResult(Activity.RESULT_CANCELED);
+                finish();
+            }
+        });
+    }
+
+    private int getExifRotationDegrees(String filePath) {
+        try {
+            ExifInterface exif = new ExifInterface(filePath);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90: return 90;
+                case ExifInterface.ORIENTATION_ROTATE_180: return 180;
+                case ExifInterface.ORIENTATION_ROTATE_270: return 270;
+                default: return 0;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to read EXIF orientation", e);
+            return 0;
         }
     }
 
@@ -238,12 +270,12 @@ public class CameraScannerActivity extends AppCompatActivity {
     private Bitmap resizeAndRotatePrecise(Bitmap source, int rotation) {
         Matrix matrix = new Matrix();
         if (rotation != 0) matrix.postRotate(rotation);
-        
+
         float scale = Math.min((float) 1024 / source.getWidth(), (float) 1024 / source.getHeight());
         if (scale < 1.0f) matrix.postScale(scale, scale);
-        
+
         if (matrix.isIdentity()) return source;
-        
+
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
@@ -280,15 +312,28 @@ public class CameraScannerActivity extends AppCompatActivity {
                     try {
                         Bitmap bitmap;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(), uri));
+                            ImageDecoder.Source source = ImageDecoder.createSource(getContentResolver(), uri);
+                            bitmap = ImageDecoder.decodeBitmap(source, (decoder, info, src) -> {
+                                decoder.setTargetColorSpace(android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
+                                decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
+                            });
                         } else {
-                            bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                            try (InputStream is = getContentResolver().openInputStream(uri)) {
+                                bitmap = BitmapFactory.decodeStream(is);
+                            }
                         }
                         if (bitmap != null) {
                             processAndSaveGalleryImage(bitmap);
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Gallery image loading failed", e);
+                        runOnUiThread(() -> {
+                            if (!isFinishing() && !isDestroyed()) {
+                                Toast.makeText(CameraScannerActivity.this, "Failed to load selected image", Toast.LENGTH_SHORT).show();
+                                setResult(Activity.RESULT_CANCELED);
+                                finish();
+                            }
+                        });
                     }
                 });
             }
@@ -302,13 +347,22 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (processed != rawBitmap) processed.recycle();
             rawBitmap.recycle();
             runOnUiThread(() -> {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
-                setResult(Activity.RESULT_OK, resultIntent);
-                finish();
+                if (!isFinishing() && !isDestroyed()) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
+                }
             });
         } catch (IOException e) {
             Log.e(TAG, "Gallery image processing failed", e);
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    Toast.makeText(CameraScannerActivity.this, "Failed to process gallery image", Toast.LENGTH_SHORT).show();
+                    setResult(Activity.RESULT_CANCELED);
+                    finish();
+                }
+            });
         }
     }
 

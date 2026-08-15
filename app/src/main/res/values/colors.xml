@@ -13,4 +13,6 @@
     <color name="divider">#EEEEEE</color>
     <color name="switch_thumb">#0C6211</color>
     <color name="switch_track">#C8E6C9</color>
+
+    <color name="surface_translucent">#80000000</color>
 </resources>

@@ -37,6 +37,13 @@ android {
 
         val sambanovaApiKey = properties.getProperty("SAMBANOVA_API_KEY") ?: ""
         buildConfigField("String", "SAMBANOVA_API_KEY", "\"$sambanovaApiKey\"")
+
+        // Map API Key
+        val mapsApiKey = properties.getProperty("MAPS_API_KEY") ?: ""
+        buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+
+        // Injects MAPS_API_KEY into AndroidManifest.xml
+        manifestPlaceholders["mapsApiKey"] = mapsApiKey
     }
 
     buildFeatures {
@@ -84,6 +91,10 @@ dependencies {
     implementation(libs.firebase.database)                  // Realtime Database
     implementation(libs.firebase.storage)                   // Firebase Storage
 
+    // OpenStreetMap (osmdroid)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation(libs.play.services.maps)
+
     // CameraX Integration
     val cameraxVersion = "1.3.1"
     implementation("androidx.camera:camera-core:$cameraxVersion")
@@ -96,8 +107,10 @@ dependencies {
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
 
-    // Glide
+    // Glide (Image Loading) + SVG Support for Distribution Maps
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.caverock:androidsvg-aar:1.4")
 
     // OkHttp + Logging
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

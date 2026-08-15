@@ -1,8 +1,14 @@
 package com.example.smartgrow.camera;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,36 +72,35 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 userHolder.tvMessageText.setText(message.getMessageText());
             }
 
-            if (message.hasImage()) {
+            // Retrieve or decode Bitmap safely (handles Firestore Base64 images)
+            Bitmap displayBitmap = getOrDecodeBitmap(message);
+
+            if (message.hasImage() && displayBitmap != null) {
                 userHolder.cardImage.setVisibility(View.VISIBLE);
-                userHolder.ivChatImage.setImageBitmap(message.getImageBitmap());
+                userHolder.ivChatImage.setImageBitmap(displayBitmap);
 
                 // Click listener to expand image into a full-screen preview dialog
                 View.OnClickListener imageClickListener = v -> {
-                    if (message.getImageBitmap() != null) {
-                        Dialog previewDialog = new Dialog(v.getContext());
-                        previewDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    Dialog previewDialog = new Dialog(v.getContext());
+                    previewDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-                        // Inflate image view dynamically for preview
-                        ImageView previewImageView = new ImageView(v.getContext());
-                        previewImageView.setLayoutParams(new ViewGroup.LayoutParams(
+                    ImageView previewImageView = new ImageView(v.getContext());
+                    previewImageView.setLayoutParams(new ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT));
+                    previewImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    previewImageView.setImageBitmap(displayBitmap);
+
+                    previewDialog.setContentView(previewImageView);
+                    if (previewDialog.getWindow() != null) {
+                        previewDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+                        previewDialog.getWindow().setLayout(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT));
-                        previewImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        previewImageView.setImageBitmap(message.getImageBitmap());
-
-                        previewDialog.setContentView(previewImageView);
-                        if (previewDialog.getWindow() != null) {
-                            previewDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
-                            previewDialog.getWindow().setLayout(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT);
-                        }
-
-                        // Tap anywhere on preview image to dismiss
-                        previewImageView.setOnClickListener(imgView -> previewDialog.dismiss());
-                        previewDialog.show();
+                                ViewGroup.LayoutParams.MATCH_PARENT);
                     }
+
+                    previewImageView.setOnClickListener(imgView -> previewDialog.dismiss());
+                    previewDialog.show();
                 };
 
                 userHolder.ivChatImage.setOnClickListener(imageClickListener);
@@ -127,9 +132,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         customChip.setClickable(true);
 
                         customChip.setOnClickListener(v -> {
-                            if (holder.itemView.getContext() instanceof MainActivity) {
-                                MainActivity mainActivity = (MainActivity) holder.itemView.getContext();
-                                mainActivity.submitFollowUpQuestion(textQuestion);
+                            Activity activity = getActivityFromContext(v.getContext());
+                            if (activity instanceof MainActivity) {
+                                ((MainActivity) activity).submitFollowUpQuestion(textQuestion);
                             }
                         });
 
@@ -145,6 +150,39 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemCount() {
         return messageList != null ? messageList.size() : 0;
+    }
+
+    /**
+     * Safely returns memory Bitmap or decodes Base64 string from Firestore
+     */
+    private Bitmap getOrDecodeBitmap(ChatMessageModel message) {
+        if (message.getImageBitmap() != null) {
+            return message.getImageBitmap();
+        }
+        if (message.getImageBase64() != null && !message.getImageBase64().isEmpty()) {
+            try {
+                byte[] decodedBytes = Base64.decode(message.getImageBase64(), Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                message.setImageBitmap(bitmap); // Cache bitmap locally in model to prevent re-decoding
+                return bitmap;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Safely unwrap ContextWrapper to get host Activity
+     */
+    private Activity getActivityFromContext(Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) {
+                return (Activity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 
     public static class UserMessageViewHolder extends RecyclerView.ViewHolder {

@@ -8,14 +8,18 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <!-- 🖼️ Photo & Gallery Permissions -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- 🖼️ Photo & Gallery Permissions (API 32 and lower vs API 33+) -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Android 14 (API 34) Partial Photo Picker Access -->
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
-    <!-- 🌐 Network and Internet Permissions -->
+    <!-- 🌐 Network and Internet Permissions (Required for Google Maps & API calls) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <!-- 📍 Location Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -23,7 +27,8 @@
 
     <!-- 🔔 Notification and Alarm Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -31,6 +36,7 @@
     <application
         android:name=".core.SmartGrowApp"
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -38,7 +44,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGrow"
-        tools:targetApi="35">
+        tools:targetApi="36"
+        tools:replace="android:allowBackup,android:fullBackupContent,android:dataExtractionRules">
+
+        <!-- 🗝️ Google Maps API Key Injected from local.properties via Gradle -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${mapsApiKey}" />
 
         <!-- 🚀 1. Splash / Launcher Activity -->
         <activity
@@ -111,7 +123,11 @@
         <!-- 📷 6. Full-Screen AI Camera Scanner -->
         <activity
             android:name=".camera.CameraScannerActivity"
-            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <!-- 🪴 7. Plant Details Activity -->
+        <activity
+            android:name=".plants.PlantDetailsActivity"
             android:exported="false" />
 
         <!-- 🔔 Alarm & Boot Receivers -->
@@ -120,23 +136,28 @@
             android:enabled="true"
             android:exported="false" />
 
+        <!-- Added permission protection to exported Boot Receiver -->
         <receiver
             android:name=".core.BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
+        <!-- 📂 FileProvider for Camera/Photos -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+                android:resource="@xml/file_paths"
+                tools:replace="android:resource" />
         </provider>
 
         <!-- Preloaded Fonts Configuration -->

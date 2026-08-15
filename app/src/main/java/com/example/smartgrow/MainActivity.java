@@ -3,6 +3,7 @@ package com.example.smartgrow;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -35,13 +36,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smartgrow.camera.CameraScannerActivity;
 import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
-import com.example.smartgrow.camera.ChatSessionModel;
 import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
 import com.example.smartgrow.plants.DiaryFragment;
 import com.example.smartgrow.plants.HomeFragment;
+import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.example.smartgrow.profile.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -72,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
     private MaterialCardView cardNavChatAssistant;
     private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile;
 
+    // Loading Indicator for Plant Analysis
+    private ProgressDialog loadingDialog;
+
     // Persisted Chat Memory and Dialog State
     private BottomSheetDialog activeChatDialog;
     private ArrayList<ChatMessageModel> activeChatList;
@@ -99,6 +103,11 @@ public class MainActivity extends AppCompatActivity {
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // Initialize Loading Dialog
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setMessage("Analyzing plant...\nPlease wait.");
+        loadingDialog.setCancelable(false);
 
         setupLaunchers();
 
@@ -160,6 +169,160 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ==========================================
+    // OPTION B: DIRECT TO PLANT DETAILS LAUNCHERS
+    // ==========================================
+
+    private void setupLaunchers() {
+        // Camera Capture Result Handler
+        cameraScannerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        String imagePath = result.getData().getStringExtra(CameraScannerActivity.EXTRA_IMAGE_PATH);
+                        if (imagePath != null) {
+                            try (FileInputStream is = openFileInput(imagePath)) {
+                                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                                if (bitmap != null) {
+                                    Bitmap resized = getResizedBitmap(bitmap, 1024);
+                                    analyzeAndOpenDetails(resized);
+                                } else {
+                                    Toast.makeText(this, "Error: Could not decode image.", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (IOException e) {
+                                Toast.makeText(this, "Failed to load scanned image.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                }
+        );
+
+        // Camera Permission Launcher
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        launchCameraScanner();
+                    } else {
+                        Toast.makeText(this, "Camera permission is required to launch AI scanner.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        // Gallery Image Selection Result Handler
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        try {
+                            Bitmap bitmap;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                bitmap = ImageDecoder.decodeBitmap(
+                                        ImageDecoder.createSource(getContentResolver(), uri));
+                            } else {
+                                try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
+                                    bitmap = BitmapFactory.decodeStream(inputStream);
+                                }
+                            }
+
+                            if (bitmap != null) {
+                                Bitmap resized = getResizedBitmap(bitmap, 1024);
+                                analyzeAndOpenDetails(resized);
+                            }
+                        } catch (IOException e) {
+                            Toast.makeText(this, "Failed to load image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+        );
+    }
+
+    /**
+     * Executes AI analysis on the image and navigates directly to PlantDetailsActivity upon success.
+     */
+    private void analyzeAndOpenDetails(Bitmap bitmap) {
+        showLoading(true);
+
+        PlantAnalyzer analyzer = new PlantAnalyzer();
+        // Updated to use analyzePlantDetailed to get the raw JSON for PlantDetailsActivity
+        analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+            @Override
+            public void onSuccess(String formattedResult, String rawJson) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+
+                    // Check if non-plant detected using the explicit error signal from PlantAnalyzer
+                    if (rawJson == null || rawJson.isEmpty() || rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false")) {
+                        Toast.makeText(MainActivity.this,
+                                "The image does not appear to contain a plant. Please scan a clear plant image.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Store the scanned bitmap for PlantDetailsActivity to display
+                    PlantDetailsActivity.tempScannedBitmap = bitmap;
+
+                    // Only open PlantDetailsActivity after successful AI analysis
+                    Intent intent = new Intent(MainActivity.this, PlantDetailsActivity.class);
+                    intent.putExtra("raw_ai_json", rawJson);
+                    startActivity(intent);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    // Stay on the current screen and show error
+                    if (error.equals(PlantAnalyzer.ERROR_NON_PLANT)) {
+                        Toast.makeText(MainActivity.this,
+                                "The image does not appear to contain a plant. Please scan a clear plant image.",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Analysis Error: " + error, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void showLoading(boolean show) {
+        if (loadingDialog != null) {
+            if (show && !isFinishing()) {
+                loadingDialog.show();
+            } else if (loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+        }
+    }
+
+    private void launchCameraScanner() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            Intent intent = new Intent(this, CameraScannerActivity.class);
+            cameraScannerLauncher.launch(intent);
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+        if (image == null) return null;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        float ratio = (float) width / height;
+
+        if (ratio > 1) {
+            width = maxSize;
+            height = (int) (width / ratio);
+        } else {
+            height = maxSize;
+            width = (int) (height * ratio);
+        }
+        return Bitmap.createScaledBitmap(image, width, height, true);
+    }
+
+    // ==========================================
     // TEXT SANITIZER & FORMAT CLEANER
     // ==========================================
 
@@ -188,9 +351,6 @@ public class MainActivity extends AppCompatActivity {
         return currentUser != null ? currentUser.getUid() : null;
     }
 
-    /**
-     * Saves session title into user's ai_history field in document.
-     */
     private void saveSessionToHistory(String firstQuestion) {
         String userId = getCurrentUserId();
         if (userId == null || firstQuestion == null) return;
@@ -258,9 +418,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Appends message to user document field `ai_chat.messages`.
-     */
     private void appendMessageToFirestore(ChatMessageModel message) {
         String userId = getCurrentUserId();
         if (userId == null) return;
@@ -318,7 +475,6 @@ public class MainActivity extends AppCompatActivity {
                             for (Map<String, Object> map : rawList) {
                                 String msgSessionId = (String) map.get("sessionId");
 
-                                // Filter messages by chosen session ID if one is selected
                                 if (currentSessionId != null && msgSessionId != null && !currentSessionId.equals(msgSessionId)) {
                                     continue;
                                 }
@@ -408,7 +564,6 @@ public class MainActivity extends AppCompatActivity {
         if (itemAiChatbot != null) {
             itemAiChatbot.setOnClickListener(v -> {
                 popupWindow.dismiss();
-                // Start with a clean/new chat session every time user opens the AI Chatbot
                 startNewChatSession();
                 showAiChatAssistantBottomSheet();
             });
@@ -422,104 +577,6 @@ public class MainActivity extends AppCompatActivity {
         int yOffset = -(popupHeight + anchorView.getHeight() + 16);
 
         popupWindow.showAsDropDown(anchorView, xOffset, yOffset);
-    }
-
-    private void setupLaunchers() {
-        cameraScannerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        String imagePath = result.getData().getStringExtra(CameraScannerActivity.EXTRA_IMAGE_PATH);
-                        if (imagePath != null) {
-                            try (FileInputStream is = openFileInput(imagePath)) {
-                                Bitmap bitmap = BitmapFactory.decodeStream(is);
-                                if (bitmap != null) {
-                                    startNewChatSession();
-                                    showAiChatAssistantBottomSheet();
-                                    Bitmap resized = getResizedBitmap(bitmap, 1024);
-                                    handleImageAnalysis(resized);
-                                    if (resized != bitmap) {
-                                        bitmap.recycle();
-                                    }
-                                } else {
-                                    Toast.makeText(this, "Error: Could not decode image.", Toast.LENGTH_SHORT).show();
-                                }
-                            } catch (IOException e) {
-                                Toast.makeText(this, "Failed to load scanned image.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                }
-        );
-
-        cameraPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (isGranted) {
-                        launchCameraScanner();
-                    } else {
-                        Toast.makeText(this, "Camera permission is required to launch AI scanner.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-        );
-
-        galleryLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                    if (uri != null) {
-                        try {
-                            Bitmap bitmap;
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                bitmap = ImageDecoder.decodeBitmap(
-                                        ImageDecoder.createSource(getContentResolver(), uri));
-                            } else {
-                                try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-                                    bitmap = BitmapFactory.decodeStream(inputStream);
-                                }
-                            }
-
-                            if (bitmap != null) {
-                                startNewChatSession();
-                                showAiChatAssistantBottomSheet();
-                                Bitmap resized = getResizedBitmap(bitmap, 1024);
-                                handleImageAnalysis(resized);
-                                if (resized != bitmap) {
-                                    bitmap.recycle();
-                                }
-                            }
-                        } catch (IOException e) {
-                            Toast.makeText(this, "Failed to load image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-        );
-    }
-
-    private void launchCameraScanner() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
-            Intent intent = new Intent(this, CameraScannerActivity.class);
-            cameraScannerLauncher.launch(intent);
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
-        }
-    }
-
-    private Bitmap getResizedBitmap(Bitmap image, int maxSize) {
-        if (image == null) return null;
-        int width = image.getWidth();
-        int height = image.getHeight();
-        float ratio = (float) width / height;
-
-        if (ratio > 1) {
-            width = maxSize;
-            height = (int) (width / ratio);
-        } else {
-            height = maxSize;
-            width = (int) (height * ratio);
-        }
-        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
     private String getCurrentPhTime() {
@@ -575,7 +632,6 @@ public class MainActivity extends AppCompatActivity {
 
         activeChatDialog.setOnDismissListener(dialog -> activeRvChatMessages = null);
 
-        // MENU WITH "NEW CHAT" AND "HISTORY" OPTIONS
         if (ibMenu != null) {
             ibMenu.setOnClickListener(v -> {
                 View dropdownView = LayoutInflater.from(this).inflate(R.layout.layout_custom_dropdown, null);
@@ -682,125 +738,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void handleImageAnalysis(Bitmap bitmap) {
-        if (bitmap == null) return;
-
-        if (activeChatList == null || activeChatAdapter == null) {
-            showAiChatAssistantBottomSheet();
-        }
-
-        ChatMessageModel userImageMsg = new ChatMessageModel(bitmap, getCurrentPhTime(), ChatMessageModel.TYPE_USER);
-        activeChatList.add(userImageMsg);
-        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-        // Saves user image to Firestore
-        appendMessageToFirestore(userImageMsg);
-
-        activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
-        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-        if (activeRvChatMessages != null) {
-            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-        }
-
-        PlantAnalyzer analyzer = new PlantAnalyzer();
-        analyzer.analyzePlant(bitmap, new PlantAnalyzer.PlantCallback() {
-            @Override
-            public void onSuccess(String rawStructuredResult) {
-                runOnUiThread(() -> {
-                    removeLoadingIndicator();
-                    if (activeChatList == null || activeChatAdapter == null) return;
-
-                    String cleanedResult = cleanAiResponseText(rawStructuredResult);
-                    lastAnalyzedPlantProfile = cleanedResult;
-
-                    ArrayList<String> suggestions = new ArrayList<>();
-
-                    if (rawStructuredResult != null && rawStructuredResult.contains("does not appear to contain a plant")) {
-                        suggestions.add("How to scan correctly?");
-                        suggestions.add("See sample plant image");
-                    } else if (rawStructuredResult != null && rawStructuredResult.contains("Artificial / Fake Plant Detected")) {
-                        suggestions.add("How to clean artificial plants?");
-                        suggestions.add("Care tips for the real version");
-                        suggestions.add("Where to buy real plants?");
-                    } else {
-                        String plantName = "this plant";
-                        String majorSymptom = "";
-
-                        try {
-                            if (rawStructuredResult != null && rawStructuredResult.contains("Local Name:")) {
-                                int localStart = rawStructuredResult.indexOf("Local Name:") + "Local Name:".length();
-                                int localEnd = rawStructuredResult.indexOf("\n", localStart);
-                                if (localEnd == -1) localEnd = rawStructuredResult.length();
-                                plantName = cleanAiResponseText(rawStructuredResult.substring(localStart, localEnd));
-                            } else if (rawStructuredResult != null && rawStructuredResult.contains("Name:")) {
-                                int nameStart = rawStructuredResult.indexOf("Name:") + "Name:".length();
-                                int nameEnd = rawStructuredResult.indexOf("\n", nameStart);
-                                if (nameEnd == -1) nameEnd = rawStructuredResult.length();
-                                plantName = cleanAiResponseText(rawStructuredResult.substring(nameStart, nameEnd));
-                            }
-
-                            if (rawStructuredResult != null && rawStructuredResult.contains("Problems Detected")) {
-                                int problemSectionStart = rawStructuredResult.indexOf("Problems Detected");
-                                int lineStart = rawStructuredResult.indexOf("\n", problemSectionStart);
-                                if (lineStart != -1) {
-                                    int lineEnd = rawStructuredResult.indexOf("\n", lineStart + 1);
-                                    if (lineEnd == -1) lineEnd = rawStructuredResult.length();
-                                    majorSymptom = cleanAiResponseText(rawStructuredResult.substring(lineStart, lineEnd));
-                                }
-                            }
-                        } catch (Exception e) {
-                            plantName = "this plant";
-                        }
-
-                        suggestions.add("Is " + plantName + " safe for pets?");
-                        if (!majorSymptom.isEmpty()) {
-                            suggestions.add("How to treat " + majorSymptom + "?");
-                        } else {
-                            suggestions.add("What fertilizer does " + plantName + " like?");
-                        }
-                        suggestions.add("How often should I water it?");
-                    }
-
-                    ChatMessageModel aiMessage = new ChatMessageModel(cleanedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                    aiMessage.setFollowUpSuggestions(suggestions);
-
-                    activeChatList.add(aiMessage);
-                    activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-                    appendMessageToFirestore(aiMessage);
-
-                    if (activeRvChatMessages != null) {
-                        activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    removeLoadingIndicator();
-                    if (activeChatList == null || activeChatAdapter == null) return;
-
-                    lastAnalyzedPlantProfile = "Context recovery: Vision parsing error/timeout occurred.";
-
-                    ChatMessageModel errorMsg = new ChatMessageModel(
-                            "Sorry, I encountered an internal communication issue: " + error,
-                            getCurrentPhTime(),
-                            ChatMessageModel.TYPE_AI);
-
-                    activeChatList.add(errorMsg);
-                    activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-                    appendMessageToFirestore(errorMsg);
-
-                    if (activeRvChatMessages != null) {
-                        activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-                    }
-                });
-            }
-        });
-    }
-
     public void submitFollowUpQuestion(String question) {
         if (activeChatList == null || activeChatAdapter == null) return;
 
@@ -812,7 +749,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Writes session to ai_history on user text
         if (isFirstUserQuestion || currentSessionId == null) {
             saveSessionToHistory(question);
         }
@@ -821,7 +757,6 @@ public class MainActivity extends AppCompatActivity {
         activeChatList.add(userMsg);
         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-        // Appends to user document field `ai_chat`
         appendMessageToFirestore(userMsg);
 
         activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));

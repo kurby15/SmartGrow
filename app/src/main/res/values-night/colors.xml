@@ -7,4 +7,6 @@
     <color name="divider">#333333</color>
     <color name="switch_thumb">#4CAF50</color>
     <color name="switch_track">#2E7D32</color>
+
+    <color name="surface_translucent">#66FFFFFF</color>
 </resources>

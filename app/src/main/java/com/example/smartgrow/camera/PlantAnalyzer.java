@@ -32,20 +32,26 @@ public class PlantAnalyzer {
 
     private static final String TAG = "PlantAnalyzer";
 
-    // Endpoints
-    private static final String SAMBANOVA_API_URL = "https://api.sambanova.ai/v1/chat/completions";
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+    private static final String SAMBANOVA_API_URL =
+            "https://api.sambanova.ai/v1/chat/completions";
+    private static final String GEMINI_API_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
-    // Models
     private static final String CHAT_MODEL = "DeepSeek-V3.1";
 
-    private static final String REJECT_MESSAGE = "Sorry, the uploaded image does not appear to contain a plant. Please upload a clear picture of a plant.";
+    public static final String REJECT_MESSAGE = "The image does not appear to contain a plant. Please scan a clear plant image.";
+    public static final String ERROR_NON_PLANT = "NON_PLANT_DETECTED";
 
     private final OkHttpClient client;
     private final Handler mainHandler;
 
     public interface PlantCallback {
         void onSuccess(String result);
+        void onError(String error);
+    }
+
+    public interface PlantAnalysisCallback {
+        void onSuccess(String formattedResult, String rawJson);
         void onError(String error);
     }
 
@@ -59,7 +65,7 @@ public class PlantAnalyzer {
     }
 
     public void askQuestion(String userPrompt, PlantCallback callback) {
-        askAI(userPrompt, null, null, callback);
+        askAI(userPrompt, null, null, callback, null);
     }
 
     public void askFollowUpQuestion(String question, String previousAnalysis, PlantCallback callback) {
@@ -67,33 +73,36 @@ public class PlantAnalyzer {
             mainHandler.post(() -> callback.onSuccess("Please upload a plant photo first so I can help answer your questions."));
             return;
         }
-        askAI(question, null, previousAnalysis, callback);
+        askAI(question, null, previousAnalysis, callback, null);
     }
 
     public void analyzePlant(Bitmap imageBitmap, PlantCallback callback) {
-        askAI(null, imageBitmap, null, callback);
+        askAI(null, imageBitmap, null, callback, null);
     }
 
-    private void askAI(String question, Bitmap imageBitmap, String contextHistory, PlantCallback callback) {
+    public void analyzePlantDetailed(Bitmap imageBitmap, PlantAnalysisCallback detailedCallback) {
+        askAI(null, imageBitmap, null, null, detailedCallback);
+    }
+
+    private void askAI(String question, Bitmap imageBitmap, String contextHistory,
+                       PlantCallback callback, PlantAnalysisCallback detailedCallback) {
         try {
             boolean isVisionRequest = (imageBitmap != null);
 
             if (isVisionRequest) {
-                // Image requests directly route to Gemini as main vision handler
                 String bodyStr = buildGeminiPayload(null, imageBitmap, null);
-                sendApiRequest(bodyStr, true, true, question, imageBitmap, contextHistory, callback);
+                sendApiRequest(bodyStr, true, true, question, imageBitmap, contextHistory, callback, detailedCallback);
             } else {
-                // Text chat requests start with SambaNova (DeepSeek)
                 String bodyStr = buildSambaNovaPayload(question, contextHistory);
-                sendApiRequest(bodyStr, false, false, question, imageBitmap, contextHistory, callback);
+                sendApiRequest(bodyStr, false, false, question, imageBitmap, contextHistory, callback, detailedCallback);
             }
 
         } catch (Exception e) {
-            callback.onError("Error constructing AI request: " + e.getMessage());
+            if (callback != null) mainHandler.post(() -> callback.onError("Error constructing AI request: " + e.getMessage()));
+            if (detailedCallback != null) mainHandler.post(() -> detailedCallback.onError("Error constructing AI request: " + e.getMessage()));
         }
     }
 
-    // Helper method to isolate SambaNova layout schema configuration
     private String buildSambaNovaPayload(String question, String contextHistory) throws JSONException {
         JSONObject body = new JSONObject();
         body.put("model", CHAT_MODEL);
@@ -128,7 +137,6 @@ public class PlantAnalyzer {
         return body.toString();
     }
 
-    // Helper method to isolate Gemini layout schema configuration
     private String buildGeminiPayload(String question, Bitmap imageBitmap, String contextHistory) throws JSONException {
         JSONObject body = new JSONObject();
         JSONArray contents = new JSONArray();
@@ -136,25 +144,105 @@ public class PlantAnalyzer {
         JSONArray partsArray = new JSONArray();
 
         if (imageBitmap != null) {
-            // Vision Prompt Configuration
-            String basePrompt = "You are an expert agronomist and botanical computer vision engine. First, determine if the image contains a plant (real or artificial/fake).\n" +
-                    "If it is NOT a plant at all, return a JSON object containing exactly: {\"is_plant\": false}.\n\n" +
-                    "If it IS a plant (or artificial plant), check carefully whether it is an artificial/faux/plastic/synthetic plant. " +
-                    "Look for clues like plastic tendrils, molded stems, uniform texture, plastic sheen, printed veins, or unnaturally perfect defect-free leaves.\n\n" +
-                    "Return a JSON object conforming precisely to this scheme:\n" +
+            String basePrompt = "You are an expert botanical computer vision engine and global ecology system.\n\n" +
+                    "TASK INSTRUCTIONS:\n" +
+                    "1. First, check if the image contains a plant (real or artificial/fake/plastic).\n" +
+                    "   - If NO plant or botanical element is present, return JSON: {\"is_plant\": false}\n\n" +
+                    "2. ARTIFICIAL PLANT INSPECTION:\n" +
+                    "   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n" +
+                    "   - Look for plastic gloss, injection molding seams, unnatural leaf patterns, synthetic stems, or fabric textures.\n" +
+                    "   - Set \"is_artificial\" to true if artificial, otherwise false.\n" +
+                    "   - In \"artificial_details\", list specific reasons why it is identified as artificial. If real, leave this array empty.\n\n" +
+                    "3. GLOBAL BOTANICAL DISTRIBUTION MANDATE:\n" +
+                    "   - Identify the exact species taxonomy (scientific name) to determine its true WORLDWIDE distribution.\n" +
+                    "   - Do NOT default or restrict distribution to the Philippines or any single country. Include points across all continents/regions where the species natively or introducedly occurs (e.g., South America, Africa, Asia, Australia, Europe, Pacific).\n" +
+                    "   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n" +
+                    "   - Provide 3 to 15 realistic central representative coordinate pins in \"distribution_coordinates\" spanning its worldwide range.\n" +
+                    "   - Set \"is_native\" to true ONLY if distribution_type is 'Native'.\n\n" +
+                    "4. Return ONLY pure JSON matching EXACTLY this structure:\n" +
                     "{\n" +
                     "  \"is_plant\": true,\n" +
-                    "  \"is_artificial\": true/false,\n" +
-                    "  \"artificial_details\": [\"Detail 1 showing it is faux (e.g. plastic tendrils, uniform sheen)\"],\n" +
-                    "  \"plant_profile\": {\"name\": \"Scientific (Common Name)\", \"philippine_name\": \"Local Tagalog/Philippine name if applicable, or N/A\", \"origin\": \"Origin region\", \"type\": \"Succulent/Tree/Herb etc\"},\n" +
-                    "  \"health_scanner\": {\"status\": \"Healthy/Diseased/Indeterminate/Faux\", \"confidence\": \"0-100%\", \"tissue_damage\": \"Visual observation of leaf/stem integrity\"},\n" +
-                    "  \"hydration_scanner\": {\"turgor_pressure\": \"High/Optimal/Low/Wilting/N/A (Artificial)\", \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"},\n" +
-                    "  \"ecosystem\": {\"humidity_preference\": \"High/Medium/Low\", \"temp_range\": \"Min-Max Ideal Celsius\", \"soil_type\": \"Sandy/Loam/Clay/Well-draining\"},\n" +
-                    "  \"symptoms_checklist\": [\"Symptom observed 1\", \"Symptom observed 2\"],\n" +
-                    "  \"intervention_strategy\": {\"immediate_action\": \"Next 24h action\", \"long_term_care\": \"Maintenance adjustments\"},\n" +
-                    "  \"smart_grow_lesson\": \"A quick educational takeaway about this specific condition or plant biology\"\n" +
+                    "  \"is_artificial\": false,\n" +
+                    "  \"artificial_details\": [],\n" +
+                    "  \"plant_profile\": {\n" +
+                    "    \"name\": \"Common Name (Scientific Name)\",\n" +
+                    "    \"scientific_name\": \"Scientific Name\",\n" +
+                    "    \"philippine_name\": \"Local Philippine Name or N/A\",\n" +
+                    "    \"aliases\": \"Common aliases\",\n" +
+                    "    \"origin\": \"Native origin region/countries\",\n" +
+                    "    \"distribution_text\": \"Complete worldwide geographic distribution summary.\",\n" +
+                    "    \"distribution_confidence\": \"High\",\n" +
+                    "    \"distribution_coordinates\": [\n" +
+                    "      {\n" +
+                    "        \"latitude\": -14.2350,\n" +
+                    "        \"longitude\": -51.9253,\n" +
+                    "        \"title\": \"Brazil\",\n" +
+                    "        \"region\": \"South America\",\n" +
+                    "        \"country\": \"Brazil\",\n" +
+                    "        \"distribution_type\": \"Native\",\n" +
+                    "        \"is_native\": true,\n" +
+                    "        \"confidence\": \"High\",\n" +
+                    "        \"snippet\": \"Native species range in tropical rainforests.\",\n" +
+                    "        \"description\": \"Part of native origin range.\"\n" +
+                    "      }\n" +
+                    "    ],\n" +
+                    "    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n" +
+                    "    \"pet_toxicity\": \"Non-toxic to pets / Toxic to pets\",\n" +
+                    "    \"weed_potential\": \"Low weed potential / Invasive weed\",\n" +
+                    "    \"lifespan\": \"Perennial / Annual\"\n" +
+                    "  },\n" +
+                    "  \"common_problems\": [\n" +
+                    "    {\n" +
+                    "      \"title\": \"Problem title\",\n" +
+                    "      \"description\": \"Description of common issue\",\n" +
+                    "      \"image_url\": \"\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"health_scanner\": {\n" +
+                    "    \"status\": \"Healthy / Artificial / Diseased / Indeterminate\",\n" +
+                    "    \"confidence\": \"85%\",\n" +
+                    "    \"tissue_damage\": \"Description of damage or N/A\"\n" +
+                    "  },\n" +
+                    "  \"hydration_scanner\": {\n" +
+                    "    \"turgor_pressure\": \"High/Optimal/Wilting/N/A\",\n" +
+                    "    \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"\n" +
+                    "  },\n" +
+                    "  \"ecosystem\": {\n" +
+                    "    \"humidity_preference\": \"High/Medium/Low\",\n" +
+                    "    \"temp_range\": \"18-30°C\",\n" +
+                    "    \"soil_type\": \"Well-draining potting mix\",\n" +
+                    "    \"hardiness_zones\": \"9-11\",\n" +
+                    "    \"sunlight\": \"Bright indirect light\"\n" +
+                    "  },\n" +
+                    "  \"characteristics\": {\n" +
+                    "    \"ultimate_height\": \"e.g., 30 cm to 1 m\",\n" +
+                    "    \"ultimate_spread\": \"e.g., 20 cm to 50 cm\",\n" +
+                    "    \"leaf_color_hex\": \"#2E7D32\",\n" +
+                    "    \"leaf_type\": \"Evergreen\",\n" +
+                    "    \"planting_time\": \"Spring\"\n" +
+                    "  },\n" +
+                    "  \"care_profile\": {\n" +
+                    "    \"difficulty\": \"Easy\",\n" +
+                    "    \"watering_frequency\": \"Water when top inch is dry\",\n" +
+                    "    \"propagation_method\": \"Stem cuttings\"\n" +
+                    "  },\n" +
+                    "  \"extra_details\": {\n" +
+                    "    \"uses\": \"Decorative / Ornamental\",\n" +
+                    "    \"uses_disclaimer\": \"\",\n" +
+                    "    \"adaptation_strategies\": \"Drought tolerant\",\n" +
+                    "    \"ecological_application\": \"Air purifier\",\n" +
+                    "    \"history_and_legends\": \"Historical context\",\n" +
+                    "    \"name_story\": \"Etymology\",\n" +
+                    "    \"symbolism\": \"Symbolic meaning\"\n" +
+                    "  },\n" +
+                    "  \"symptoms_checklist\": [],\n" +
+                    "  \"intervention_strategy\": {\n" +
+                    "    \"immediate_action\": \"No watering required if artificial.\",\n" +
+                    "    \"long_term_care\": \"Dust periodically.\"\n" +
+                    "  },\n" +
+                    "  \"smart_grow_lesson\": \"Short educational note\"\n" +
                     "}\n\n" +
-                    "Output ONLY valid JSON string block. Do not output conversational text or markdown standard prose outside JSON.";
+                    "OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.";
 
             JSONObject textPart = new JSONObject();
             textPart.put("text", basePrompt);
@@ -171,7 +259,6 @@ public class PlantAnalyzer {
             generationConfig.put("responseMimeType", "application/json");
             body.put("generationConfig", generationConfig);
         } else {
-            // Text Chat Backup Instruction Setup
             String systemInstructions = "You are SmartGrow Assistant, backed up by Gemini. Your ONLY purpose is to help users with plants. " +
                     "If the user's question is NOT related to plants, gardening, farming, or care, reply with: " +
                     "\"Sorry, I can only answer questions related to plants and plant care.\" ";
@@ -194,14 +281,17 @@ public class PlantAnalyzer {
 
     private void sendApiRequest(String jsonBody, final boolean isVisionRequest, final boolean isGeminiActive,
                                 final String origQuestion, final Bitmap origBitmap, final String origContext,
-                                final PlantCallback callback) {
+                                final PlantCallback callback, final PlantAnalysisCallback detailedCallback) {
         String url;
         Request.Builder requestBuilder = new Request.Builder();
 
         if (isGeminiActive) {
             String geminiKey = BuildConfig.GEMINI_API_KEY;
             if (geminiKey == null || geminiKey.trim().isEmpty()) {
-                mainHandler.post(() -> callback.onError("Gemini API Key is missing."));
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Gemini API Key is missing.");
+                    if (detailedCallback != null) detailedCallback.onError("Gemini API Key is missing.");
+                });
                 return;
             }
             url = GEMINI_API_URL + "?key=" + geminiKey;
@@ -209,7 +299,10 @@ public class PlantAnalyzer {
         } else {
             String sambaKey = BuildConfig.SAMBANOVA_API_KEY;
             if (sambaKey == null || sambaKey.trim().isEmpty()) {
-                mainHandler.post(() -> callback.onError("SambaNova API Key is missing."));
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("SambaNova API Key is missing.");
+                    if (detailedCallback != null) detailedCallback.onError("SambaNova API Key is missing.");
+                });
                 return;
             }
             url = SAMBANOVA_API_URL;
@@ -234,7 +327,7 @@ public class PlantAnalyzer {
                     String responseStr = res.body() != null ? res.body().string() : "";
 
                     if (!res.isSuccessful()) {
-                        Log.w(TAG, "Primary API error observed (" + res.code() + "). Checking failover rules...");
+                        Log.w(TAG, "Primary API error observed (" + res.code() + "). Checking failover rules... Body: " + responseStr);
                         handleNetworkFailure();
                         return;
                     }
@@ -272,10 +365,30 @@ public class PlantAnalyzer {
 
                         final String finalReply = replyText;
                         if (isVisionRequest) {
+                            String rawJsonBlock = extractJsonBlock(finalReply);
+
+                            try {
+                                JSONObject parsedRoot = new JSONObject(rawJsonBlock);
+                                if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
+                                    mainHandler.post(() -> {
+                                        if (callback != null) callback.onError(REJECT_MESSAGE);
+                                        if (detailedCallback != null) detailedCallback.onError(ERROR_NON_PLANT);
+                                    });
+                                    return;
+                                }
+                            } catch (Exception ignored) {}
+
                             String structuredProfile = parseAndFormatPlantJson(finalReply);
-                            mainHandler.post(() -> callback.onSuccess(structuredProfile));
+
+                            mainHandler.post(() -> {
+                                if (callback != null) callback.onSuccess(structuredProfile);
+                                if (detailedCallback != null) detailedCallback.onSuccess(structuredProfile, rawJsonBlock);
+                            });
                         } else {
-                            mainHandler.post(() -> callback.onSuccess(finalReply));
+                            mainHandler.post(() -> {
+                                if (callback != null) callback.onSuccess(finalReply);
+                                if (detailedCallback != null) detailedCallback.onSuccess(finalReply, "");
+                            });
                         }
 
                     } catch (Exception e) {
@@ -290,12 +403,19 @@ public class PlantAnalyzer {
                     Log.i(TAG, "SambaNova (DeepSeek) down. Rerouting chat request payload to Gemini fallback ecosystem.");
                     try {
                         String geminiChatBody = buildGeminiPayload(origQuestion, null, origContext);
-                        sendApiRequest(geminiChatBody, false, true, origQuestion, null, origContext, callback);
+                        sendApiRequest(geminiChatBody, false, true, origQuestion, null, origContext, callback, detailedCallback);
                     } catch (Exception ex) {
-                        mainHandler.post(() -> callback.onError("Backup Engine routing failed: " + ex.getMessage()));
+                        mainHandler.post(() -> {
+                            if (callback != null) callback.onError("Backup Engine routing failed: " + ex.getMessage());
+                            if (detailedCallback != null) detailedCallback.onError("Backup Engine routing failed: " + ex.getMessage());
+                        });
                     }
                 } else {
-                    mainHandler.post(() -> callback.onError("SmartGrow services are currently experiencing technical difficulties. Please check back shortly."));
+                    mainHandler.post(() -> {
+                        String errorMsg = "SmartGrow services are currently experiencing technical difficulties. Please check back shortly.";
+                        if (callback != null) callback.onError(errorMsg);
+                        if (detailedCallback != null) detailedCallback.onError(errorMsg);
+                    });
                 }
             }
         });
@@ -323,6 +443,8 @@ public class PlantAnalyzer {
             boolean isArtificial = root.optBoolean("is_artificial", false);
             JSONArray artificialDetails = root.optJSONArray("artificial_details");
             String localPhName = profile.optString("philippine_name", "N/A");
+            String origin = profile.optString("origin", "N/A");
+            String distributionText = profile.optString("distribution_text", "N/A");
 
             JSONObject health = root.optJSONObject("health_scanner");
             JSONObject hydration = root.optJSONObject("hydration_scanner");
@@ -336,8 +458,8 @@ public class PlantAnalyzer {
                 int openParen = nameString.indexOf("(");
                 int closeParen = nameString.indexOf(")");
                 if (openParen < closeParen) {
-                    scientificName = nameString.substring(0, openParen).trim();
-                    commonName = nameString.substring(openParen + 1, closeParen).trim();
+                    commonName = nameString.substring(0, openParen).trim();
+                    scientificName = nameString.substring(openParen + 1, closeParen).trim();
                 }
             }
 
@@ -373,19 +495,23 @@ public class PlantAnalyzer {
             if (ecosystem != null && ecosystem.has("soil_type")) {
                 sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
             }
-            if (profile.has("origin")) {
-                sb.append("• Native Origin: ").append(profile.optString("origin", "N/A")).append("\n\n");
+            if (!"N/A".equalsIgnoreCase(origin) && !origin.trim().isEmpty()) {
+                sb.append("• Native Origin: ").append(origin).append("\n");
             }
+            if (!"N/A".equalsIgnoreCase(distributionText) && !distributionText.trim().isEmpty()) {
+                sb.append("• Geographic Distribution: ").append(distributionText).append("\n");
+            }
+            sb.append("\n");
 
             if (health != null) {
                 sb.append("🩺 Health Assessment\n");
-                sb.append("• Condition: ").append(isArtificial ? "Artificial (N/A)" : health.optString("status", "N/A")).append("\n");
+                sb.append("• Condition: ").append(isArtificial ? "Artificial / Plastic Plant" : health.optString("status", "N/A")).append("\n");
                 sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
             if (hydration != null || ecosystem != null) {
                 sb.append("💧 Care Guide\n");
-                if (hydration != null) {
+                if (hydration != null && !isArtificial) {
                     sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A"))
                             .append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
                 }
@@ -413,8 +539,13 @@ public class PlantAnalyzer {
 
             if (intervention != null) {
                 sb.append("\n✅ Recommendations\n");
-                sb.append("• Immediate: ").append(intervention.optString("immediate_action", "N/A")).append("\n");
-                sb.append("• Long-term: ").append(intervention.optString("long_term_care", "N/A")).append("\n\n");
+                if (isArtificial) {
+                    sb.append("• Immediate: Keep free of dust with a damp cloth.\n");
+                    sb.append("• Long-term: Keep away from direct high heat to prevent plastic degradation.\n\n");
+                } else {
+                    sb.append("• Immediate: ").append(intervention.optString("immediate_action", "N/A")).append("\n");
+                    sb.append("• Long-term: ").append(intervention.optString("long_term_care", "N/A")).append("\n\n");
+                }
             }
 
             String lesson = root.optString("smart_grow_lesson", "");
@@ -429,7 +560,6 @@ public class PlantAnalyzer {
             if (jsonRawString.contains("does not appear to contain a plant") || jsonRawString.contains("\"is_plant\": false")) {
                 return REJECT_MESSAGE;
             }
-            // Strip out raw curly braces / JSON tags if parsing fails completely
             return jsonRawString.replaceAll("[\\{\\}\"\\[\\]]", "")
                     .replaceAll("(?m)^[ \t]*[a-zA-Z_]+:\\s*", "• ")
                     .trim();
@@ -440,14 +570,12 @@ public class PlantAnalyzer {
         if (raw == null) return "{}";
         raw = raw.trim();
 
-        // Check for markdown json block ```json ... ```
         Pattern pattern = Pattern.compile("```(?:json)?\\s*(\\{[\\s\\S]*?\\})\\s*```", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(raw);
         if (matcher.find()) {
             return matcher.group(1).trim();
         }
 
-        // Extract anything between the first '{' and last '}'
         int firstBrace = raw.indexOf('{');
         int lastBrace = raw.lastIndexOf('}');
         if (firstBrace != -1 && lastBrace > firstBrace) {
