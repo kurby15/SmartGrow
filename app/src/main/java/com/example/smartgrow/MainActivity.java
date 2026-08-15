@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smartgrow.camera.CameraScannerActivity;
 import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
+import com.example.smartgrow.camera.ChatSessionModel;
 import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
@@ -49,9 +50,9 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -61,10 +62,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -79,11 +80,11 @@ public class MainActivity extends AppCompatActivity {
 
     private String lastAnalyzedPlantProfile = "";
     private long lastRequestTime = 0;
+    private String currentSessionId = null;
 
     // Firebase References
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
-    private String currentSessionId = null;
 
     // Activity Result Launchers
     private ActivityResultLauncher<Intent> cameraScannerLauncher;
@@ -162,40 +163,67 @@ public class MainActivity extends AppCompatActivity {
     // TEXT SANITIZER & FORMAT CLEANER
     // ==========================================
 
-    /**
-     * Removes markdown formatting symbols (*, #, (), [], _, ~, `) and normalizes spaces.
-     * Also strips raw JSON brackets if unparsed string reaches the UI layer.
-     */
     private String cleanAiResponseText(String input) {
         if (input == null || input.isEmpty()) return "";
 
-        // Emergency fallback: If raw JSON string reaches UI, convert keys to human-readable lines
         if (input.trim().startsWith("{") && input.trim().endsWith("}")) {
             input = input.replaceAll("[\\{\\}\"\\[\\]]", "")
                     .replaceAll(",", "\n")
                     .replaceAll(":", ": ");
         }
 
-        // Remove markdown control characters (*, #, (), [], _, ~, `)
         String cleaned = input.replaceAll("[*#()\\[\\]_~`]", "");
-
-        // Trim excess space on individual lines
         cleaned = cleaned.replaceAll("(?m)^[ \t]+|[ \t]+$", "");
-
-        // Normalize multiple blank lines into at most two newlines
         cleaned = cleaned.replaceAll("\n{3,}", "\n\n");
 
         return cleaned.trim();
     }
 
     // ==========================================
-    // FIRESTORE HISTORY HELPERS & BASE64 PARSER
+    // FIRESTORE FIELD STORAGE HELPERS
     // ==========================================
+
+    private String getCurrentUserId() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        return currentUser != null ? currentUser.getUid() : null;
+    }
+
+    /**
+     * Saves session title into user's ai_history field in document.
+     */
+    private void saveSessionToHistory(String firstQuestion) {
+        String userId = getCurrentUserId();
+        if (userId == null || firstQuestion == null) return;
+
+        String title = firstQuestion.trim();
+        if (title.length() > 35) {
+            title = title.substring(0, 32) + "...";
+        }
+        if (title.length() > 0) {
+            title = title.substring(0, 1).toUpperCase() + title.substring(1);
+        }
+
+        if (currentSessionId == null) {
+            currentSessionId = String.valueOf(System.currentTimeMillis());
+        }
+
+        Map<String, Object> sessionMap = new HashMap<>();
+        sessionMap.put("sessionId", currentSessionId);
+        sessionMap.put("title", title);
+        sessionMap.put("timestamp", System.currentTimeMillis());
+
+        Map<String, Object> historyUpdate = new HashMap<>();
+        historyUpdate.put("ai_history." + currentSessionId, sessionMap);
+
+        db.collection("users")
+                .document(userId)
+                .set(historyUpdate, SetOptions.merge());
+    }
 
     private String encodeBitmapToBase64(Bitmap originalBitmap) {
         if (originalBitmap == null) return null;
 
-        long maxByteSize = (long) (1.5 * 1024 * 1024); // 1.5 MB Safety threshold
+        long maxByteSize = (long) (1.5 * 1024 * 1024);
         Bitmap workingBitmap = originalBitmap;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         int quality = 85;
@@ -230,44 +258,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getCurrentUserId() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        return currentUser != null ? currentUser.getUid() : null;
-    }
-
-    private void ensureActiveSession(String initialText) {
-        if (currentSessionId != null) return;
-
-        currentSessionId = UUID.randomUUID().toString();
+    /**
+     * Appends message to user document field `ai_chat.messages`.
+     */
+    private void appendMessageToFirestore(ChatMessageModel message) {
         String userId = getCurrentUserId();
         if (userId == null) return;
-
-        String title = initialText.length() > 30 ? initialText.substring(0, 30) + "..." : initialText;
-
-        Map<String, Object> sessionData = new HashMap<>();
-        sessionData.put("sessionId", currentSessionId);
-        sessionData.put("title", title);
-        sessionData.put("timestamp", System.currentTimeMillis());
-
-        db.collection("users")
-                .document(userId)
-                .collection("ai_history")
-                .document(currentSessionId)
-                .set(sessionData);
-    }
-
-    private void saveMessageToFirestore(ChatMessageModel message) {
-        String userId = getCurrentUserId();
-        if (userId == null) return;
-
-        String initialSessionName = "Plant Analysis";
-        if (message.getText() != null && !message.getText().isEmpty()) {
-            initialSessionName = message.getText();
-        }
-
-        if (currentSessionId == null) {
-            ensureActiveSession(initialSessionName);
-        }
 
         Map<String, Object> msgMap = new HashMap<>();
         msgMap.put("messageText", message.getMessageText());
@@ -275,9 +271,12 @@ public class MainActivity extends AppCompatActivity {
         msgMap.put("messageType", message.getMessageType());
         msgMap.put("timestamp", System.currentTimeMillis());
 
+        if (currentSessionId != null) {
+            msgMap.put("sessionId", currentSessionId);
+        }
+
         if (message.getImageBitmap() != null) {
-            String base64Image = encodeBitmapToBase64(message.getImageBitmap());
-            msgMap.put("imageBase64", base64Image);
+            msgMap.put("imageBase64", encodeBitmapToBase64(message.getImageBitmap()));
         } else if (message.getImageBase64() != null) {
             msgMap.put("imageBase64", message.getImageBase64());
         }
@@ -286,50 +285,92 @@ public class MainActivity extends AppCompatActivity {
             msgMap.put("followUpSuggestions", message.getFollowUpSuggestions());
         }
 
+        Map<String, Object> updatePayload = new HashMap<>();
+        updatePayload.put("ai_chat.messages", FieldValue.arrayUnion(msgMap));
+        updatePayload.put("ai_chat.lastUpdated", System.currentTimeMillis());
+
         db.collection("users")
                 .document(userId)
-                .collection("ai_history")
-                .document(currentSessionId)
-                .collection("messages")
-                .add(msgMap);
+                .set(updatePayload, SetOptions.merge());
     }
 
-    private void loadSessionMessagesFromFirestore(String sessionId) {
+    private void loadUserChatHistoryFromFirestore() {
         String userId = getCurrentUserId();
-        if (userId == null || sessionId == null) return;
-
-        currentSessionId = sessionId;
+        if (userId == null) {
+            addDefaultWelcomeMessage();
+            showAiChatAssistantBottomSheet();
+            return;
+        }
 
         db.collection("users")
                 .document(userId)
-                .collection("ai_history")
-                .document(sessionId)
-                .collection("messages")
-                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(documentSnapshot -> {
                     if (activeChatList == null) {
                         activeChatList = new ArrayList<>();
                     } else {
                         activeChatList.clear();
                     }
 
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        ChatMessageModel msg = doc.toObject(ChatMessageModel.class);
+                    if (documentSnapshot.exists() && documentSnapshot.contains("ai_chat.messages")) {
+                        List<Map<String, Object>> rawList = (List<Map<String, Object>>) documentSnapshot.get("ai_chat.messages");
+                        if (rawList != null) {
+                            for (Map<String, Object> map : rawList) {
+                                String msgSessionId = (String) map.get("sessionId");
 
-                        if (msg.getImageBase64() != null && !msg.getImageBase64().isEmpty()) {
-                            Bitmap bitmap = decodeBase64ToBitmap(msg.getImageBase64());
-                            msg.setImageBitmap(bitmap);
+                                // Filter messages by chosen session ID if one is selected
+                                if (currentSessionId != null && msgSessionId != null && !currentSessionId.equals(msgSessionId)) {
+                                    continue;
+                                }
+
+                                ChatMessageModel msg = new ChatMessageModel();
+                                msg.setMessageText((String) map.get("messageText"));
+                                msg.setMessageTime((String) map.get("messageTime"));
+                                Long type = (Long) map.get("messageType");
+                                if (type != null) msg.setMessageType(type.intValue());
+
+                                String base64 = (String) map.get("imageBase64");
+                                if (base64 != null && !base64.isEmpty()) {
+                                    msg.setImageBase64(base64);
+                                    msg.setImageBitmap(decodeBase64ToBitmap(base64));
+                                }
+
+                                List<String> suggestions = (List<String>) map.get("followUpSuggestions");
+                                if (suggestions != null) {
+                                    msg.setFollowUpSuggestions(new ArrayList<>(suggestions));
+                                }
+
+                                activeChatList.add(msg);
+                            }
                         }
+                    }
 
-                        activeChatList.add(msg);
+                    if (activeChatList.isEmpty()) {
+                        addDefaultWelcomeMessage();
                     }
 
                     showAiChatAssistantBottomSheet();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load chat session.", Toast.LENGTH_SHORT).show()
-                );
+                .addOnFailureListener(e -> {
+                    if (activeChatList == null || activeChatList.isEmpty()) {
+                        addDefaultWelcomeMessage();
+                    }
+                    showAiChatAssistantBottomSheet();
+                });
+    }
+
+    private void addDefaultWelcomeMessage() {
+        if (activeChatList == null) activeChatList = new ArrayList<>();
+        ArrayList<String> welcomeSuggestions = new ArrayList<>();
+        welcomeSuggestions.add("How do I scan a plant?");
+        welcomeSuggestions.add("Give me care tips for a Monstera.");
+
+        ChatMessageModel welcomeMessage = new ChatMessageModel(
+                "Hi! I'm SmartGrow AI, your Plant Smart Care Assistant. How can I help you today?",
+                getCurrentPhTime(),
+                ChatMessageModel.TYPE_AI);
+        welcomeMessage.setFollowUpSuggestions(welcomeSuggestions);
+        activeChatList.add(welcomeMessage);
     }
 
     // ==========================================
@@ -367,6 +408,8 @@ public class MainActivity extends AppCompatActivity {
         if (itemAiChatbot != null) {
             itemAiChatbot.setOnClickListener(v -> {
                 popupWindow.dismiss();
+                // Start with a clean/new chat session every time user opens the AI Chatbot
+                startNewChatSession();
                 showAiChatAssistantBottomSheet();
             });
         }
@@ -391,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
                             try (FileInputStream is = openFileInput(imagePath)) {
                                 Bitmap bitmap = BitmapFactory.decodeStream(is);
                                 if (bitmap != null) {
+                                    startNewChatSession();
                                     showAiChatAssistantBottomSheet();
                                     Bitmap resized = getResizedBitmap(bitmap, 1024);
                                     handleImageAnalysis(resized);
@@ -435,6 +479,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             if (bitmap != null) {
+                                startNewChatSession();
                                 showAiChatAssistantBottomSheet();
                                 Bitmap resized = getResizedBitmap(bitmap, 1024);
                                 handleImageAnalysis(resized);
@@ -483,6 +528,20 @@ public class MainActivity extends AppCompatActivity {
         return sdf.format(new Date());
     }
 
+    private void showHistoryBottomSheetDialog() {
+        HistoryBottomSheet historySheet = HistoryBottomSheet.newInstance();
+        historySheet.setOnSessionSelectedListener(session -> {
+            if (session != null) {
+                currentSessionId = session.getSessionId();
+                if (activeChatDialog != null && activeChatDialog.isShowing()) {
+                    activeChatDialog.dismiss();
+                }
+                loadUserChatHistoryFromFirestore();
+            }
+        });
+        historySheet.show(getSupportFragmentManager(), "HistoryBottomSheet");
+    }
+
     public void showAiChatAssistantBottomSheet() {
         if (activeChatDialog != null && activeChatDialog.isShowing()) {
             activeChatDialog.getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -492,16 +551,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (activeChatList == null) {
             activeChatList = new ArrayList<>();
-            ArrayList<String> welcomeSuggestions = new ArrayList<>();
-            welcomeSuggestions.add("How do I scan a plant?");
-            welcomeSuggestions.add("Give me care tips for a Monstera.");
-
-            ChatMessageModel welcomeMessage = new ChatMessageModel(
-                    "Hi! I'm SmartGrow AI, your Plant Smart Care Assistant. How can I help you today?",
-                    getCurrentPhTime(),
-                    ChatMessageModel.TYPE_AI);
-            welcomeMessage.setFollowUpSuggestions(welcomeSuggestions);
-            activeChatList.add(welcomeMessage);
+            addDefaultWelcomeMessage();
         }
 
         activeChatAdapter = new ChatAdapter(activeChatList);
@@ -525,6 +575,7 @@ public class MainActivity extends AppCompatActivity {
 
         activeChatDialog.setOnDismissListener(dialog -> activeRvChatMessages = null);
 
+        // MENU WITH "NEW CHAT" AND "HISTORY" OPTIONS
         if (ibMenu != null) {
             ibMenu.setOnClickListener(v -> {
                 View dropdownView = LayoutInflater.from(this).inflate(R.layout.layout_custom_dropdown, null);
@@ -548,9 +599,15 @@ public class MainActivity extends AppCompatActivity {
                 if (llHistory != null) {
                     llHistory.setOnClickListener(view -> {
                         menu.dismiss();
-                        openRecentsHistoryPanel();
+                        showHistoryBottomSheetDialog();
+                    });
+                } else {
+                    dropdownView.setOnClickListener(view -> {
+                        menu.dismiss();
+                        showHistoryBottomSheetDialog();
                     });
                 }
+
                 menu.showAsDropDown(v, -280, 10);
             });
         }
@@ -609,23 +666,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startNewChatSession() {
-        currentSessionId = UUID.randomUUID().toString();
-        if (activeChatList != null) {
+        currentSessionId = String.valueOf(System.currentTimeMillis());
+
+        if (activeChatList == null) {
+            activeChatList = new ArrayList<>();
+        } else {
             activeChatList.clear();
-            lastAnalyzedPlantProfile = "";
-            ChatMessageModel newWelcomeMsg = new ChatMessageModel(
-                    "Hi! This is a fresh new chat session. Ask me anything about your plants!",
-                    getCurrentPhTime(),
-                    ChatMessageModel.TYPE_AI);
-            activeChatList.add(newWelcomeMsg);
-
-            if (activeChatAdapter != null) {
-                activeChatAdapter.notifyDataSetChanged();
-            }
-
-            saveMessageToFirestore(newWelcomeMsg);
         }
-        Toast.makeText(this, "New Chat Started", Toast.LENGTH_SHORT).show();
+
+        lastAnalyzedPlantProfile = "";
+        addDefaultWelcomeMessage();
+
+        if (activeChatAdapter != null) {
+            activeChatAdapter.notifyDataSetChanged();
+        }
     }
 
     private void handleImageAnalysis(Bitmap bitmap) {
@@ -639,7 +693,8 @@ public class MainActivity extends AppCompatActivity {
         activeChatList.add(userImageMsg);
         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-        saveMessageToFirestore(userImageMsg);
+        // Saves user image to Firestore
+        appendMessageToFirestore(userImageMsg);
 
         activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
@@ -712,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
                     activeChatList.add(aiMessage);
                     activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-                    saveMessageToFirestore(aiMessage);
+                    appendMessageToFirestore(aiMessage);
 
                     if (activeRvChatMessages != null) {
                         activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
@@ -736,7 +791,7 @@ public class MainActivity extends AppCompatActivity {
                     activeChatList.add(errorMsg);
                     activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-                    saveMessageToFirestore(errorMsg);
+                    appendMessageToFirestore(errorMsg);
 
                     if (activeRvChatMessages != null) {
                         activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
@@ -749,11 +804,25 @@ public class MainActivity extends AppCompatActivity {
     public void submitFollowUpQuestion(String question) {
         if (activeChatList == null || activeChatAdapter == null) return;
 
+        boolean isFirstUserQuestion = true;
+        for (ChatMessageModel msg : activeChatList) {
+            if (msg.getMessageType() == ChatMessageModel.TYPE_USER) {
+                isFirstUserQuestion = false;
+                break;
+            }
+        }
+
+        // Writes session to ai_history on user text
+        if (isFirstUserQuestion || currentSessionId == null) {
+            saveSessionToHistory(question);
+        }
+
         ChatMessageModel userMsg = new ChatMessageModel(question, getCurrentPhTime(), ChatMessageModel.TYPE_USER);
         activeChatList.add(userMsg);
         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-        saveMessageToFirestore(userMsg);
+        // Appends to user document field `ai_chat`
+        appendMessageToFirestore(userMsg);
 
         activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
@@ -825,7 +894,7 @@ public class MainActivity extends AppCompatActivity {
                     activeChatList.add(msg);
                     activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-                    saveMessageToFirestore(msg);
+                    appendMessageToFirestore(msg);
 
                     if (activeRvChatMessages != null) {
                         activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
@@ -847,7 +916,7 @@ public class MainActivity extends AppCompatActivity {
                     activeChatList.add(errorMsg);
                     activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
 
-                    saveMessageToFirestore(errorMsg);
+                    appendMessageToFirestore(errorMsg);
 
                     if (activeRvChatMessages != null) {
                         activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
@@ -872,17 +941,6 @@ public class MainActivity extends AppCompatActivity {
                 activeChatAdapter.notifyItemRemoved(index);
             }
         }
-    }
-
-    private void openRecentsHistoryPanel() {
-        HistoryBottomSheet historyBottomSheet = HistoryBottomSheet.newInstance();
-        historyBottomSheet.setOnSessionSelectedListener(session -> {
-            if (activeChatDialog != null && activeChatDialog.isShowing()) {
-                activeChatDialog.dismiss();
-            }
-            loadSessionMessagesFromFirestore(session.getSessionId());
-        });
-        historyBottomSheet.show(getSupportFragmentManager(), "HistoryBottomSheet");
     }
 
     private void hideSystemBars() {

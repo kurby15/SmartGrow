@@ -26,7 +26,9 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_ai_history_circle, parent, false);
+        // Inflates your XML item layout
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_chat_history_row, parent, false);
         return new ViewHolder(view);
     }
 
@@ -34,8 +36,12 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChatSessionModel session = sessionList.get(position);
 
-        if (holder.tvHistoryPlantName != null) {
-            holder.tvHistoryPlantName.setText(session.getTitle());
+        if (holder.tvHistoryTitle != null) {
+            String title = session.getTitle();
+            if (title == null || title.isEmpty()) {
+                title = "New Conversation";
+            }
+            holder.tvHistoryTitle.setText(title);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -51,11 +57,12 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvHistoryPlantName;
+        TextView tvHistoryTitle;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvHistoryPlantName = itemView.findViewById(R.id.tv_history_plant_name);
+            // Matches @id/tv_history_title from your XML layout
+            tvHistoryTitle = itemView.findViewById(R.id.tv_history_title);
         }
     }
 }

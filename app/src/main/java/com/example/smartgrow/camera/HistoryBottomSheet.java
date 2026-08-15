@@ -21,16 +21,16 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class HistoryBottomSheet extends BottomSheetDialogFragment {
 
     private RecyclerView rvHistory;
-    private TextView tvEmptyHistory; // Added optional empty state view
+    private TextView tvEmptyHistory;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private OnSessionSelectedListener listener;
@@ -86,7 +86,7 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
         mAuth = FirebaseAuth.getInstance();
 
         rvHistory = view.findViewById(R.id.rv_past_conversations);
-        tvEmptyHistory = view.findViewById(R.id.tv_empty_history); // Make sure you have this in dialog_chat_history_panel.xml (optional)
+        tvEmptyHistory = view.findViewById(R.id.tv_empty_history);
 
         if (rvHistory != null) {
             rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -102,15 +102,42 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
 
         db.collection("users")
                 .document(currentUser.getUid())
-                .collection("ai_history")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Safety check if fragment was closed during network call
+                    if (!isAdded() || getContext() == null) return;
+
                     List<ChatSessionModel> sessionList = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        ChatSessionModel session = doc.toObject(ChatSessionModel.class);
-                        sessionList.add(session);
+
+                    if (documentSnapshot.exists() && documentSnapshot.contains("ai_history")) {
+                        // Extract the map field directly from the user document
+                        Map<String, Object> rawHistoryMap = (Map<String, Object>) documentSnapshot.get("ai_history");
+
+                        if (rawHistoryMap != null) {
+                            for (Map.Entry<String, Object> entry : rawHistoryMap.entrySet()) {
+                                if (entry.getValue() instanceof Map) {
+                                    Map<String, Object> sessionData = (Map<String, Object>) entry.getValue();
+
+                                    String sessionId = (String) sessionData.get("sessionId");
+                                    if (sessionId == null || sessionId.isEmpty()) {
+                                        sessionId = entry.getKey(); // Fallback to map key if missing
+                                    }
+
+                                    String title = (String) sessionData.get("title");
+                                    Long timestamp = (Long) sessionData.get("timestamp");
+
+                                    sessionList.add(new ChatSessionModel(
+                                            sessionId,
+                                            title != null ? title : "Untitled Session",
+                                            timestamp != null ? timestamp : 0L
+                                    ));
+                                }
+                            }
+                        }
                     }
+
+                    // Sort session list by newest timestamp first
+                    Collections.sort(sessionList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
                     // Handle empty state toggle
                     if (sessionList.isEmpty()) {
@@ -133,7 +160,7 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    if (getContext() != null) {
+                    if (isAdded() && getContext() != null) {
                         Toast.makeText(getContext(), "Failed to load chat history", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -142,7 +169,7 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Prevent leaks if host activity gets destroyed
+        // Prevent memory leaks
         listener = null;
     }
 }
