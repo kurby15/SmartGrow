@@ -85,7 +85,7 @@
                     android:src="@android:drawable/ic_menu_revert"
                     app:tint="#FFFFFF" />
 
-                <!-- Top Right Pill Buttons -->
+                <!-- Top Right Controls -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -116,7 +116,6 @@
                         android:src="@android:drawable/ic_menu_camera"
                         app:tint="#FFFFFF" />
                 </LinearLayout>
-
             </RelativeLayout>
 
             <!-- TITLE & SCIENTIFIC NAME -->
@@ -137,7 +136,7 @@
                         android:layout_height="wrap_content"
                         android:text="Goosegrass"
                         android:textColor="@color/text_primary"
-                        android:textSize="26sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
 
                     <ImageView
@@ -168,8 +167,8 @@
 
                     <ImageView
                         android:id="@+id/ib_speaker"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:layout_marginStart="8dp"
                         android:contentDescription="Pronunciation audio"
                         android:src="@android:drawable/ic_lock_silent_mode_off"
@@ -181,7 +180,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass, Indian goosegrass"
+                    android:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -271,18 +270,26 @@
                     android:layout_height="wrap_content"
                     android:padding="12dp">
 
-                    <ImageView
-                        android:id="@+id/iv_health_preview"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_health_img"
                         android:layout_width="72dp"
                         android:layout_height="72dp"
-                        android:scaleType="centerCrop"
-                        android:src="@android:color/darker_gray" />
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:id="@+id/iv_health_preview"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@android:color/darker_gray" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
-                        android:layout_toEndOf="@id/iv_health_preview"
+                        android:layout_toEndOf="@id/card_health_img"
                         android:orientation="vertical">
 
                         <LinearLayout
@@ -295,7 +302,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="This plant looks "
                                 android:textColor="@color/text_primary"
-                                android:textSize="16sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -304,7 +311,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Healthy!"
                                 android:textColor="#81C784"
-                                android:textSize="16sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
@@ -313,7 +320,7 @@
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="40dp"
-                            android:layout_marginTop="10dp"
+                            android:layout_marginTop="8dp"
                             android:text="Save to My Garden"
                             android:textAllCaps="false"
                             android:textColor="#81C784"
@@ -338,14 +345,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -367,7 +366,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Toxicity to Pets ⓘ"
+                        android:text="Toxicity to Pets"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
@@ -390,7 +389,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Weed Potential ⓘ"
+                        android:text="Weed Potential"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
@@ -410,30 +409,213 @@
                         android:layout_marginVertical="14dp"
                         android:background="@color/divider" />
 
+                    <!-- Distribution Clickable Block -->
+                    <LinearLayout
+                        android:id="@+id/layout_distribution_click"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Distribution"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tv_distribution"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Native to Philippines"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="14dp"
+                        android:background="@color/divider" />
+
+                    <!-- HABITAT SECTION -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Distribution"
+                        android:text="Habitat"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
                     <TextView
-                        android:id="@+id/tv_distribution"
+                        android:id="@+id/tv_habitat"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Native to Philippines"
+                        android:text="Roadsides, waste places"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <!-- GOOGLE MAPS MapView -->
-                    <com.google.android.gms.maps.MapView
-                        android:id="@+id/map_view"
+                    <!-- MAP CONTAINER -->
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
-                        android:layout_marginTop="10dp"
-                        android:visibility="visible" />
+                        android:layout_marginTop="12dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
+
+                        <com.google.android.gms.maps.MapView
+                            android:id="@+id/map_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- MAP DISCLAIMER -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="* The map above only represents the distribution of plants."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <!-- MAP LEGENDS -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_marginTop="4dp"
+                                android:background="#4CAF50" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Native"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Species present in wild and native habitats"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_marginTop="4dp"
+                                android:background="#00BCD4" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Cultivated"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Species cultivated as garden or house plant"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_marginTop="4dp"
+                                android:background="#2196F3" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Introduced"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Species present in wild and exotic habitats, not reported as invasive."
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_marginTop="4dp"
+                                android:background="#F44336" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Invasive"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Species labeled as invasive by law enforcement."
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
@@ -497,14 +679,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -523,73 +697,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Sub-tabs: Matured, Flower, Fruit -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:weightSum="3">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Matured"
-                                android:textColor="#81C784"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <View
-                                android:layout_width="24dp"
-                                android:layout_height="3dp"
-                                android:layout_marginTop="4dp"
-                                android:background="#81C784" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Flower"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="15sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Fruit"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="15sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="12dp"
-                        android:background="@color/divider" />
-
-                    <!-- Characteristics Details List -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -646,6 +753,7 @@
                         android:layout_height="1dp"
                         android:background="@color/divider" />
 
+                    <!-- Dynamic Leaf Color Swatches Container -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -654,17 +762,19 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
                             android:text="Leaf Color"
                             android:textColor="@color/text_secondary"
                             android:textSize="14sp" />
 
-                        <View
-                            android:id="@+id/view_leaf_color"
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
+                        <LinearLayout
+                            android:id="@+id/layout_leaf_colors_container"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:background="#4CAF50" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal" />
                     </RelativeLayout>
 
                     <View
@@ -722,7 +832,6 @@
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </RelativeLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -740,14 +849,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -762,7 +863,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="140dp"
+                    android:layout_height="130dp"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="16dp">
@@ -775,20 +876,14 @@
                         app:tint="#81C784" />
 
                     <TextView
+                        android:id="@+id/tv_care_difficulty"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Easy"
                         android:textColor="#81C784"
-                        android:textSize="22sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Difficulty"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -797,8 +892,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -807,14 +901,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <!-- Climate Card -->
@@ -822,7 +908,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="6dp"
+                android:layout_marginTop="12dp"
                 app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
@@ -852,14 +938,6 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_alignParentEnd="true"
-                        android:contentDescription="Expand"
-                        android:src="@android:drawable/ic_media_play"
-                        app:tint="@color/text_secondary" />
-
                     <TextView
                         android:id="@+id/tv_temp"
                         android:layout_width="wrap_content"
@@ -875,116 +953,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_temp"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="Hardiness Zones: 5-10"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Sunlight Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="6dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:id="@+id/iv_ic_sun"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="Sunlight icon"
-                        android:src="@android:drawable/btn_star_big_on"
-                        app:tint="#F5A623" />
-
-                    <TextView
-                        android:id="@+id/tv_sunlight_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_toEndOf="@id/iv_ic_sun"
-                        android:text="Sunlight"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_alignParentEnd="true"
-                        android:contentDescription="Expand"
-                        android:src="@android:drawable/ic_media_play"
-                        app:tint="@color/text_secondary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/tv_sunlight_title"
-                        android:layout_marginTop="12dp"
-                        android:text="Full sun"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Soil Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="6dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:id="@+id/iv_ic_soil"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="Soil icon"
-                        android:src="@android:drawable/ic_menu_today"
-                        app:tint="#A06A42" />
-
-                    <TextView
-                        android:id="@+id/tv_soil_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_toEndOf="@id/iv_ic_soil"
-                        android:text="Soil"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_alignParentEnd="true"
-                        android:contentDescription="Expand"
-                        android:src="@android:drawable/ic_media_play"
-                        app:tint="@color/text_secondary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/tv_soil_title"
-                        android:layout_marginTop="12dp"
-                        android:text="Chalky, Loam"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp" />
                 </RelativeLayout>
@@ -995,8 +965,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -1005,14 +974,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <!-- Water Card -->
@@ -1020,7 +981,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="6dp"
+                android:layout_marginTop="12dp"
                 app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
@@ -1069,60 +1030,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Propagation Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="6dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:id="@+id/iv_ic_prop"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="Propagation icon"
-                        android:src="@android:drawable/ic_menu_add"
-                        app:tint="#52C48A" />
-
-                    <TextView
-                        android:id="@+id/tv_prop_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_toEndOf="@id/iv_ic_prop"
-                        android:text="Propagation"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_alignParentEnd="true"
-                        android:contentDescription="Expand"
-                        android:src="@android:drawable/ic_media_play"
-                        app:tint="@color/text_secondary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/tv_prop_title"
-                        android:layout_marginTop="12dp"
-                        android:text="Sowing"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- SECTION: COMMON PROBLEMS -->
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -1138,14 +1045,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <HorizontalScrollView
@@ -1155,7 +1054,6 @@
                 android:paddingHorizontal="16dp"
                 android:scrollbars="none">
 
-                <!-- Dynamic container populated programmatically in activity code -->
                 <LinearLayout
                     android:id="@+id/layout_common_problems_container"
                     android:layout_width="wrap_content"
@@ -1179,14 +1077,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1210,19 +1100,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:lineSpacingExtra="4dp"
-                        android:text="Goosegrass is often unrecognized for its indirect use as a bioindicator. Alert to soil compaction and a revealer of poor soil fertility, goosegrass thrives in these tough conditions, indicating potential agricultural challenges. Its prevalence suggests the need for soil health attention, making it an unwitting sentinel of the land, rather than merely a nuisance."
+                        android:text="N/A"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/tv_uses_disclaimer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:lineSpacingExtra="3dp"
-                        android:text="SmartGrow does not assume any liability for the potential negative consequences of plant usage. It is IMPORTANT TO SEEK PROFESSIONAL ADVICE in advance when necessary."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -1241,14 +1121,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1267,7 +1139,7 @@
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
-                    android:text="Goosegrass might seem inconspicuous, yet its resilience is remarkable. Thriving in warm seasons, it persistently grows year-round in warmer regions. A slim stem extends in a radiating pattern, reaching lengths of up to 120cm with lateral tillers supporting its spread. Remarkably, it withstands both drought and flood conditions. Plus, its resistance to glyphosate, a widely-used herbicide, further showcases its survival prowess."
+                    android:text="N/A"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -1287,14 +1159,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1313,7 +1177,7 @@
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
-                    android:text="As an unnoted environment engineer, goosegrass's ecological roles extend to prevention of soil erosion. Its fibrous root system anchors the soil, providing stability and soil structure to hinder erosion. It also serves as a weed indicator. A dominating stand of goosegrass may be suggestive of acidic soils, nutrient deficiencies, or compaction."
+                    android:text="N/A"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -1333,14 +1197,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1359,7 +1215,7 @@
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
-                    android:text="Commonly viewed as a weed, goosegrass holds a place in tradition, especially in South and Southeast Asia where it's called 'Paspalum scrobiculatum' and has historically served as a food grain. Nowadays, it's also notable for phytoremediation, remarkable for its capacity to absorb and store lead ions from surroundings."
+                    android:text="N/A"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -1379,14 +1235,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1405,7 +1253,7 @@
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
-                    android:text="Goosegrass's scientific denomination narrates the tale of its roots and features. The term Eleusine is inspired by the Greek for 'to roll', nodding to the distinct coiled seed pattern it displays. Meanwhile, 'indica' signifies its Indian origin. Lesser known as 'Goosegrass', 'Indian Goosegrass', or 'Wiregrass', these nicknames hint at a peculiarity; young goosegrass is a favored snack for geese, hence the name."
+                    android:text="N/A"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -1425,14 +1273,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:contentDescription="More options"
-                    android:src="@android:drawable/ic_menu_more"
-                    app:tint="@color/text_secondary" />
             </RelativeLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -1443,22 +1283,23 @@
                 app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:strokeWidth="0dp">
+                app:strokeWidth="0dp"
+                android:layout_marginBottom="20dp">
 
                 <TextView
                     android:id="@+id/tv_symbolism_content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:text="Perseverance, and secret love"
+                    android:text="N/A"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"/>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FLOATING BOTTOM BAR WITH SAVE BUTTON -->
+    <!-- FLOATING BOTTOM BAR -->
     <LinearLayout
         android:id="@+id/layout_bottom_bar"
         android:layout_width="match_parent"
@@ -1475,7 +1316,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:backgroundTint="#4EBA7E"
-            android:text="+ Save to My Pot"
+            android:text="+ Save to My Garden"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"

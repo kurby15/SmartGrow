@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -58,27 +60,34 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    // TTS Pronunciation Engine
+    // TTS Engine
     private TextToSpeech textToSpeech;
     private boolean isTtsReady = false;
+
+    // Parent Scroll View
+    private NestedScrollView mainScrollView;
+
+    // UI Navigation Tabs
+    private View tabOverview, tabCare, tabExplore;
 
     // UI Elements - Images & Map
     private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker;
     private MapView mapView;
     private GoogleMap googleMap;
 
-    // UI Elements - Top Info
+    // UI Elements - Top Info & Scores
     private TextView tvPlantTitle, tvScientificName, tvHealthState, tvAliases;
 
-    // UI Elements - Basic Info
-    private TextView tvPetToxicity, tvWeedPotential, tvDistribution, tvPlantType, tvLifespan;
+    // UI Elements - Basic Info & Care
+    private TextView tvPetToxicity, tvWeedPotential, tvDistribution, tvHabitat, tvPlantType, tvLifespan, tvCareDifficulty;
+    private LinearLayout layoutDistributionClick;
 
     // UI Elements - Common Problems Container
     private LinearLayout layoutCommonProblemsContainer;
 
     // UI Elements - Characteristics
     private TextView tvUltimateHeight, tvUltimateSpread, tvLeafType, tvPlantingTime;
-    private View viewLeafColor;
+    private LinearLayout layoutLeafColorsContainer;
 
     // UI Elements - Care Conditions
     private TextView tvTemp, tvHardiness;
@@ -90,40 +99,47 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private MaterialButton btnSaveToGardenBottom, btnInlineSave, btnViewFrequency;
     private ImageButton ibBack, ibCameraTop;
 
-    // Extracted Data Fields
+    // Extracted Data Fields (Text + Percentages)
     private String plantName = "Unknown Plant";
     private String scientificName = "N/A";
     private String healthStatus = "Healthy";
+    private int healthPercentage = 100;
+    private int matchConfidencePercentage = 95;
+    private String careDifficultyText = "Moderate";
+    private int careDifficultyPercentage = 50;
+
     private String aliases = "N/A";
     private String petToxicity = "Non-toxic";
     private String weedPotential = "Low";
     private String distribution = "N/A";
+    private String habitat = "N/A";
     private String plantType = "Unknown";
     private String lifespan = "N/A";
 
-    // Coordinates (Default: Philippines region)
+    private List<String> leafColorsList = new ArrayList<>();
+
+    // Coordinates (Default Region)
     private double mapLat = 14.5995;
     private double mapLng = 120.9842;
 
-    // Structure for Distribution/Origin Pinpoints
     private static class MapLocation {
         double lat;
         double lng;
         String title;
         String snippet;
-        boolean isNativeOrigin;
+        String distributionType;
 
-        MapLocation(double lat, double lng, String title, String snippet, boolean isNativeOrigin) {
+        MapLocation(double lat, double lng, String title, String snippet, String distributionType) {
             this.lat = lat;
             this.lng = lng;
             this.title = title;
             this.snippet = snippet;
-            this.isNativeOrigin = isNativeOrigin;
+            this.distributionType = distributionType;
         }
     }
     private List<MapLocation> mapLocations = new ArrayList<>();
 
-    // Dynamic Content Fields
+    // Dynamic Details
     private String ultimateHeight = "N/A";
     private String ultimateSpread = "N/A";
     private String leafType = "N/A";
@@ -136,7 +152,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String historyText = "N/A";
     private String nameStoryText = "N/A";
     private String symbolismText = "N/A";
-    private String leafColorHex = "#FFFFFF";
 
     private JSONArray commonProblemsArray = null;
     private Bitmap scannedBitmap;
@@ -150,6 +165,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         db = FirebaseFirestore.getInstance();
 
         initViews();
+        setupNavigationTabs();
         initTextToSpeech();
 
         if (mapView != null) {
@@ -177,6 +193,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     }
 
     private void initViews() {
+        mainScrollView = findViewById(R.id.scroll_container);
+
+        tabOverview = findViewById(R.id.tab_overview);
+        tabCare = findViewById(R.id.tab_care);
+        tabExplore = findViewById(R.id.tab_explore);
+
         ivPlantMain = findViewById(R.id.iv_plant_main);
         ivPlantMatch1 = findViewById(R.id.iv_plant_match_1);
         ivPlantMatch2 = findViewById(R.id.iv_plant_match_2);
@@ -190,9 +212,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvAliases = findViewById(R.id.tv_aliases);
         tvPetToxicity = findViewById(R.id.tv_pet_toxicity);
         tvWeedPotential = findViewById(R.id.tv_weed_potential);
+        layoutDistributionClick = findViewById(R.id.layout_distribution_click);
         tvDistribution = findViewById(R.id.tv_distribution);
+        tvHabitat = findViewById(R.id.tv_habitat);
         tvPlantType = findViewById(R.id.tv_plant_type);
         tvLifespan = findViewById(R.id.tv_lifespan);
+        tvCareDifficulty = findViewById(R.id.tv_care_difficulty);
 
         layoutCommonProblemsContainer = findViewById(R.id.layout_common_problems_container);
 
@@ -200,7 +225,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvUltimateSpread = findViewById(R.id.tv_ultimate_spread);
         tvLeafType = findViewById(R.id.tv_leaf_type);
         tvPlantingTime = findViewById(R.id.tv_planting_time);
-        viewLeafColor = findViewById(R.id.view_leaf_color);
+        layoutLeafColorsContainer = findViewById(R.id.layout_leaf_colors_container);
 
         tvTemp = findViewById(R.id.tv_temp);
         tvHardiness = findViewById(R.id.tv_hardiness);
@@ -220,13 +245,41 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         ibSpeaker = findViewById(R.id.ib_speaker);
     }
 
+    private void setupNavigationTabs() {
+        if (tabOverview != null) {
+            tabOverview.setOnClickListener(v -> scrollToTargetView(tvPlantTitle));
+        }
+        if (tabCare != null) {
+            tabCare.setOnClickListener(v -> scrollToTargetView(tvCareDifficulty != null ? tvCareDifficulty : tvTemp));
+        }
+        if (tabExplore != null) {
+            tabExplore.setOnClickListener(v -> scrollToTargetView(tvUsesContent));
+        }
+    }
+
+    private void scrollToTargetView(View targetView) {
+        if (targetView == null || mainScrollView == null) return;
+
+        mainScrollView.post(() -> {
+            int targetTop = 0;
+            View current = targetView;
+            while (current != null && current != mainScrollView) {
+                targetTop += current.getTop();
+                if (current.getParent() instanceof View) {
+                    current = (View) current.getParent();
+                } else {
+                    break;
+                }
+            }
+            mainScrollView.smoothScrollTo(0, targetTop);
+        });
+    }
+
     private void initTextToSpeech() {
         textToSpeech = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 int result = textToSpeech.setLanguage(Locale.US);
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "TTS Language not supported.");
-                } else {
+                if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
                     isTtsReady = true;
                 }
             } else {
@@ -243,7 +296,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             }
             textToSpeech.speak(speechText, TextToSpeech.QUEUE_FLUSH, null, "PlantPronunciation");
         } else {
-            Toast.makeText(this, "Voice engine is initializing...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Voice engine initializing...", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -311,6 +364,9 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private void parseIntentData() {
         if (getIntent() == null) return;
 
+        healthPercentage = getIntent().getIntExtra("health_percentage", 100);
+        matchConfidencePercentage = getIntent().getIntExtra("match_percentage", 95);
+
         String rawJson = getIntent().getStringExtra("raw_ai_json");
         if (rawJson != null && !rawJson.trim().isEmpty()) {
             String cleanJson = sanitizeJsonString(rawJson);
@@ -347,6 +403,23 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         return cleaned.trim();
     }
 
+    private float getMarkerColor(String distributionType) {
+        if (distributionType == null) return BitmapDescriptorFactory.HUE_GREEN;
+        switch (distributionType.trim().toLowerCase()) {
+            case "native":
+                return BitmapDescriptorFactory.HUE_GREEN;
+            case "cultivated":
+                return BitmapDescriptorFactory.HUE_CYAN;
+            case "introduced":
+            case "naturalized":
+                return BitmapDescriptorFactory.HUE_AZURE;
+            case "invasive":
+                return BitmapDescriptorFactory.HUE_RED;
+            default:
+                return BitmapDescriptorFactory.HUE_VIOLET;
+        }
+    }
+
     private void populateDataFromJson(String jsonString) {
         try {
             JSONObject root = new JSONObject(jsonString);
@@ -379,13 +452,21 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     scientificName = profile.optString("scientific_name");
                 }
 
+                matchConfidencePercentage = profile.optInt("confidence", profile.optInt("match_percentage", matchConfidencePercentage));
                 aliases = profile.optString("philippine_name", profile.optString("aliases", aliases));
                 distribution = profile.optString("distribution_text", profile.optString("origin", distribution));
+                habitat = profile.optString("habitat", habitat);
+                plantType = profile.optString("type", profile.optString("plant_type", plantType));
+                petToxicity = profile.optString("pet_toxicity", petToxicity);
+                weedPotential = profile.optString("weed_potential", weedPotential);
+                lifespan = profile.optString("lifespan", lifespan);
+
+                careDifficultyText = profile.optString("care_difficulty", profile.optString("difficulty_level", careDifficultyText));
+                careDifficultyPercentage = profile.optInt("care_difficulty_percentage", profile.optInt("difficulty_percentage", careDifficultyPercentage));
 
                 mapLocations.clear();
                 JSONArray locArray = profile.optJSONArray("distribution_coordinates");
                 if (locArray == null) locArray = profile.optJSONArray("locations");
-                if (locArray == null) locArray = profile.optJSONArray("coordinates");
 
                 if (locArray != null && locArray.length() > 0) {
                     for (int i = 0; i < locArray.length(); i++) {
@@ -393,26 +474,17 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                         if (locObj != null) {
                             double lat = locObj.optDouble("latitude", locObj.optDouble("lat", mapLat));
                             double lng = locObj.optDouble("longitude", locObj.optDouble("lng", mapLng));
-                            String title = locObj.optString("title", locObj.optString("region", "Distribution Point " + (i + 1)));
-                            String snippet = locObj.optString("snippet", locObj.optString("description", "Plant Distribution Region"));
-                            boolean isNative = locObj.optBoolean("is_native", i == 0);
-                            mapLocations.add(new MapLocation(lat, lng, title, snippet, isNative));
+                            String title = locObj.optString("title", "Point " + (i + 1));
+                            String snippet = locObj.optString("snippet", "Distribution Region");
+                            String distType = locObj.optString("distribution_type", locObj.optBoolean("is_native", i == 0) ? "Native" : "Introduced");
+                            mapLocations.add(new MapLocation(lat, lng, title, snippet, distType));
                         }
                     }
                 }
 
                 if (mapLocations.isEmpty()) {
-                    if (profile.has("latitude") && profile.has("longitude")) {
-                        mapLat = profile.optDouble("latitude", mapLat);
-                        mapLng = profile.optDouble("longitude", mapLng);
-                    }
-                    mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Origin", distribution, true));
+                    mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Origin", distribution, "Native"));
                 }
-
-                plantType = profile.optString("type", profile.optString("plant_type", plantType));
-                petToxicity = profile.optString("pet_toxicity", petToxicity);
-                weedPotential = profile.optString("weed_potential", weedPotential);
-                lifespan = profile.optString("lifespan", lifespan);
             }
 
             commonProblemsArray = root.optJSONArray("common_problems");
@@ -423,7 +495,25 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 ultimateSpread = characteristics.optString("ultimate_spread", ultimateSpread);
                 leafType = characteristics.optString("leaf_type", leafType);
                 plantingTime = characteristics.optString("planting_time", plantingTime);
-                leafColorHex = characteristics.optString("leaf_color_hex", leafColorHex);
+
+                leafColorsList.clear();
+                JSONArray colorsArray = characteristics.optJSONArray("leaf_colors");
+
+                if (colorsArray != null && colorsArray.length() > 0) {
+                    for (int i = 0; i < colorsArray.length(); i++) {
+                        leafColorsList.add(colorsArray.optString(i));
+                    }
+                } else if (characteristics.has("leaf_color_hex")) {
+                    String colorVal = characteristics.optString("leaf_color_hex", "#4CAF50");
+                    if (colorVal.contains(",")) {
+                        String[] splitColors = colorVal.split(",");
+                        for (String c : splitColors) {
+                            leafColorsList.add(c.trim());
+                        }
+                    } else {
+                        leafColorsList.add(colorVal.trim());
+                    }
+                }
             }
 
             JSONObject ecosystem = root.optJSONObject("ecosystem");
@@ -445,90 +535,68 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             JSONObject health = root.optJSONObject("health_scanner");
             if (health != null) {
                 healthStatus = health.optString("status", healthStatus);
-            }
-
-            if (root.optBoolean("is_artificial", false)) {
-                healthStatus = "Artificial / Plastic Plant";
+                healthPercentage = health.optInt("health_score", health.optInt("percentage", healthPercentage));
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Failed to parse JSON in PlantDetailsActivity", e);
+            Log.e(TAG, "Failed to parse JSON", e);
         }
         updateUI();
     }
 
     private void populateDataFromText(String text) {
         if (text == null) return;
-
         if (mapLocations.isEmpty()) {
-            mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Distribution", distribution, true));
+            mapLocations.add(new MapLocation(mapLat, mapLng, plantName, distribution, "Native"));
         }
 
         String[] lines = text.split("\n");
         for (String line : lines) {
             String lower = line.toLowerCase();
-            if (lower.contains("name:")) {
-                plantName = extractValue(line);
-            } else if (lower.contains("scientific name:")) {
-                scientificName = extractValue(line);
-            } else if (lower.contains("health:") || lower.contains("condition:") || lower.contains("status:")) {
-                healthStatus = extractValue(line);
-            } else if (lower.contains("local name:") || lower.contains("aliases:")) {
-                aliases = extractValue(line);
-            } else if (lower.contains("toxicity:")) {
-                petToxicity = extractValue(line);
-            } else if (lower.contains("weed potential:")) {
-                weedPotential = extractValue(line);
-            } else if (lower.contains("native origin:") || lower.contains("distribution:")) {
-                distribution = extractValue(line);
-            } else if (lower.contains("type:")) {
-                plantType = extractValue(line);
-            } else if (lower.contains("lifespan:")) {
-                lifespan = extractValue(line);
-            } else if (lower.contains("uses:")) {
-                usesText = extractValue(line);
-            } else if (lower.contains("symbolism:")) {
-                symbolismText = extractValue(line);
-            }
+            if (lower.contains("name:")) plantName = extractValue(line);
+            else if (lower.contains("scientific name:")) scientificName = extractValue(line);
+            else if (lower.contains("health:")) healthStatus = extractValue(line);
+            else if (lower.contains("difficulty:")) careDifficultyText = extractValue(line);
         }
         updateUI();
     }
 
     private String extractValue(String line) {
-        if (line != null && line.contains(":")) {
-            return line.substring(line.indexOf(":") + 1).trim();
-        }
-        return line != null ? line.trim() : "";
+        return (line != null && line.contains(":")) ? line.substring(line.indexOf(":") + 1).trim() : (line != null ? line.trim() : "");
     }
 
     private void updateUI() {
         if (isDestroyed() || isFinishing()) return;
 
-        if (tvPlantTitle != null) tvPlantTitle.setText(plantName);
+        if (tvPlantTitle != null) {
+            tvPlantTitle.setText(plantName + " (" + matchConfidencePercentage + "% Match)");
+        }
         if (tvScientificName != null) tvScientificName.setText(scientificName);
-        if (tvHealthState != null) tvHealthState.setText(healthStatus);
+
+        if (tvHealthState != null) {
+            tvHealthState.setText(healthStatus + " • " + healthPercentage + "% Health Score");
+        }
+
+        if (tvCareDifficulty != null) {
+            tvCareDifficulty.setText("Difficulty: " + careDifficultyText + " (" + careDifficultyPercentage + "%)");
+        }
+
         if (tvAliases != null) tvAliases.setText("Also known as: " + aliases);
         if (tvPetToxicity != null) tvPetToxicity.setText(petToxicity);
         if (tvWeedPotential != null) tvWeedPotential.setText(weedPotential);
         if (tvDistribution != null) tvDistribution.setText(distribution);
+        if (tvHabitat != null) tvHabitat.setText(habitat);
         if (tvPlantType != null) tvPlantType.setText(plantType);
         if (tvLifespan != null) tvLifespan.setText(lifespan);
 
         setupMapView();
         renderCommonProblems();
+        renderLeafColorSwatches();
 
         if (tvUltimateHeight != null) tvUltimateHeight.setText(ultimateHeight);
         if (tvUltimateSpread != null) tvUltimateSpread.setText(ultimateSpread);
         if (tvLeafType != null) tvLeafType.setText(leafType);
         if (tvPlantingTime != null) tvPlantingTime.setText(plantingTime);
-
-        if (viewLeafColor != null && leafColorHex != null && leafColorHex.startsWith("#")) {
-            try {
-                viewLeafColor.setBackgroundColor(Color.parseColor(leafColorHex));
-            } catch (IllegalArgumentException e) {
-                Log.w(TAG, "Invalid color hex code: " + leafColorHex);
-            }
-        }
 
         if (tvTemp != null) tvTemp.setText("Temperature: " + temperatureRange);
         if (tvHardiness != null) tvHardiness.setText("Hardiness Zones: " + hardinessZones);
@@ -539,6 +607,39 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         if (tvHistoryContent != null) tvHistoryContent.setText(historyText);
         if (tvNameStoryContent != null) tvNameStoryContent.setText(nameStoryText);
         if (tvSymbolismContent != null) tvSymbolismContent.setText(symbolismText);
+    }
+
+    private void renderLeafColorSwatches() {
+        if (layoutLeafColorsContainer == null) return;
+        layoutLeafColorsContainer.removeAllViews();
+
+        if (leafColorsList.isEmpty()) {
+            leafColorsList.add("#4CAF50");
+        }
+
+        for (String hexColor : leafColorsList) {
+            View colorSwatch = new View(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dpToPx(24), dpToPx(24));
+            params.setMargins(0, 0, dpToPx(8), 0);
+            colorSwatch.setLayoutParams(params);
+
+            try {
+                String colorStr = hexColor.trim();
+                if (!colorStr.startsWith("#")) colorStr = "#" + colorStr;
+
+                GradientDrawable circleDrawable = new GradientDrawable();
+                circleDrawable.setShape(GradientDrawable.OVAL);
+                circleDrawable.setColor(Color.parseColor(colorStr));
+                circleDrawable.setStroke(dpToPx(1), Color.parseColor("#40FFFFFF"));
+
+                colorSwatch.setBackground(circleDrawable);
+            } catch (Exception e) {
+                Log.w(TAG, "Invalid color code: " + hexColor);
+                colorSwatch.setBackgroundColor(Color.GRAY);
+            }
+
+            layoutLeafColorsContainer.addView(colorSwatch);
+        }
     }
 
     private void setupMapView() {
@@ -559,20 +660,9 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
             for (MapLocation loc : mapLocations) {
                 LatLng latLng = new LatLng(loc.lat, loc.lng);
-                MarkerOptions markerOptions = new MarkerOptions()
-                        .position(latLng)
-                        .title(loc.title);
-
-                if (loc.snippet != null && !loc.snippet.isEmpty()) {
-                    markerOptions.snippet(loc.snippet);
-                }
-
-                if (loc.isNativeOrigin) {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                }
-
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(loc.title);
+                if (loc.snippet != null) markerOptions.snippet(loc.snippet);
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(getMarkerColor(loc.distributionType)));
                 googleMap.addMarker(markerOptions);
                 builder.include(latLng);
             }
@@ -581,11 +671,8 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mapLocations.get(0).lat, mapLocations.get(0).lng), 5.0f));
             } else {
                 try {
-                    LatLngBounds bounds = builder.build();
-                    int padding = 120;
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 120));
                 } catch (Exception e) {
-                    Log.e(TAG, "Error centering bounds for map markers", e);
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mapLocations.get(0).lat, mapLocations.get(0).lng), 4.0f));
                 }
             }
@@ -597,24 +684,14 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         FrameLayout container = new FrameLayout(this);
-        container.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
+        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         MapView fullMapView = new MapView(this);
-        fullMapView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-        ));
-
+        fullMapView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         container.addView(fullMapView);
 
         ImageButton closeBtn = new ImageButton(this);
-        FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(
-                dpToPx(48),
-                dpToPx(48)
-        );
+        FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(dpToPx(48), dpToPx(48));
         btnParams.gravity = Gravity.TOP | Gravity.END;
         btnParams.setMargins(0, dpToPx(24), dpToPx(24), 0);
         closeBtn.setLayoutParams(btnParams);
@@ -625,7 +702,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         container.addView(closeBtn);
 
         dialog.setContentView(container);
-
         fullMapView.onCreate(null);
         fullMapView.onStart();
         fullMapView.onResume();
@@ -634,33 +710,29 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             fullMap.clear();
             if (mapLocations != null && !mapLocations.isEmpty()) {
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-
                 for (MapLocation loc : mapLocations) {
                     LatLng latLng = new LatLng(loc.lat, loc.lng);
+
                     MarkerOptions markerOptions = new MarkerOptions()
                             .position(latLng)
                             .title(loc.title);
 
-                    if (loc.snippet != null && !loc.snippet.isEmpty()) {
+                    if (loc.snippet != null) {
                         markerOptions.snippet(loc.snippet);
                     }
 
-                    if (loc.isNativeOrigin) {
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                    } else {
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                    }
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(
+                            getMarkerColor(loc.distributionType)
+                    ));
 
                     fullMap.addMarker(markerOptions);
                     builder.include(latLng);
                 }
-
                 if (mapLocations.size() == 1) {
                     fullMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mapLocations.get(0).lat, mapLocations.get(0).lng), 5.0f));
                 } else {
                     try {
-                        LatLngBounds bounds = builder.build();
-                        fullMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, dpToPx(80)));
+                        fullMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), dpToPx(80)));
                     } catch (Exception e) {
                         fullMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mapLocations.get(0).lat, mapLocations.get(0).lng), 4.0f));
                     }
@@ -673,9 +745,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             fullMapView.onDestroy();
         });
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
-        }
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         dialog.show();
     }
 
@@ -688,13 +758,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 try {
                     JSONObject problem = commonProblemsArray.getJSONObject(i);
                     String problemTitle = problem.optString("title", "Common Issue");
+                    int problemLikelihood = problem.optInt("likelihood_percentage", 0);
                     String problemImageUrl = problem.optString("image_url", "");
 
                     MaterialCardView card = new MaterialCardView(this);
-                    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                            dpToPx(160),
-                            dpToPx(160)
-                    );
+                    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dpToPx(160), dpToPx(160));
                     cardParams.setMargins(0, 0, dpToPx(12), 0);
                     card.setLayoutParams(cardParams);
                     card.setRadius(dpToPx(16));
@@ -703,38 +771,33 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     card.setStrokeWidth(0);
 
                     LinearLayout innerLayout = new LinearLayout(this);
-                    innerLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                    ));
+                    innerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                     innerLayout.setOrientation(LinearLayout.VERTICAL);
 
                     ImageView problemImageView = new ImageView(this);
-                    LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            dpToPx(100)
-                    );
-                    problemImageView.setLayoutParams(imgParams);
+                    problemImageView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(100)));
                     problemImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
                     final String targetProblemImg = (problemImageUrl != null && problemImageUrl.startsWith("http"))
                             ? problemImageUrl
                             : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
 
-                    Glide.with(getApplicationContext())
-                            .load(targetProblemImg)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .into(problemImageView);
+                    if (targetProblemImg.startsWith("http")) {
+                        Glide.with(getApplicationContext())
+                                .load(targetProblemImg)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .into(problemImageView);
 
-                    card.setOnClickListener(v -> showUrlPreviewDialog(targetProblemImg));
+                        card.setOnClickListener(v -> showUrlPreviewDialog(targetProblemImg));
+                    } else if (scannedBitmap != null) {
+                        problemImageView.setImageBitmap(scannedBitmap);
+                        card.setOnClickListener(v -> showBitmapPreviewDialog(scannedBitmap));
+                    }
 
                     TextView titleTextView = new TextView(this);
-                    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                    );
-                    titleTextView.setLayoutParams(textParams);
-                    titleTextView.setText(problemTitle);
+                    titleTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                    String displayProblemText = (problemLikelihood > 0) ? problemTitle + " (" + problemLikelihood + "%)" : problemTitle;
+                    titleTextView.setText(displayProblemText);
                     titleTextView.setTextColor(Color.WHITE);
                     titleTextView.setTextSize(13);
                     titleTextView.setPadding(dpToPx(10), dpToPx(6), dpToPx(10), dpToPx(6));
@@ -742,24 +805,22 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     innerLayout.addView(problemImageView);
                     innerLayout.addView(titleTextView);
                     card.addView(innerLayout);
-
                     layoutCommonProblemsContainer.addView(card);
                 } catch (Exception e) {
-                    Log.e(TAG, "Error adding common problem card: ", e);
+                    Log.e(TAG, "Error rendering problem card", e);
                 }
             }
         }
     }
 
     private int dpToPx(int dp) {
-        float density = getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private void savePlantToDiary() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "Please login to save to your garden.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please login to save.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -772,10 +833,16 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("plantName", plantName);
         diaryEntry.put("scientificName", scientificName);
         diaryEntry.put("healthStatus", healthStatus);
+        diaryEntry.put("healthPercentage", healthPercentage);
+        diaryEntry.put("matchConfidencePercentage", matchConfidencePercentage);
+        diaryEntry.put("careDifficultyText", careDifficultyText);
+        diaryEntry.put("careDifficultyPercentage", careDifficultyPercentage);
+        diaryEntry.put("leafColors", leafColorsList);
         diaryEntry.put("aliases", aliases);
         diaryEntry.put("petToxicity", petToxicity);
         diaryEntry.put("weedPotential", weedPotential);
         diaryEntry.put("distribution", distribution);
+        diaryEntry.put("habitat", habitat);
         diaryEntry.put("plantType", plantType);
         diaryEntry.put("lifespan", lifespan);
         diaryEntry.put("timestamp", System.currentTimeMillis());
@@ -808,7 +875,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private Bitmap getResizedBitmap(@NonNull Bitmap image, int maxSize) {
         int width = image.getWidth();
         int height = image.getHeight();
-
         float bitmapRatio = (float) width / (float) height;
         if (bitmapRatio > 1) {
             width = maxSize;
@@ -819,8 +885,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
-
-    // Lifecycle Forwarding for Google MapView & TTS
 
     @Override
     protected void onStart() {

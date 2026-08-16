@@ -42,8 +42,16 @@ android {
         val mapsApiKey = properties.getProperty("MAPS_API_KEY") ?: ""
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
 
-        // Injects MAPS_API_KEY into AndroidManifest.xml
+        // Mapbox Tokens
+        val mapboxAccessToken = properties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""
+        buildConfigField("String", "MAPBOX_ACCESS_TOKEN", "\"$mapboxAccessToken\"")
+
+        val mapboxDownloadsToken = properties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
+        buildConfigField("String", "MAPBOX_DOWNLOADS_TOKEN", "\"$mapboxDownloadsToken\"")
+
+        // Injects keys into AndroidManifest.xml
         manifestPlaceholders["mapsApiKey"] = mapsApiKey
+        manifestPlaceholders["mapboxAccessToken"] = mapboxAccessToken
     }
 
     buildFeatures {
@@ -90,6 +98,9 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Cloud Firestore
     implementation(libs.firebase.database)                  // Realtime Database
     implementation(libs.firebase.storage)                   // Firebase Storage
+
+    // Mapbox Maps SDK
+    implementation("com.mapbox.maps:android:11.2.0")
 
     // OpenStreetMap (osmdroid)
     implementation("org.osmdroid:osmdroid-android:6.1.18")
