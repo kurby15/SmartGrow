@@ -58,6 +58,8 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraScannerActivity";
     public static final String EXTRA_IMAGE_PATH = "extra_scanned_image_path";
+    public static final String EXTRA_MODE = "extra_mode";
+    public static final String MODE_CHAT_ATTACHMENT = "mode_chat_attachment";
     public static final String TEMP_IMAGE_NAME = "temp_scanned_plant.jpg";
 
     private PreviewView viewFinder;
@@ -87,10 +89,17 @@ public class CameraScannerActivity extends AppCompatActivity {
     private int progressCount = 0;
     private boolean isAnalyzing = false;
 
+    private boolean isChatMode = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         cameraExecutor = Executors.newSingleThreadExecutor();
+
+        // Check if launched specifically from AI Chat
+        if (getIntent() != null && MODE_CHAT_ATTACHMENT.equals(getIntent().getStringExtra(EXTRA_MODE))) {
+            isChatMode = true;
+        }
 
         try {
             setContentView(R.layout.activity_camera_scanner);
@@ -203,7 +212,6 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (overlayView != null) {
                 overlayView.stopScanning();
             }
-            // Stop live camera preview so it won't move behind the frozen image
             if (cameraProvider != null) {
                 cameraProvider.unbindAll();
             }
@@ -328,7 +336,9 @@ public class CameraScannerActivity extends AppCompatActivity {
             return;
         }
 
-        showLoading(true);
+        if (!isChatMode) {
+            showLoading(true);
+        }
 
         File photoFile = new File(getFilesDir(), "raw_capture.jpg");
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(photoFile).build();
@@ -369,13 +379,16 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (bitmap != null) {
                 Bitmap processed = resizeAndRotatePrecise(bitmap, exifRotation);
 
-                // Freeze live preview immediately
                 freezeScreenWithBitmap(processed);
 
                 try (FileOutputStream fos = openFileOutput(TEMP_IMAGE_NAME, Context.MODE_PRIVATE)) {
                     processed.compress(Bitmap.CompressFormat.JPEG, 85, fos);
 
-                    analyzeAndOpenDetails(processed);
+                    if (isChatMode) {
+                        returnResultToCaller();
+                    } else {
+                        analyzeAndOpenDetails(processed);
+                    }
 
                     if (processed != bitmap) {
                         bitmap.recycle();
@@ -395,6 +408,19 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (!isFinishing() && !isDestroyed()) {
                 Toast.makeText(CameraScannerActivity.this, "Unable to process captured photo", Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    /**
+     * Directs result back to MainActivity for chat paste without calling PlantAnalyzer.
+     */
+    private void returnResultToCaller() {
+        runOnUiThread(() -> {
+            showLoading(false);
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
+            setResult(RESULT_OK, resultIntent);
+            finish();
         });
     }
 
@@ -513,8 +539,9 @@ public class CameraScannerActivity extends AppCompatActivity {
         if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
-                // Show custom loading dialog immediately
-                showLoading(true);
+                if (!isChatMode) {
+                    showLoading(true);
+                }
 
                 cameraExecutor.execute(() -> {
                     try {
@@ -555,12 +582,17 @@ public class CameraScannerActivity extends AppCompatActivity {
     private void processAndSaveGalleryImage(Bitmap rawBitmap) {
         Bitmap processed = resizeAndRotatePrecise(rawBitmap, 0);
 
-        // Paste/Freeze image onto the screen instantly and stop camera movements
         freezeScreenWithBitmap(processed);
 
         try (FileOutputStream fos = openFileOutput(TEMP_IMAGE_NAME, Context.MODE_PRIVATE)) {
             processed.compress(Bitmap.CompressFormat.JPEG, 85, fos);
-            analyzeAndOpenDetails(processed);
+
+            if (isChatMode) {
+                returnResultToCaller();
+            } else {
+                analyzeAndOpenDetails(processed);
+            }
+
             if (processed != rawBitmap) rawBitmap.recycle();
         } catch (IOException e) {
             Log.e(TAG, "Gallery image processing failed", e);

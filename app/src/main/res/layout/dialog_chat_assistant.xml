@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/transparent">
@@ -19,6 +20,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <!-- 🛑 Top Header Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_chat_header"
@@ -104,14 +106,56 @@
                 app:layout_constraintTop_toBottomOf="@id/layout_chat_header"/>
 
             <!-- ================= RECYCLERVIEW CHAT AREA ================= -->
+
+            <!-- 📸 IMAGE PREVIEW AREA (Appears when image is selected) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_chat_messages_list"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:padding="16dp"
                 android:clipToPadding="false"
+                android:padding="16dp"
+                app:layout_constraintBottom_toTopOf="@id/layout_image_preview_container"
                 app:layout_constraintTop_toBottomOf="@id/header_divider"
-                app:layout_constraintBottom_toTopOf="@id/layout_input_bar"/>
+                app:layout_constraintVertical_bias="0.0"
+                tools:layout_editor_absoluteX="0dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_image_preview_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@id/layout_input_bar">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_preview_image"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    app:cardCornerRadius="12dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/divider"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <ImageView
+                        android:id="@+id/iv_preview_selected_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"/>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Remove/Cancel Image Selection Button -->
+                <ImageButton
+                    android:id="@+id/ib_remove_preview_image"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@drawable/remove"
+                    android:backgroundTint="@color/text_secondary"
+                    app:layout_constraintTop_toTopOf="@id/card_preview_image"
+                    app:layout_constraintEnd_toEndOf="@id/card_preview_image"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- ================= BOTTOM INPUT TYPE BAR WITH ATTACH BUTTON ================= -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -127,10 +171,6 @@
                     android:layout_height="1dp"
                     android:background="@color/divider"
                     app:layout_constraintTop_toTopOf="parent"/>
-
-                <!-- ➕ BAGONG DAGDAG: Plus Icon Button para sa Image Attachment Operations -->
-
-                <!-- Rounded Edit Text Background Panel (Inurong pakanan para kasya si Plus Sign) -->
 
                 <ImageButton
                     android:id="@+id/ib_chat_attach"

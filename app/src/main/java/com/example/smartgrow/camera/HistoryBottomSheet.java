@@ -2,6 +2,7 @@ package com.example.smartgrow.camera;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HistoryBottomSheet extends BottomSheetDialogFragment {
+
+    private static final String TAG = "HistoryBottomSheet";
 
     private RecyclerView rvHistory;
     private TextView tvEmptyHistory;
@@ -100,46 +104,47 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
 
-        db.collection("users")
-                .document(currentUser.getUid())
+        // Query ai_chat_messages where uid matches current user
+        db.collection("ai_chat_messages")
+                .whereEqualTo("uid", currentUser.getUid())
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    // Safety check if fragment was closed during network call
+                .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!isAdded() || getContext() == null) return;
 
                     List<ChatSessionModel> sessionList = new ArrayList<>();
 
-                    if (documentSnapshot.exists() && documentSnapshot.contains("ai_history")) {
-                        // Extract the map field directly from the user document
-                        Map<String, Object> rawHistoryMap = (Map<String, Object>) documentSnapshot.get("ai_history");
-
-                        if (rawHistoryMap != null) {
-                            for (Map.Entry<String, Object> entry : rawHistoryMap.entrySet()) {
-                                if (entry.getValue() instanceof Map) {
-                                    Map<String, Object> sessionData = (Map<String, Object>) entry.getValue();
-
-                                    String sessionId = (String) sessionData.get("sessionId");
-                                    if (sessionId == null || sessionId.isEmpty()) {
-                                        sessionId = entry.getKey(); // Fallback to map key if missing
-                                    }
-
-                                    String title = (String) sessionData.get("title");
-                                    Long timestamp = (Long) sessionData.get("timestamp");
-
-                                    sessionList.add(new ChatSessionModel(
-                                            sessionId,
-                                            title != null ? title : "Untitled Session",
-                                            timestamp != null ? timestamp : 0L
-                                    ));
-                                }
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                            // Extract Session ID
+                            String sessionId = doc.getString("sessionId");
+                            if (sessionId == null || sessionId.isEmpty()) {
+                                sessionId = doc.getId();
                             }
+
+                            // Extract Timestamp (prefer lastUpdated, fallback to createdTimestamp)
+                            Long timestamp = doc.getLong("lastUpdated");
+                            if (timestamp == null) {
+                                timestamp = doc.getLong("createdTimestamp");
+                            }
+                            if (timestamp == null) {
+                                timestamp = 0L;
+                            }
+
+                            // Extract Title from the first user message inside the "messages" array
+                            String title = extractSessionTitle(doc);
+
+                            sessionList.add(new ChatSessionModel(
+                                    sessionId,
+                                    title,
+                                    timestamp
+                            ));
                         }
                     }
 
-                    // Sort session list by newest timestamp first
+                    // Sort locally by timestamp descending (newest first)
                     Collections.sort(sessionList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
-                    // Handle empty state toggle
+                    // Toggle empty state UI
                     if (sessionList.isEmpty()) {
                         if (tvEmptyHistory != null) tvEmptyHistory.setVisibility(View.VISIBLE);
                         if (rvHistory != null) rvHistory.setVisibility(View.GONE);
@@ -160,16 +165,56 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching chat history from ai_chat_messages", e);
                     if (isAdded() && getContext() != null) {
-                        Toast.makeText(getContext(), "Failed to load chat history", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Failed to load chat history: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /**
+     * Finds the first user message in the 'messages' array to use as the session title.
+     */
+    private String extractSessionTitle(DocumentSnapshot doc) {
+        List<Map<String, Object>> messagesArray = (List<Map<String, Object>>) doc.get("messages");
+
+        if (messagesArray != null && !messagesArray.isEmpty()) {
+            for (Map<String, Object> msg : messagesArray) {
+                Long typeObj = (Long) msg.get("messageType");
+                int messageType = typeObj != null ? typeObj.intValue() : -1;
+
+                // TYPE_USER = 2 (or any non-welcome/non-AI message text)
+                String text = (String) msg.get("messageText");
+                if (text != null && !text.trim().isEmpty()) {
+                    if (messageType == ChatMessageModel.TYPE_USER || messageType == 2) {
+                        String cleanTitle = text.trim();
+                        if (cleanTitle.length() > 32) {
+                            cleanTitle = cleanTitle.substring(0, 32) + "...";
+                        }
+                        return cleanTitle;
+                    }
+                }
+            }
+
+            // Fallback to first text available if no explicit user message type match
+            for (Map<String, Object> msg : messagesArray) {
+                String text = (String) msg.get("messageText");
+                if (text != null && !text.trim().isEmpty()) {
+                    String cleanTitle = text.trim();
+                    if (cleanTitle.length() > 32) {
+                        cleanTitle = cleanTitle.substring(0, 32) + "...";
+                    }
+                    return cleanTitle;
+                }
+            }
+        }
+
+        return "Conversation " + doc.getId();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Prevent memory leaks
         listener = null;
     }
 }

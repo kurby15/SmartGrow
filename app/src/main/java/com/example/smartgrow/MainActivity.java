@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -42,7 +43,6 @@ import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
 import com.example.smartgrow.plants.DiaryFragment;
 import com.example.smartgrow.plants.HomeFragment;
-import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.example.smartgrow.profile.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -81,6 +81,12 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<ChatMessageModel> activeChatList;
     private ChatAdapter activeChatAdapter;
     private RecyclerView activeRvChatMessages;
+
+    // Preview image views & pending bitmap state
+    private Bitmap pendingImageBitmap = null;
+    private View layoutImagePreviewContainer;
+    private ImageView ivPreviewSelectedImage;
+    private ImageButton ibRemovePreviewImage;
 
     private String lastAnalyzedPlantProfile = "";
     private long lastRequestTime = 0;
@@ -169,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ==========================================
-    // OPTION B: DIRECT TO PLANT DETAILS LAUNCHERS
+    // CAMERA / GALLERY LAUNCHERS & CHAT INTEGRATION
     // ==========================================
 
     private void setupLaunchers() {
@@ -184,12 +190,12 @@ public class MainActivity extends AppCompatActivity {
                                 Bitmap bitmap = BitmapFactory.decodeStream(is);
                                 if (bitmap != null) {
                                     Bitmap resized = getResizedBitmap(bitmap, 1024);
-                                    analyzeAndOpenDetails(resized);
+                                    setPendingImageForChat(resized);
                                 } else {
-                                    Toast.makeText(this, "Error: Could not decode image.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Error: Could not decode captured image.", Toast.LENGTH_SHORT).show();
                                 }
                             } catch (IOException e) {
-                                Toast.makeText(this, "Failed to load scanned image.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Failed to load captured photo.", Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
@@ -201,9 +207,9 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
-                        launchCameraScanner();
+                        launchCameraScannerForChat();
                     } else {
-                        Toast.makeText(this, "Camera permission is required to launch AI scanner.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Camera permission is required to capture photos.", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -226,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
                             if (bitmap != null) {
                                 Bitmap resized = getResizedBitmap(bitmap, 1024);
-                                analyzeAndOpenDetails(resized);
+                                setPendingImageForChat(resized);
                             }
                         } catch (IOException e) {
                             Toast.makeText(this, "Failed to load image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -236,61 +242,244 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    /**
-     * Executes AI analysis on the image and navigates directly to PlantDetailsActivity upon success.
-     */
-    private void analyzeAndOpenDetails(Bitmap bitmap) {
-        showLoading(true);
+    private void setPendingImageForChat(Bitmap bitmap) {
+        showAiChatAssistantBottomSheet();
+        pendingImageBitmap = bitmap;
 
-        PlantAnalyzer analyzer = new PlantAnalyzer();
-        // Updated to use analyzePlantDetailed to get the raw JSON for PlantDetailsActivity
-        analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
-            @Override
-            public void onSuccess(String formattedResult, String rawJson) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-
-                    // Check if non-plant detected using the explicit error signal from PlantAnalyzer
-                    if (rawJson == null || rawJson.isEmpty() || rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false")) {
-                        Toast.makeText(MainActivity.this,
-                                "The image does not appear to contain a plant. Please scan a clear plant image.",
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-
-                    // Store the scanned bitmap for PlantDetailsActivity to display
-                    PlantDetailsActivity.tempScannedBitmap = bitmap;
-
-                    // Only open PlantDetailsActivity after successful AI analysis
-                    Intent intent = new Intent(MainActivity.this, PlantDetailsActivity.class);
-                    intent.putExtra("raw_ai_json", rawJson);
-                    startActivity(intent);
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    // Stay on the current screen and show error
-                    if (error.equals(PlantAnalyzer.ERROR_NON_PLANT)) {
-                        Toast.makeText(MainActivity.this,
-                                "The image does not appear to contain a plant. Please scan a clear plant image.",
-                                Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, "Analysis Error: " + error, Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        });
+        if (layoutImagePreviewContainer != null && ivPreviewSelectedImage != null) {
+            ivPreviewSelectedImage.setImageBitmap(bitmap);
+            layoutImagePreviewContainer.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void showLoading(boolean show) {
-        if (loadingDialog != null) {
-            if (show && !isFinishing()) {
-                loadingDialog.show();
-            } else if (loadingDialog.isShowing()) {
-                loadingDialog.dismiss();
+    private void clearPendingImage() {
+        pendingImageBitmap = null;
+        if (ivPreviewSelectedImage != null) {
+            ivPreviewSelectedImage.setImageBitmap(null);
+        }
+        if (layoutImagePreviewContainer != null) {
+            layoutImagePreviewContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
+        if (currentSessionId == null) {
+            String title = !messageText.isEmpty() ? messageText : "Scanned Plant Image";
+            saveSessionToHistory(title);
+        }
+
+        // Add user message to UI list
+        ChatMessageModel userMsg = new ChatMessageModel(messageText, getCurrentPhTime(), ChatMessageModel.TYPE_USER);
+        if (imageBitmap != null) {
+            userMsg.setImageBitmap(imageBitmap);
+        }
+        activeChatList.add(userMsg);
+
+        if (activeChatAdapter != null) {
+            activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+        }
+
+        // Save User Message into single session document inside messages array
+        appendMessageToFirestore(userMsg);
+
+        // Add loading indicator message for UI only
+        activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
+        if (activeChatAdapter != null) {
+            activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+        }
+
+        if (activeRvChatMessages != null) {
+            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+        }
+
+        PlantAnalyzer analyzer = new PlantAnalyzer();
+
+        if (imageBitmap != null) {
+            analyzer.analyzePlantDetailed(imageBitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+                @Override
+                public void onSuccess(String formattedResult, String rawJson) {
+                    runOnUiThread(() -> {
+                        removeLoadingIndicator();
+
+                        if (rawJson == null || rawJson.isEmpty()
+                                || rawJson.contains("\"is_plant\": false")
+                                || rawJson.contains("\"is_plant\":false")
+                                || rawJson.contains("plant_not_detected")) {
+
+                            ChatMessageModel notPlantMsg = new ChatMessageModel(
+                                    "We couldn't detect a plant in the provided image. Please make sure the photo is clear, well-lit, and focused on a plant before trying again.",
+                                    getCurrentPhTime(),
+                                    ChatMessageModel.TYPE_AI);
+
+                            activeChatList.add(notPlantMsg);
+                            if (activeChatAdapter != null) {
+                                activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+                            }
+                            if (activeRvChatMessages != null) {
+                                activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+                            }
+
+                            // === SAVE AI RESPONSE TO FIRESTORE ===
+                            appendMessageToFirestore(notPlantMsg);
+                            return;
+                        }
+
+                        lastAnalyzedPlantProfile = formattedResult;
+                        String cleanedResult = cleanAiResponseText(formattedResult);
+
+                        ArrayList<String> suggestions = new ArrayList<>();
+                        suggestions.add("What are its watering needs?");
+                        suggestions.add("How much sunlight does it need?");
+                        suggestions.add("Common diseases and treatments?");
+
+                        ChatMessageModel aiMsg = new ChatMessageModel(cleanedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                        aiMsg.setFollowUpSuggestions(suggestions);
+
+                        activeChatList.add(aiMsg);
+                        if (activeChatAdapter != null) {
+                            activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+                        }
+
+                        if (activeRvChatMessages != null) {
+                            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+                        }
+
+                        // === SAVE AI RESPONSE TO FIRESTORE ===
+                        appendMessageToFirestore(aiMsg);
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        removeLoadingIndicator();
+
+                        String errorMessageText;
+                        if (error != null && (error.toLowerCase().contains("plant") || error.toLowerCase().contains("not_detected"))) {
+                            errorMessageText = "We couldn't detect a plant in the provided image. Please make sure the photo is clear, well-lit, and focused on a plant before trying again.";
+                        } else {
+                            errorMessageText = "We encountered an issue analyzing the photo. Please ensure the image clearly shows a plant and try again.";
+                        }
+
+                        ChatMessageModel errorMsg = new ChatMessageModel(
+                                errorMessageText,
+                                getCurrentPhTime(),
+                                ChatMessageModel.TYPE_AI);
+
+                        activeChatList.add(errorMsg);
+                        if (activeChatAdapter != null) {
+                            activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+                        }
+
+                        if (activeRvChatMessages != null) {
+                            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+                        }
+
+                        // === SAVE AI ERROR RESPONSE TO FIRESTORE ===
+                        appendMessageToFirestore(errorMsg);
+                    });
+                }
+            });
+        } else {
+            PlantAnalyzer.PlantCallback aiCallback = new PlantAnalyzer.PlantCallback() {
+                @Override
+                public void onSuccess(String rawAiReply) {
+                    runOnUiThread(() -> {
+                        removeLoadingIndicator();
+                        if (activeChatList == null || activeChatAdapter == null) return;
+
+                        String cleanedReply = cleanAiResponseText(rawAiReply);
+                        ArrayList<String> suggestions = new ArrayList<>();
+
+                        if (cleanedReply.contains("only answer questions related to plants") || cleanedReply.toLowerCase().contains("unrelated")) {
+                            cleanedReply = "I can only assist with plant-related topics and care advice. Please ask a question about plant care, identification, or gardening tips!";
+                            suggestions.add("Give me care tips for a Monstera.");
+                            suggestions.add("How often should I water succulents?");
+                        } else if (!cleanedReply.contains("does not appear to contain a plant") && !cleanedReply.startsWith("Please upload")) {
+                            String plantName = "it";
+                            try {
+                                if (lastAnalyzedPlantProfile != null && !lastAnalyzedPlantProfile.isEmpty()) {
+                                    if (lastAnalyzedPlantProfile.contains("Local Name:")) {
+                                        int localStart = lastAnalyzedPlantProfile.indexOf("Local Name:") + "Local Name:".length();
+                                        int localEnd = lastAnalyzedPlantProfile.indexOf("\n", localStart);
+                                        if (localEnd == -1) localEnd = lastAnalyzedPlantProfile.length();
+                                        plantName = cleanAiResponseText(lastAnalyzedPlantProfile.substring(localStart, localEnd));
+                                    } else if (lastAnalyzedPlantProfile.contains("Name:")) {
+                                        int nameStart = lastAnalyzedPlantProfile.indexOf("Name:") + "Name:".length();
+                                        int nameEnd = lastAnalyzedPlantProfile.indexOf("\n", nameStart);
+                                        if (nameEnd == -1) nameEnd = lastAnalyzedPlantProfile.length();
+                                        plantName = cleanAiResponseText(lastAnalyzedPlantProfile.substring(nameStart, nameEnd));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                plantName = "it";
+                            }
+
+                            String lowerReply = cleanedReply.toLowerCase();
+                            String lowerQuestion = messageText.toLowerCase();
+
+                            if (lowerQuestion.contains("water") || lowerReply.contains("watering") || lowerReply.contains("moisture")) {
+                                suggestions.add("What type of soil drains best for " + plantName + "?");
+                                suggestions.add("Signs of overwatering vs underwatering?");
+                                suggestions.add("What are its sunlight needs?");
+                            } else if (lowerQuestion.contains("treat") || lowerQuestion.contains("pest") || lowerReply.contains("disease") || lowerReply.contains("fungus")) {
+                                suggestions.add("How do I prevent this returning?");
+                                suggestions.add("Should I cut off damaged leaves?");
+                                suggestions.add("Is it safe to use Neem oil?");
+                            } else if (lowerQuestion.contains("fertilizer") || lowerReply.contains("nutrient") || lowerReply.contains("growth")) {
+                                suggestions.add("How often to fertilize in winter?");
+                                suggestions.add("What is the ideal NPK ratio?");
+                                suggestions.add("When should I repot " + plantName + "?");
+                            } else {
+                                suggestions.add("Tell me about ideal humidity/temperature.");
+                                suggestions.add("Can I propagate this plant?");
+                                suggestions.add("What is the general care checklist?");
+                            }
+                        }
+
+                        ChatMessageModel msg = new ChatMessageModel(cleanedReply, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                        msg.setFollowUpSuggestions(suggestions);
+
+                        activeChatList.add(msg);
+                        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+
+                        if (activeRvChatMessages != null) {
+                            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+                        }
+
+                        // === SAVE AI REPLY TO FIRESTORE ===
+                        appendMessageToFirestore(msg);
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        removeLoadingIndicator();
+                        if (activeChatList == null || activeChatAdapter == null) return;
+
+                        ChatMessageModel errorMsg = new ChatMessageModel(
+                                "I'm sorry, I couldn't process your request right now. Please rephrase your question or try again shortly.",
+                                getCurrentPhTime(),
+                                ChatMessageModel.TYPE_AI);
+
+                        activeChatList.add(errorMsg);
+                        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+
+                        if (activeRvChatMessages != null) {
+                            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+                        }
+
+                        // === SAVE AI ERROR REPLY TO FIRESTORE ===
+                        appendMessageToFirestore(errorMsg);
+                    });
+                }
+            };
+
+            if (lastAnalyzedPlantProfile == null || lastAnalyzedPlantProfile.trim().isEmpty()) {
+                analyzer.askQuestion(messageText, aiCallback);
+            } else {
+                analyzer.askFollowUpQuestion(messageText, lastAnalyzedPlantProfile, aiCallback);
             }
         }
     }
@@ -299,6 +488,18 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             Intent intent = new Intent(this, CameraScannerActivity.class);
+            startActivity(intent);
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void launchCameraScannerForChat() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            Intent intent = new Intent(this, CameraScannerActivity.class);
+            intent.putExtra(CameraScannerActivity.EXTRA_MODE, CameraScannerActivity.MODE_CHAT_ATTACHMENT);
             cameraScannerLauncher.launch(intent);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         } else {
@@ -343,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ==========================================
-    // FIRESTORE FIELD STORAGE HELPERS
+    // FIRESTORE SINGLE-DOCUMENT CHAT HELPERS
     // ==========================================
 
     private String getCurrentUserId() {
@@ -368,16 +569,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Map<String, Object> sessionMap = new HashMap<>();
+        sessionMap.put("uid", userId);
         sessionMap.put("sessionId", currentSessionId);
         sessionMap.put("title", title);
         sessionMap.put("timestamp", System.currentTimeMillis());
 
-        Map<String, Object> historyUpdate = new HashMap<>();
-        historyUpdate.put("ai_history." + currentSessionId, sessionMap);
-
-        db.collection("users")
-                .document(userId)
-                .set(historyUpdate, SetOptions.merge());
+        db.collection("ai_chat_sessions")
+                .document(currentSessionId)
+                .set(sessionMap, SetOptions.merge());
     }
 
     private String encodeBitmapToBase64(Bitmap originalBitmap) {
@@ -418,49 +617,102 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Stores messages inside a single Firestore document (document ID = currentSessionId)
+     * under the "messages" array field. Handles deduplication inside the array.
+     */
     private void appendMessageToFirestore(ChatMessageModel message) {
         String userId = getCurrentUserId();
-        if (userId == null) return;
+        if (userId == null || currentSessionId == null) return;
 
-        Map<String, Object> msgMap = new HashMap<>();
-        msgMap.put("messageText", message.getMessageText());
-        msgMap.put("messageTime", message.getMessageTime());
-        msgMap.put("messageType", message.getMessageType());
-        msgMap.put("timestamp", System.currentTimeMillis());
+        Map<String, Object> newMsgMap = new HashMap<>();
+        newMsgMap.put("messageText", message.getMessageText());
+        newMsgMap.put("messageTime", message.getMessageTime());
+        newMsgMap.put("messageType", message.getMessageType());
+        newMsgMap.put("timestamp", System.currentTimeMillis());
 
-        if (currentSessionId != null) {
-            msgMap.put("sessionId", currentSessionId);
-        }
+        String currentImageBase64 = message.getImageBitmap() != null ?
+                encodeBitmapToBase64(message.getImageBitmap()) : message.getImageBase64();
 
-        if (message.getImageBitmap() != null) {
-            msgMap.put("imageBase64", encodeBitmapToBase64(message.getImageBitmap()));
-        } else if (message.getImageBase64() != null) {
-            msgMap.put("imageBase64", message.getImageBase64());
+        if (currentImageBase64 != null) {
+            newMsgMap.put("imageBase64", currentImageBase64);
         }
 
         if (message.getFollowUpSuggestions() != null) {
-            msgMap.put("followUpSuggestions", message.getFollowUpSuggestions());
+            newMsgMap.put("followUpSuggestions", message.getFollowUpSuggestions());
         }
 
-        Map<String, Object> updatePayload = new HashMap<>();
-        updatePayload.put("ai_chat.messages", FieldValue.arrayUnion(msgMap));
-        updatePayload.put("ai_chat.lastUpdated", System.currentTimeMillis());
+        db.collection("ai_chat_messages")
+                .document(currentSessionId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<Map<String, Object>> existingMessages = (List<Map<String, Object>>) documentSnapshot.get("messages");
 
-        db.collection("users")
-                .document(userId)
-                .set(updatePayload, SetOptions.merge());
+                        if (existingMessages != null && !existingMessages.isEmpty()) {
+                            Map<String, Object> lastMsg = existingMessages.get(existingMessages.size() - 1);
+                            String lastText = (String) lastMsg.get("messageText");
+                            String lastImage = (String) lastMsg.get("imageBase64");
+
+                            // Check if consecutive exact duplicate text + image combination
+                            boolean isDuplicate = lastText != null
+                                    && lastText.equalsIgnoreCase(message.getMessageText().trim())
+                                    && ((lastImage == null && currentImageBase64 == null)
+                                    || (lastImage != null && lastImage.equals(currentImageBase64)));
+
+                            if (isDuplicate) {
+                                Long currentCount = lastMsg.containsKey("repeatCount") ? (Long) lastMsg.get("repeatCount") : 1L;
+                                lastMsg.put("repeatCount", currentCount + 1);
+                                lastMsg.put("lastUpdatedTimestamp", System.currentTimeMillis());
+
+                                db.collection("ai_chat_messages")
+                                        .document(currentSessionId)
+                                        .update("messages", existingMessages, "lastUpdated", System.currentTimeMillis());
+                                return;
+                            }
+                        }
+
+                        // Append new message entry to the existing document array
+                        newMsgMap.put("repeatCount", 1);
+                        db.collection("ai_chat_messages")
+                                .document(currentSessionId)
+                                .update(
+                                        "messages", FieldValue.arrayUnion(newMsgMap),
+                                        "lastUpdated", System.currentTimeMillis()
+                                );
+                    } else {
+                        // Create initial document for the session
+                        newMsgMap.put("repeatCount", 1);
+                        List<Map<String, Object>> initialMessages = new ArrayList<>();
+                        initialMessages.add(newMsgMap);
+
+                        Map<String, Object> sessionDoc = new HashMap<>();
+                        sessionDoc.put("uid", userId);
+                        sessionDoc.put("sessionId", currentSessionId);
+                        sessionDoc.put("createdTimestamp", System.currentTimeMillis());
+                        sessionDoc.put("lastUpdated", System.currentTimeMillis());
+                        sessionDoc.put("messages", initialMessages);
+
+                        db.collection("ai_chat_messages")
+                                .document(currentSessionId)
+                                .set(sessionDoc);
+                    }
+                });
     }
 
+    /**
+     * Fetches chat messages from the single document corresponding to currentSessionId.
+     */
     private void loadUserChatHistoryFromFirestore() {
         String userId = getCurrentUserId();
-        if (userId == null) {
+        if (userId == null || currentSessionId == null) {
             addDefaultWelcomeMessage();
             showAiChatAssistantBottomSheet();
             return;
         }
 
-        db.collection("users")
-                .document(userId)
+        db.collection("ai_chat_messages")
+                .document(currentSessionId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (activeChatList == null) {
@@ -469,29 +721,23 @@ public class MainActivity extends AppCompatActivity {
                         activeChatList.clear();
                     }
 
-                    if (documentSnapshot.exists() && documentSnapshot.contains("ai_chat.messages")) {
-                        List<Map<String, Object>> rawList = (List<Map<String, Object>>) documentSnapshot.get("ai_chat.messages");
-                        if (rawList != null) {
-                            for (Map<String, Object> map : rawList) {
-                                String msgSessionId = (String) map.get("sessionId");
-
-                                if (currentSessionId != null && msgSessionId != null && !currentSessionId.equals(msgSessionId)) {
-                                    continue;
-                                }
-
+                    if (documentSnapshot.exists()) {
+                        List<Map<String, Object>> msgArray = (List<Map<String, Object>>) documentSnapshot.get("messages");
+                        if (msgArray != null) {
+                            for (Map<String, Object> doc : msgArray) {
                                 ChatMessageModel msg = new ChatMessageModel();
-                                msg.setMessageText((String) map.get("messageText"));
-                                msg.setMessageTime((String) map.get("messageTime"));
-                                Long type = (Long) map.get("messageType");
+                                msg.setMessageText((String) doc.get("messageText"));
+                                msg.setMessageTime((String) doc.get("messageTime"));
+                                Long type = (Long) doc.get("messageType");
                                 if (type != null) msg.setMessageType(type.intValue());
 
-                                String base64 = (String) map.get("imageBase64");
+                                String base64 = (String) doc.get("imageBase64");
                                 if (base64 != null && !base64.isEmpty()) {
                                     msg.setImageBase64(base64);
                                     msg.setImageBitmap(decodeBase64ToBitmap(base64));
                                 }
 
-                                List<String> suggestions = (List<String>) map.get("followUpSuggestions");
+                                List<String> suggestions = (List<String>) doc.get("followUpSuggestions");
                                 if (suggestions != null) {
                                     msg.setFollowUpSuggestions(new ArrayList<>(suggestions));
                                 }
@@ -624,13 +870,32 @@ public class MainActivity extends AppCompatActivity {
         ImageButton ibMenu = chatView.findViewById(R.id.ib_chat_menu);
         ImageButton ibAttach = chatView.findViewById(R.id.ib_chat_attach);
 
+        // Preview views initialization
+        layoutImagePreviewContainer = chatView.findViewById(R.id.layout_image_preview_container);
+        ivPreviewSelectedImage = chatView.findViewById(R.id.iv_preview_selected_image);
+        ibRemovePreviewImage = chatView.findViewById(R.id.ib_remove_preview_image);
+
+        if (ibRemovePreviewImage != null) {
+            ibRemovePreviewImage.setOnClickListener(v -> clearPendingImage());
+        }
+
+        if (pendingImageBitmap != null && ivPreviewSelectedImage != null && layoutImagePreviewContainer != null) {
+            ivPreviewSelectedImage.setImageBitmap(pendingImageBitmap);
+            layoutImagePreviewContainer.setVisibility(View.VISIBLE);
+        }
+
         if (activeRvChatMessages != null) {
             activeRvChatMessages.setLayoutManager(new LinearLayoutManager(this));
             activeRvChatMessages.setAdapter(activeChatAdapter);
             activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
         }
 
-        activeChatDialog.setOnDismissListener(dialog -> activeRvChatMessages = null);
+        activeChatDialog.setOnDismissListener(dialog -> {
+            activeRvChatMessages = null;
+            layoutImagePreviewContainer = null;
+            ivPreviewSelectedImage = null;
+            ibRemovePreviewImage = null;
+        });
 
         if (ibMenu != null) {
             ibMenu.setOnClickListener(v -> {
@@ -684,7 +949,7 @@ public class MainActivity extends AppCompatActivity {
                 if (llTakePhoto != null) {
                     llTakePhoto.setOnClickListener(view -> {
                         attachMenu.dismiss();
-                        launchCameraScanner();
+                        launchCameraScannerForChat();
                     });
                 }
 
@@ -704,7 +969,8 @@ public class MainActivity extends AppCompatActivity {
         if (fabSend != null && etChatInput != null) {
             fabSend.setOnClickListener(v -> {
                 String userText = etChatInput.getText().toString().trim();
-                if (userText.isEmpty()) return;
+
+                if (userText.isEmpty() && pendingImageBitmap == null) return;
 
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastRequestTime < 3000) {
@@ -713,8 +979,12 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 lastRequestTime = currentTime;
+
+                Bitmap imageToSend = pendingImageBitmap;
                 etChatInput.setText("");
-                submitFollowUpQuestion(userText);
+                clearPendingImage();
+
+                sendChatMessageWithMedia(userText, imageToSend);
             });
         }
 
@@ -731,6 +1001,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         lastAnalyzedPlantProfile = "";
+        clearPendingImage();
         addDefaultWelcomeMessage();
 
         if (activeChatAdapter != null) {
@@ -739,132 +1010,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void submitFollowUpQuestion(String question) {
-        if (activeChatList == null || activeChatAdapter == null) return;
-
-        boolean isFirstUserQuestion = true;
-        for (ChatMessageModel msg : activeChatList) {
-            if (msg.getMessageType() == ChatMessageModel.TYPE_USER) {
-                isFirstUserQuestion = false;
-                break;
-            }
-        }
-
-        if (isFirstUserQuestion || currentSessionId == null) {
-            saveSessionToHistory(question);
-        }
-
-        ChatMessageModel userMsg = new ChatMessageModel(question, getCurrentPhTime(), ChatMessageModel.TYPE_USER);
-        activeChatList.add(userMsg);
-        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-        appendMessageToFirestore(userMsg);
-
-        activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
-        activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-        if (activeRvChatMessages != null) {
-            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-        }
-
-        PlantAnalyzer analyzer = new PlantAnalyzer();
-
-        PlantAnalyzer.PlantCallback aiCallback = new PlantAnalyzer.PlantCallback() {
-            @Override
-            public void onSuccess(String rawAiReply) {
-                runOnUiThread(() -> {
-                    removeLoadingIndicator();
-                    if (activeChatList == null || activeChatAdapter == null) return;
-
-                    String cleanedReply = cleanAiResponseText(rawAiReply);
-
-                    ArrayList<String> suggestions = new ArrayList<>();
-
-                    if (cleanedReply.contains("only answer questions related to plants")) {
-                        suggestions.add("Give me care tips for a Monstera.");
-                        suggestions.add("How often should I water succulents?");
-                    } else if (!cleanedReply.contains("does not appear to contain a plant") && !cleanedReply.startsWith("Please upload")) {
-                        String plantName = "it";
-                        try {
-                            if (lastAnalyzedPlantProfile != null && !lastAnalyzedPlantProfile.isEmpty()) {
-                                if (lastAnalyzedPlantProfile.contains("Local Name:")) {
-                                    int localStart = lastAnalyzedPlantProfile.indexOf("Local Name:") + "Local Name:".length();
-                                    int localEnd = lastAnalyzedPlantProfile.indexOf("\n", localStart);
-                                    if (localEnd == -1) localEnd = lastAnalyzedPlantProfile.length();
-                                    plantName = cleanAiResponseText(lastAnalyzedPlantProfile.substring(localStart, localEnd));
-                                } else if (lastAnalyzedPlantProfile.contains("Name:")) {
-                                    int nameStart = lastAnalyzedPlantProfile.indexOf("Name:") + "Name:".length();
-                                    int nameEnd = lastAnalyzedPlantProfile.indexOf("\n", nameStart);
-                                    if (nameEnd == -1) nameEnd = lastAnalyzedPlantProfile.length();
-                                    plantName = cleanAiResponseText(lastAnalyzedPlantProfile.substring(nameStart, nameEnd));
-                                }
-                            }
-                        } catch (Exception e) {
-                            plantName = "it";
-                        }
-
-                        String lowerReply = cleanedReply.toLowerCase();
-                        String lowerQuestion = question.toLowerCase();
-
-                        if (lowerQuestion.contains("water") || lowerReply.contains("watering") || lowerReply.contains("moisture")) {
-                            suggestions.add("What type of soil drains best for " + plantName + "?");
-                            suggestions.add("Signs of overwatering vs underwatering?");
-                            suggestions.add("What are its sunlight needs?");
-                        } else if (lowerQuestion.contains("treat") || lowerQuestion.contains("pest") || lowerReply.contains("disease") || lowerReply.contains("fungus")) {
-                            suggestions.add("How do I prevent this returning?");
-                            suggestions.add("Should I cut off damaged leaves?");
-                            suggestions.add("Is it safe to use Neem oil?");
-                        } else if (lowerQuestion.contains("fertilizer") || lowerReply.contains("nutrient") || lowerReply.contains("growth")) {
-                            suggestions.add("How often to fertilize in winter?");
-                            suggestions.add("What is the ideal NPK ratio?");
-                            suggestions.add("When should I repot " + plantName + "?");
-                        } else {
-                            suggestions.add("Tell me about ideal humidity/temperature.");
-                            suggestions.add("Can I propagate this plant?");
-                            suggestions.add("What is the general care checklist?");
-                        }
-                    }
-
-                    ChatMessageModel msg = new ChatMessageModel(cleanedReply, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                    msg.setFollowUpSuggestions(suggestions);
-
-                    activeChatList.add(msg);
-                    activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-                    appendMessageToFirestore(msg);
-
-                    if (activeRvChatMessages != null) {
-                        activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    removeLoadingIndicator();
-                    if (activeChatList == null || activeChatAdapter == null) return;
-
-                    ChatMessageModel errorMsg = new ChatMessageModel(
-                            "Sorry, I couldn't process your request: " + error,
-                            getCurrentPhTime(),
-                            ChatMessageModel.TYPE_AI);
-
-                    activeChatList.add(errorMsg);
-                    activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
-
-                    appendMessageToFirestore(errorMsg);
-
-                    if (activeRvChatMessages != null) {
-                        activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
-                    }
-                });
-            }
-        };
-
-        if (lastAnalyzedPlantProfile == null || lastAnalyzedPlantProfile.trim().isEmpty()) {
-            analyzer.askQuestion(question, aiCallback);
-        } else {
-            analyzer.askFollowUpQuestion(question, lastAnalyzedPlantProfile, aiCallback);
-        }
+        sendChatMessageWithMedia(question, null);
     }
 
     private void removeLoadingIndicator() {
