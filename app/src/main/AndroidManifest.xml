@@ -125,9 +125,13 @@
             android:name=".camera.CameraScannerActivity"
             android:exported="false" />
 
-        <!-- 🪴 7. Plant Details Activity -->
+        <!-- 🪴 7. Plant Details & Common Problem Activities -->
         <activity
             android:name=".plants.PlantDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".plants.ProblemDetailsActivity"
             android:exported="false" />
 
         <!-- 🔔 Alarm & Boot Receivers -->

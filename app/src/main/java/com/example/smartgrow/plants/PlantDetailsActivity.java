@@ -1,6 +1,7 @@
 package com.example.smartgrow.plants;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -27,6 +28,7 @@ import androidx.core.widget.NestedScrollView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,8 +38,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -115,6 +117,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String habitat = "N/A";
     private String plantType = "Unknown";
     private String lifespan = "N/A";
+    private boolean isArtificial = false;
 
     private List<String> leafColorsList = new ArrayList<>();
 
@@ -241,7 +244,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         btnInlineSave = findViewById(R.id.btn_inline_save);
         btnViewFrequency = findViewById(R.id.btn_view_frequency);
         ibBack = findViewById(R.id.ib_back);
-        ibCameraTop = findViewById(R.id.ib_camera_top);
         ibSpeaker = findViewById(R.id.ib_speaker);
     }
 
@@ -335,32 +337,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         dialog.show();
     }
 
-    private void showUrlPreviewDialog(String imageUrl) {
-        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        ImageView fullImageView = new ImageView(this);
-        fullImageView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-        fullImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        fullImageView.setBackgroundColor(Color.BLACK);
-
-        Glide.with(this)
-                .load(imageUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(fullImageView);
-
-        fullImageView.setOnClickListener(v -> dialog.dismiss());
-        dialog.setContentView(fullImageView);
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
-        }
-        dialog.show();
-    }
-
     private void parseIntentData() {
         if (getIntent() == null) return;
 
@@ -431,6 +407,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 return;
             }
 
+            // Artificial / AI Plant Detection
+            if (root.optBoolean("is_artificial", false)) {
+                isArtificial = true;
+            }
+
             JSONObject profile = root.optJSONObject("plant_profile");
             if (profile != null) {
                 String fullTitle = profile.optString("name", plantName);
@@ -463,6 +444,14 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
                 careDifficultyText = profile.optString("care_difficulty", profile.optString("difficulty_level", careDifficultyText));
                 careDifficultyPercentage = profile.optInt("care_difficulty_percentage", profile.optInt("difficulty_percentage", careDifficultyPercentage));
+
+                // Secondary check for artificial plants via type or name keywords
+                String lowerType = plantType.toLowerCase();
+                String lowerName = plantName.toLowerCase();
+                if (lowerType.contains("artificial") || lowerType.contains("plastic") || lowerType.contains("fake") || lowerType.contains("ai")
+                        || lowerName.contains("artificial") || lowerName.contains("plastic") || lowerName.contains("fake")) {
+                    isArtificial = true;
+                }
 
                 mapLocations.clear();
                 JSONArray locArray = profile.optJSONArray("distribution_coordinates");
@@ -532,6 +521,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 symbolismText = extraDetails.optString("symbolism", symbolismText);
             }
 
+            // Health Scanner JSON Parsing Validation
             JSONObject health = root.optJSONObject("health_scanner");
             if (health != null) {
                 healthStatus = health.optString("status", healthStatus);
@@ -557,12 +547,32 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             else if (lower.contains("scientific name:")) scientificName = extractValue(line);
             else if (lower.contains("health:")) healthStatus = extractValue(line);
             else if (lower.contains("difficulty:")) careDifficultyText = extractValue(line);
+            else if (lower.contains("type:") && (lower.contains("artificial") || lower.contains("fake") || lower.contains("plastic"))) {
+                isArtificial = true;
+            }
         }
         updateUI();
     }
 
     private String extractValue(String line) {
         return (line != null && line.contains(":")) ? line.substring(line.indexOf(":") + 1).trim() : (line != null ? line.trim() : "");
+    }
+
+    /**
+     * Determines color HEX based on health status and percentage:
+     * Red (#F44336) = Sick
+     * Yellow (#FFC107) = Moderate
+     * Green (#4CAF50) = Healthy / Okay
+     */
+    private String getHealthColorHex() {
+        String statusLower = (healthStatus != null) ? healthStatus.toLowerCase() : "";
+        if (healthPercentage < 50 || statusLower.contains("sick") || statusLower.contains("unhealthy") || statusLower.contains("diseased") || statusLower.contains("poor")) {
+            return "#F44336"; // Red
+        } else if (healthPercentage < 80 || statusLower.contains("moderate") || statusLower.contains("fair") || statusLower.contains("warning")) {
+            return "#FFC107"; // Yellow
+        } else {
+            return "#4CAF50"; // Green
+        }
     }
 
     private void updateUI() {
@@ -573,8 +583,15 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
         if (tvScientificName != null) tvScientificName.setText(scientificName);
 
+        // Display Health Status (Include status for AI/Artificial plants, but omit the percentage score)
         if (tvHealthState != null) {
-            tvHealthState.setText(healthStatus + " • " + healthPercentage + "% Health Score");
+            tvHealthState.setVisibility(View.VISIBLE);
+            if (isArtificial) {
+                tvHealthState.setText(healthStatus);
+            } else {
+                tvHealthState.setText(healthStatus + " • " + healthPercentage + "% Health Score");
+            }
+            tvHealthState.setTextColor(Color.parseColor(getHealthColorHex()));
         }
 
         if (tvCareDifficulty != null) {
@@ -749,11 +766,39 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         dialog.show();
     }
 
+    private void showProblemDetailBottomSheet(JSONObject problem) {
+        String problemTitle = problem.optString("title", "Common Issue");
+        String problemDescription = problem.optString("description", "No description available.");
+        String symptomAnalysis = problem.optString("symptom_analysis", "No symptom analysis provided.");
+        String diseaseCause = problem.optString("disease_cause", "No cause information provided.");
+        String solutions = problem.optString("solutions", "No solution steps provided.");
+        String prevention = problem.optString("prevention", "No prevention guide provided.");
+        String problemImageUrl = problem.optString("image_url", "");
+
+        final String targetProblemImg = (problemImageUrl != null && problemImageUrl.startsWith("http"))
+                ? problemImageUrl
+                : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
+
+        android.content.Intent intent = new android.content.Intent(this, ProblemDetailsActivity.class);
+        intent.putExtra("problem_title", problemTitle);
+        intent.putExtra("problem_description", problemDescription);
+        intent.putExtra("symptom_analysis", symptomAnalysis);
+        intent.putExtra("disease_cause", diseaseCause);
+        intent.putExtra("solutions", solutions);
+        intent.putExtra("prevention", prevention);
+        intent.putExtra("image_url", targetProblemImg);
+        intent.putExtra("scientific_name", scientificName);
+
+        startActivity(intent);
+    }
+
     private void renderCommonProblems() {
         if (layoutCommonProblemsContainer == null) return;
         layoutCommonProblemsContainer.removeAllViews();
 
         if (commonProblemsArray != null && commonProblemsArray.length() > 0) {
+            int defaultDrawableRes = R.drawable.disease;
+
             for (int i = 0; i < commonProblemsArray.length(); i++) {
                 try {
                     JSONObject problem = commonProblemsArray.getJSONObject(i);
@@ -782,17 +827,18 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             ? problemImageUrl
                             : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
 
-                    if (targetProblemImg.startsWith("http")) {
+                    if (targetProblemImg != null && targetProblemImg.startsWith("http")) {
                         Glide.with(getApplicationContext())
                                 .load(targetProblemImg)
+                                .placeholder(defaultDrawableRes) // Shown while loading
+                                .error(defaultDrawableRes)       // ALWAYS fall back to R.drawable.disease on error
                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                                 .into(problemImageView);
-
-                        card.setOnClickListener(v -> showUrlPreviewDialog(targetProblemImg));
-                    } else if (scannedBitmap != null) {
-                        problemImageView.setImageBitmap(scannedBitmap);
-                        card.setOnClickListener(v -> showBitmapPreviewDialog(scannedBitmap));
+                    } else {
+                        problemImageView.setImageResource(defaultDrawableRes);
                     }
+
+                    card.setOnClickListener(v -> showProblemDetailBottomSheet(problem));
 
                     TextView titleTextView = new TextView(this);
                     titleTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
@@ -834,6 +880,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("scientificName", scientificName);
         diaryEntry.put("healthStatus", healthStatus);
         diaryEntry.put("healthPercentage", healthPercentage);
+        diaryEntry.put("healthColor", getHealthColorHex()); // Added health status color code to Firebase
         diaryEntry.put("matchConfidencePercentage", matchConfidencePercentage);
         diaryEntry.put("careDifficultyText", careDifficultyText);
         diaryEntry.put("careDifficultyPercentage", careDifficultyPercentage);
@@ -845,6 +892,22 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("habitat", habitat);
         diaryEntry.put("plantType", plantType);
         diaryEntry.put("lifespan", lifespan);
+        diaryEntry.put("isArtificial", isArtificial);
+
+        // Updated additional details to Firebase
+        diaryEntry.put("ultimateHeight", ultimateHeight);
+        diaryEntry.put("ultimateSpread", ultimateSpread);
+        diaryEntry.put("leafType", leafType);
+        diaryEntry.put("plantingTime", plantingTime);
+        diaryEntry.put("temperatureRange", temperatureRange);
+        diaryEntry.put("hardinessZones", hardinessZones);
+        diaryEntry.put("usesText", usesText);
+        diaryEntry.put("adaptationText", adaptationText);
+        diaryEntry.put("ecologicalText", ecologicalText);
+        diaryEntry.put("historyText", historyText);
+        diaryEntry.put("nameStoryText", nameStoryText);
+        diaryEntry.put("symbolismText", symbolismText);
+
         diaryEntry.put("timestamp", System.currentTimeMillis());
 
         if (scannedBitmap != null) {
@@ -857,6 +920,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 .addOnSuccessListener(aVoid -> {
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(this, "Added to My Garden Diary!", Toast.LENGTH_SHORT).show();
+
+                        // Navigate back to MainActivity
+                        Intent intent = new Intent(this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
+                        finish();
                     }
                 })
                 .addOnFailureListener(e -> {

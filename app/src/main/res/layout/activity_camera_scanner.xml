@@ -11,14 +11,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 2. Custom AI Lens Overlay -->
-    <!-- Corrected package name to prevent ClassNotFoundException -->
+    <!-- 2. Frozen Image Overlay (For captured/uploaded photos) -->
+    <ImageView
+        android:id="@+id/iv_frozen_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Captured photo preview"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <!-- 3. Custom AI Lens Overlay -->
     <com.example.smartgrow.camera.ScannerOverlayView
         android:id="@+id/scanner_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 3. Top Action Bar Controls -->
+    <!-- 4. Top Action Bar Controls -->
     <RelativeLayout
         android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
@@ -69,7 +77,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- 4. Center Prompt Text -->
+    <!-- 5. Center Prompt Text -->
     <TextView
         android:id="@+id/tv_focus_prompt"
         android:layout_width="wrap_content"
@@ -84,7 +92,7 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <!-- 5. Interactive Vertical Torch Strength Slider -->
+    <!-- 6. Interactive Vertical Torch Strength Slider -->
     <RelativeLayout
         android:id="@+id/layout_slider_container"
         android:layout_width="48dp"
@@ -112,7 +120,7 @@
             android:backgroundTint="#FFFFFF" />
     </RelativeLayout>
 
-    <!-- 6. Bottom Navigation Controls -->
+    <!-- 7. Bottom Navigation Controls -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"

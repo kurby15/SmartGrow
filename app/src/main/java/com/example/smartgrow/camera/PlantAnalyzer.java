@@ -153,13 +153,16 @@ public class PlantAnalyzer {
                     "   - Look for plastic gloss, injection molding seams, unnatural leaf patterns, synthetic stems, or fabric textures.\n" +
                     "   - Set \"is_artificial\" to true if artificial, otherwise false.\n" +
                     "   - In \"artificial_details\", list specific reasons why it is identified as artificial. If real, leave this array empty.\n\n" +
-                    "3. GLOBAL BOTANICAL DISTRIBUTION MANDATE:\n" +
-                    "   - Identify the exact species taxonomy (scientific name) to determine its true WORLDWIDE distribution.\n" +
-                    "   - Do NOT default or restrict distribution to the Philippines or any single country. Include points across all continents/regions where the species natively or introducedly occurs (e.g., South America, Africa, Asia, Australia, Europe, Pacific).\n" +
-                    "   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n" +
-                    "   - Provide 3 to 15 realistic central representative coordinate pins in \"distribution_coordinates\" spanning its worldwide range.\n" +
-                    "   - Set \"is_native\" to true ONLY if distribution_type is 'Native'.\n\n" +
-                    "4. Return ONLY pure JSON matching EXACTLY this structure:\n" +
+                    "3. GLOBAL BOTANICAL DISTRIBUTION & HABITAT MANDATE:\n" +
+                    "   - Identify species taxonomy (scientific name) to determine its exact WORLDWIDE distribution.\n" +
+                    "   - You MUST supply 4 to 20 representative coordinate pins in \"distribution_coordinates\" covering ALL countries and continents where this species naturally occurs OR has been introduced/naturalized.\n" +
+                    "   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned (e.g. 'Found in tropical rainforests of South America, low-elevation disturbed grounds in Southeast Asia, and Mediterranean coastal thickets').\n" +
+                    "   - Provide full distribution_text summarizing all global range countries where pins are set.\n" +
+                    "   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n\n" +
+                    "4. COMMON PROBLEMS SCHEMA MANDATE:\n" +
+                    "   - Provide 2 to 4 common health problems or diseases for this specific plant species.\n" +
+                    "   - Each item in \"common_problems\" MUST contain detailed fields: title, description, symptom_analysis, disease_cause, solutions, and prevention.\n\n" +
+                    "5. Return ONLY pure JSON matching EXACTLY this structure:\n" +
                     "{\n" +
                     "  \"is_plant\": true,\n" +
                     "  \"is_artificial\": false,\n" +
@@ -170,7 +173,8 @@ public class PlantAnalyzer {
                     "    \"philippine_name\": \"Local Philippine Name or N/A\",\n" +
                     "    \"aliases\": \"Common aliases\",\n" +
                     "    \"origin\": \"Native origin region/countries\",\n" +
-                    "    \"distribution_text\": \"Complete worldwide geographic distribution summary.\",\n" +
+                    "    \"distribution_text\": \"Complete worldwide geographic distribution listing all country locations pinned on map.\",\n" +
+                    "    \"habitat\": \"Detailed habitat summary encompassing environmental conditions across all countries where it is pinned.\",\n" +
                     "    \"distribution_confidence\": \"High\",\n" +
                     "    \"distribution_coordinates\": [\n" +
                     "      {\n" +
@@ -182,8 +186,8 @@ public class PlantAnalyzer {
                     "        \"distribution_type\": \"Native\",\n" +
                     "        \"is_native\": true,\n" +
                     "        \"confidence\": \"High\",\n" +
-                    "        \"snippet\": \"Native species range in tropical rainforests.\",\n" +
-                    "        \"description\": \"Part of native origin range.\"\n" +
+                    "        \"snippet\": \"Native tropical rainforest habitat.\",\n" +
+                    "        \"description\": \"Part of native range in South America.\"\n" +
                     "      }\n" +
                     "    ],\n" +
                     "    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n" +
@@ -193,14 +197,19 @@ public class PlantAnalyzer {
                     "  },\n" +
                     "  \"common_problems\": [\n" +
                     "    {\n" +
-                    "      \"title\": \"Problem title\",\n" +
-                    "      \"description\": \"Description of common issue\",\n" +
+                    "      \"title\": \"Aged yellow and dry\",\n" +
+                    "      \"description\": \"Natural aging can cause leaves to turn yellow and dry out.\",\n" +
+                    "      \"symptom_analysis\": \"When plants have progressed through their natural developmental stages, leaves will start to yellow, droop, and turn papery brown.\",\n" +
+                    "      \"disease_cause\": \"At the end of its life, genetic coding within the plant increases the production of ethylene, leading to natural cell breakdown.\",\n" +
+                    "      \"solutions\": \"If yellowing is a natural progression due to age, nothing can be done to stop it. Prune dead leaves to keep the plant clean.\",\n" +
+                    "      \"prevention\": \"To prolong leaf life, ensure proper water, adequate sunlight, and balanced fertilization.\",\n" +
                     "      \"image_url\": \"\"\n" +
                     "    }\n" +
                     "  ],\n" +
                     "  \"health_scanner\": {\n" +
                     "    \"status\": \"Healthy / Artificial / Diseased / Indeterminate\",\n" +
                     "    \"confidence\": \"85%\",\n" +
+                    "    \"health_score\": 85,\n" +
                     "    \"tissue_damage\": \"Description of damage or N/A\"\n" +
                     "  },\n" +
                     "  \"hydration_scanner\": {\n" +
@@ -242,6 +251,7 @@ public class PlantAnalyzer {
                     "  },\n" +
                     "  \"smart_grow_lesson\": \"Short educational note\"\n" +
                     "}\n\n" +
+                    "NOTE ON HEALTH_SCORE: If status is Healthy, health_score should be 80-100. If Diseased, health_score should accurately reflect health level (e.g., 10-60 based on severity).\n\n" +
                     "OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.";
 
             JSONObject textPart = new JSONObject();
@@ -445,6 +455,7 @@ public class PlantAnalyzer {
             String localPhName = profile.optString("philippine_name", "N/A");
             String origin = profile.optString("origin", "N/A");
             String distributionText = profile.optString("distribution_text", "N/A");
+            String habitatText = profile.optString("habitat", "N/A");
 
             JSONObject health = root.optJSONObject("health_scanner");
             JSONObject hydration = root.optJSONObject("hydration_scanner");
@@ -500,6 +511,9 @@ public class PlantAnalyzer {
             }
             if (!"N/A".equalsIgnoreCase(distributionText) && !distributionText.trim().isEmpty()) {
                 sb.append("• Geographic Distribution: ").append(distributionText).append("\n");
+            }
+            if (!"N/A".equalsIgnoreCase(habitatText) && !habitatText.trim().isEmpty()) {
+                sb.append("• Global Habitat: ").append(habitatText).append("\n");
             }
             sb.append("\n");
 

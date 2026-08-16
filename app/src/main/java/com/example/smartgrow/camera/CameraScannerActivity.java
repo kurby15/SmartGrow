@@ -1,22 +1,33 @@
 package com.example.smartgrow.camera;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.ImageDecoder;
 import android.graphics.Matrix;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,6 +43,7 @@ import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartgrow.R;
+import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
@@ -50,6 +62,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private PreviewView viewFinder;
     private ScannerOverlayView overlayView;
+    private ImageView ivFrozenPreview; // Freeze frame preview overlay
 
     private ProcessCameraProvider cameraProvider;
     private ImageCapture imageCapture;
@@ -63,6 +76,16 @@ public class CameraScannerActivity extends AppCompatActivity {
     private ImageButton btnFlash;
 
     private ExecutorService cameraExecutor;
+
+    // Custom Glassmorphism Dialog & Animation Controllers
+    private Dialog loadingDialog;
+    private TextView tvProgressPercentage;
+    private TextView tvLoadingMessage;
+    private ImageView flowerBottomLeft, flowerTopRight, flowerTopLeft, flowerBottomRight;
+    private Handler animationHandler = new Handler(Looper.getMainLooper());
+    private Runnable progressRunnable;
+    private int progressCount = 0;
+    private boolean isAnalyzing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +103,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
         viewFinder = findViewById(R.id.viewFinder);
         overlayView = findViewById(R.id.scanner_overlay);
+        ivFrozenPreview = findViewById(R.id.iv_frozen_preview);
 
         ImageButton btnClose = findViewById(R.id.btn_close_scanner);
         ImageButton btnHelp = findViewById(R.id.btn_help);
@@ -90,12 +114,18 @@ public class CameraScannerActivity extends AppCompatActivity {
         sliderContainer = findViewById(R.id.layout_slider_container);
         sliderThumb = findViewById(R.id.slider_thumb);
 
+        initCustomLoadingDialog();
+
         if (btnClose != null) btnClose.setOnClickListener(v -> finish());
-        if (btnCapture != null) btnCapture.setOnClickListener(v -> takePhotoSafe());
+        if (btnCapture != null) btnCapture.setOnClickListener(v -> {
+            if (!isAnalyzing) takePhotoSafe();
+        });
         if (btnGallery != null) {
             btnGallery.setOnClickListener(v -> {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, 1001);
+                if (!isAnalyzing) {
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(intent, 1001);
+                }
             });
         }
 
@@ -111,8 +141,141 @@ public class CameraScannerActivity extends AppCompatActivity {
         startCameraX();
     }
 
+    private void initCustomLoadingDialog() {
+        loadingDialog = new Dialog(this);
+        loadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        loadingDialog.setContentView(R.layout.dialog_analyzing_plant);
+        loadingDialog.setCancelable(false);
+
+        if (loadingDialog.getWindow() != null) {
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            loadingDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        tvProgressPercentage = loadingDialog.findViewById(R.id.tv_progress_percentage);
+        tvLoadingMessage = loadingDialog.findViewById(R.id.tv_loading_message);
+
+        flowerBottomLeft = loadingDialog.findViewById(R.id.flower_bottom_left);
+        flowerTopRight = loadingDialog.findViewById(R.id.flower_top_right);
+        flowerTopLeft = loadingDialog.findViewById(R.id.flower_top_left);
+        flowerBottomRight = loadingDialog.findViewById(R.id.flower_bottom_right);
+    }
+
+    private void showLoading(boolean show) {
+        isAnalyzing = show;
+        if (loadingDialog == null) return;
+
+        runOnUiThread(() -> {
+            if (show) {
+                if (!loadingDialog.isShowing() && !isFinishing()) {
+                    progressCount = 0;
+                    if (tvProgressPercentage != null) tvProgressPercentage.setText("0%");
+                    if (tvLoadingMessage != null) tvLoadingMessage.setText("Scanning plant features...");
+
+                    if (flowerBottomLeft != null) flowerBottomLeft.setVisibility(View.INVISIBLE);
+                    if (flowerTopRight != null) flowerTopRight.setVisibility(View.INVISIBLE);
+                    if (flowerTopLeft != null) flowerTopLeft.setVisibility(View.INVISIBLE);
+                    if (flowerBottomRight != null) flowerBottomRight.setVisibility(View.INVISIBLE);
+
+                    loadingDialog.show();
+                    startLoadingProgressAnimation();
+                }
+            } else {
+                if (loadingDialog.isShowing()) {
+                    if (animationHandler != null && progressRunnable != null) {
+                        animationHandler.removeCallbacks(progressRunnable);
+                    }
+                    loadingDialog.dismiss();
+                }
+            }
+        });
+    }
+
+    /**
+     * Display frozen image overlay & unbind/pause camera live feed.
+     */
+    private void freezeScreenWithBitmap(Bitmap bitmap) {
+        runOnUiThread(() -> {
+            if (ivFrozenPreview != null) {
+                ivFrozenPreview.setImageBitmap(bitmap);
+                ivFrozenPreview.setVisibility(View.VISIBLE);
+            }
+            if (overlayView != null) {
+                overlayView.stopScanning();
+            }
+            // Stop live camera preview so it won't move behind the frozen image
+            if (cameraProvider != null) {
+                cameraProvider.unbindAll();
+            }
+        });
+    }
+
+    /**
+     * Unfreeze screen and restart live camera preview if scanning fails or restarts.
+     */
+    private void unfreezeScreen() {
+        runOnUiThread(() -> {
+            if (ivFrozenPreview != null) {
+                ivFrozenPreview.setVisibility(View.GONE);
+                ivFrozenPreview.setImageBitmap(null);
+            }
+            if (overlayView != null) {
+                overlayView.startScanning();
+            }
+            bindCameraUseCases();
+        });
+    }
+
+    private void startLoadingProgressAnimation() {
+        progressRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (progressCount < 95) {
+                    progressCount++;
+                    if (tvProgressPercentage != null) {
+                        tvProgressPercentage.setText(progressCount + "%");
+                    }
+
+                    if (progressCount == 20) {
+                        if (tvLoadingMessage != null) tvLoadingMessage.setText("Analyzing leaf structure...");
+                        animateBloom(flowerBottomLeft);
+                    } else if (progressCount == 45) {
+                        if (tvLoadingMessage != null) tvLoadingMessage.setText("Identifying species...");
+                        animateBloom(flowerTopRight);
+                    } else if (progressCount == 70) {
+                        if (tvLoadingMessage != null) tvLoadingMessage.setText("Checking health condition...");
+                        animateBloom(flowerTopLeft);
+                    } else if (progressCount == 88) {
+                        if (tvLoadingMessage != null) tvLoadingMessage.setText("Compiling plant guide...");
+                        animateBloom(flowerBottomRight);
+                    }
+
+                    long delay = progressCount < 50 ? 50 : 80;
+                    animationHandler.postDelayed(this, delay);
+                }
+            }
+        };
+        animationHandler.postDelayed(progressRunnable, 50);
+    }
+
+    private void animateBloom(ImageView flowerView) {
+        if (flowerView == null) return;
+        flowerView.setVisibility(View.VISIBLE);
+        flowerView.setScaleX(0f);
+        flowerView.setScaleY(0f);
+
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(flowerView, "scaleX", 0f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(flowerView, "scaleY", 0f, 1f);
+
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(scaleX, scaleY);
+        set.setDuration(400);
+        set.setInterpolator(new OvershootInterpolator());
+        set.start();
+    }
+
     private void showSnapTipsDialog() {
-        android.app.Dialog dialog = new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.dialog_snap_tips);
         View btnContinue = dialog.findViewById(R.id.btn_continue_tips);
         if (btnContinue != null) btnContinue.setOnClickListener(v -> dialog.dismiss());
@@ -165,6 +328,8 @@ public class CameraScannerActivity extends AppCompatActivity {
             return;
         }
 
+        showLoading(true);
+
         File photoFile = new File(getFilesDir(), "raw_capture.jpg");
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(photoFile).build();
 
@@ -178,6 +343,8 @@ public class CameraScannerActivity extends AppCompatActivity {
             public void onError(@NonNull ImageCaptureException exception) {
                 Log.e(TAG, "Photo capture failed", exception);
                 runOnUiThread(() -> {
+                    showLoading(false);
+                    unfreezeScreen();
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(CameraScannerActivity.this, "Capture failed", Toast.LENGTH_SHORT).show();
                     }
@@ -202,22 +369,17 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (bitmap != null) {
                 Bitmap processed = resizeAndRotatePrecise(bitmap, exifRotation);
 
+                // Freeze live preview immediately
+                freezeScreenWithBitmap(processed);
+
                 try (FileOutputStream fos = openFileOutput(TEMP_IMAGE_NAME, Context.MODE_PRIVATE)) {
                     processed.compress(Bitmap.CompressFormat.JPEG, 85, fos);
 
-                    if (processed != bitmap) {
-                        processed.recycle();
-                    }
-                    bitmap.recycle();
+                    analyzeAndOpenDetails(processed);
 
-                    runOnUiThread(() -> {
-                        if (!isFinishing() && !isDestroyed()) {
-                            Intent resultIntent = new Intent();
-                            resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
-                            setResult(Activity.RESULT_OK, resultIntent);
-                            finish();
-                        }
-                    });
+                    if (processed != bitmap) {
+                        bitmap.recycle();
+                    }
                     if (file.exists()) file.delete();
                     return;
                 }
@@ -227,12 +389,55 @@ public class CameraScannerActivity extends AppCompatActivity {
             Log.e(TAG, "Error processing saved image", e);
         }
 
-        // Graceful error handling if file parsing fails
         runOnUiThread(() -> {
+            showLoading(false);
+            unfreezeScreen();
             if (!isFinishing() && !isDestroyed()) {
                 Toast.makeText(CameraScannerActivity.this, "Unable to process captured photo", Toast.LENGTH_SHORT).show();
-                setResult(Activity.RESULT_CANCELED);
-                finish();
+            }
+        });
+    }
+
+    private void analyzeAndOpenDetails(Bitmap bitmap) {
+        showLoading(true);
+
+        PlantAnalyzer analyzer = new PlantAnalyzer();
+        analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+            @Override
+            public void onSuccess(String formattedResult, String rawJson) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+
+                    if (rawJson == null || rawJson.isEmpty() || rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false")) {
+                        unfreezeScreen();
+                        Toast.makeText(CameraScannerActivity.this,
+                                "The image does not appear to contain a plant. Please scan a clear plant image.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    PlantDetailsActivity.tempScannedBitmap = bitmap;
+
+                    Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
+                    intent.putExtra("raw_ai_json", rawJson);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    unfreezeScreen();
+                    if (error.equals(PlantAnalyzer.ERROR_NON_PLANT)) {
+                        Toast.makeText(CameraScannerActivity.this,
+                                "The image does not appear to contain a plant. Please scan a clear plant image.",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(CameraScannerActivity.this, "Analysis Error: " + error, Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }
@@ -308,6 +513,9 @@ public class CameraScannerActivity extends AppCompatActivity {
         if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
+                // Show custom loading dialog immediately
+                showLoading(true);
+
                 cameraExecutor.execute(() -> {
                     try {
                         Bitmap bitmap;
@@ -324,14 +532,18 @@ public class CameraScannerActivity extends AppCompatActivity {
                         }
                         if (bitmap != null) {
                             processAndSaveGalleryImage(bitmap);
+                        } else {
+                            runOnUiThread(() -> {
+                                showLoading(false);
+                                Toast.makeText(CameraScannerActivity.this, "Failed to load image from gallery", Toast.LENGTH_SHORT).show();
+                            });
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Gallery image loading failed", e);
                         runOnUiThread(() -> {
+                            showLoading(false);
                             if (!isFinishing() && !isDestroyed()) {
                                 Toast.makeText(CameraScannerActivity.this, "Failed to load selected image", Toast.LENGTH_SHORT).show();
-                                setResult(Activity.RESULT_CANCELED);
-                                finish();
                             }
                         });
                     }
@@ -342,25 +554,21 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private void processAndSaveGalleryImage(Bitmap rawBitmap) {
         Bitmap processed = resizeAndRotatePrecise(rawBitmap, 0);
+
+        // Paste/Freeze image onto the screen instantly and stop camera movements
+        freezeScreenWithBitmap(processed);
+
         try (FileOutputStream fos = openFileOutput(TEMP_IMAGE_NAME, Context.MODE_PRIVATE)) {
             processed.compress(Bitmap.CompressFormat.JPEG, 85, fos);
-            if (processed != rawBitmap) processed.recycle();
-            rawBitmap.recycle();
-            runOnUiThread(() -> {
-                if (!isFinishing() && !isDestroyed()) {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
-                    setResult(Activity.RESULT_OK, resultIntent);
-                    finish();
-                }
-            });
+            analyzeAndOpenDetails(processed);
+            if (processed != rawBitmap) rawBitmap.recycle();
         } catch (IOException e) {
             Log.e(TAG, "Gallery image processing failed", e);
             runOnUiThread(() -> {
+                showLoading(false);
+                unfreezeScreen();
                 if (!isFinishing() && !isDestroyed()) {
                     Toast.makeText(CameraScannerActivity.this, "Failed to process gallery image", Toast.LENGTH_SHORT).show();
-                    setResult(Activity.RESULT_CANCELED);
-                    finish();
                 }
             });
         }
@@ -369,7 +577,9 @@ public class CameraScannerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (overlayView != null) overlayView.startScanning();
+        if (ivFrozenPreview == null || ivFrozenPreview.getVisibility() != View.VISIBLE) {
+            if (overlayView != null) overlayView.startScanning();
+        }
     }
 
     @Override
@@ -381,6 +591,12 @@ public class CameraScannerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+        if (animationHandler != null && progressRunnable != null) {
+            animationHandler.removeCallbacks(progressRunnable);
+        }
         if (cameraExecutor != null) {
             cameraExecutor.shutdown();
         }
