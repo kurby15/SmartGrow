@@ -38,8 +38,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,6 +53,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PlantDetailsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -79,6 +81,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
     // UI Elements - Top Info & Scores
     private TextView tvPlantTitle, tvScientificName, tvHealthState, tvAliases;
+    private TextView tvHealthScore, tvMatchConfidence;
 
     // UI Elements - Basic Info & Care
     private TextView tvPetToxicity, tvWeedPotential, tvDistribution, tvHabitat, tvPlantType, tvLifespan, tvCareDifficulty;
@@ -91,15 +94,16 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private TextView tvUltimateHeight, tvUltimateSpread, tvLeafType, tvPlantingTime;
     private LinearLayout layoutLeafColorsContainer;
 
-    // UI Elements - Care Conditions
-    private TextView tvTemp, tvHardiness;
+    // UI Elements - Care Conditions & How-tos
+    private TextView tvTemp, tvHardiness, tvSunlight, tvSoil;
+    private TextView tvPruningContent, tvPropagationContent, tvRepottingContent;
 
     // UI Elements - Additional Dynamic Text Sections
     private TextView tvUsesContent, tvAdaptationContent, tvEcologicalContent, tvHistoryContent, tvNameStoryContent, tvSymbolismContent;
 
     // UI Elements - Buttons
-    private MaterialButton btnSaveToGardenBottom, btnInlineSave, btnViewFrequency;
-    private ImageButton ibBack, ibCameraTop;
+    private MaterialButton btnSaveToGardenBottom, btnInlineSave;
+    private ImageButton ibBack;
 
     // Extracted Data Fields (Text + Percentages)
     private String plantName = "Unknown Plant";
@@ -107,7 +111,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String healthStatus = "Healthy";
     private int healthPercentage = 100;
     private int matchConfidencePercentage = 95;
-    private String careDifficultyText = "Moderate";
+    private String careDifficultyText = "Easy";
     private int careDifficultyPercentage = 50;
 
     private String aliases = "N/A";
@@ -149,6 +153,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String plantingTime = "N/A";
     private String temperatureRange = "N/A";
     private String hardinessZones = "N/A";
+    private String sunlightText = "Partial sun";
+    private String soilText = "Loam, Sandy loam";
+    private String pruningText = "N/A";
+    private String propagationText = "N/A";
+    private String repottingText = "N/A";
+
     private String usesText = "N/A";
     private String adaptationText = "N/A";
     private String ecologicalText = "N/A";
@@ -189,10 +199,15 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         parseIntentData();
 
         if (ibBack != null) ibBack.setOnClickListener(v -> finish());
-        if (ibCameraTop != null) ibCameraTop.setOnClickListener(v -> finish());
         if (ibSpeaker != null) ibSpeaker.setOnClickListener(v -> speakPlantPronunciation());
         if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setOnClickListener(v -> savePlantToDiary());
         if (btnInlineSave != null) btnInlineSave.setOnClickListener(v -> savePlantToDiary());
+
+        if (layoutDistributionClick != null) {
+            layoutDistributionClick.setOnClickListener(v ->
+                    Toast.makeText(this, "Distribution: " + distribution, Toast.LENGTH_SHORT).show()
+            );
+        }
     }
 
     private void initViews() {
@@ -212,6 +227,9 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvPlantTitle = findViewById(R.id.tv_plant_title);
         tvScientificName = findViewById(R.id.tv_scientific_name);
         tvHealthState = findViewById(R.id.tv_health_state);
+        tvHealthScore = findViewById(R.id.tv_health_score);
+        tvMatchConfidence = findViewById(R.id.tv_match_confidence);
+
         tvAliases = findViewById(R.id.tv_aliases);
         tvPetToxicity = findViewById(R.id.tv_pet_toxicity);
         tvWeedPotential = findViewById(R.id.tv_weed_potential);
@@ -232,6 +250,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         tvTemp = findViewById(R.id.tv_temp);
         tvHardiness = findViewById(R.id.tv_hardiness);
+        tvSunlight = findViewById(R.id.tv_sunlight);
+        tvSoil = findViewById(R.id.tv_soil);
+
+        tvPruningContent = findViewById(R.id.tv_pruning_content);
+        tvPropagationContent = findViewById(R.id.tv_propagation_content);
+        tvRepottingContent = findViewById(R.id.tv_repotting_content);
 
         tvUsesContent = findViewById(R.id.tv_uses_content);
         tvAdaptationContent = findViewById(R.id.tv_adaptation_content);
@@ -242,7 +266,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         btnSaveToGardenBottom = findViewById(R.id.btn_save_to_garden_bottom);
         btnInlineSave = findViewById(R.id.btn_inline_save);
-        btnViewFrequency = findViewById(R.id.btn_view_frequency);
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
     }
@@ -396,21 +419,33 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
     }
 
+    private int parsePercentage(Object rawVal, int fallback) {
+        if (rawVal == null) return fallback;
+        if (rawVal instanceof Integer) return (Integer) rawVal;
+        if (rawVal instanceof Double) return ((Double) rawVal).intValue();
+
+        String strVal = String.valueOf(rawVal);
+        Matcher matcher = Pattern.compile("(\\d+)").matcher(strVal);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {}
+        }
+        return fallback;
+    }
+
     private void populateDataFromJson(String jsonString) {
         try {
             JSONObject root = new JSONObject(jsonString);
 
-            if (root.has("is_plant") && !root.getBoolean("is_plant")) {
+            if (root.optBoolean("is_plant", true) == false) {
                 Toast.makeText(this, "The uploaded image is not recognized as a plant.", Toast.LENGTH_LONG).show();
                 plantName = "Not a Plant";
                 updateUI();
                 return;
             }
 
-            // Artificial / AI Plant Detection
-            if (root.optBoolean("is_artificial", false)) {
-                isArtificial = true;
-            }
+            isArtificial = root.optBoolean("is_artificial", false);
 
             JSONObject profile = root.optJSONObject("plant_profile");
             if (profile != null) {
@@ -430,10 +465,14 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 }
 
                 if (profile.has("scientific_name") && !profile.optString("scientific_name").isEmpty()) {
-                    scientificName = profile.optString("scientific_name");
+                    scientificName = profile.optString("scientific_name", scientificName);
                 }
 
-                matchConfidencePercentage = profile.optInt("confidence", profile.optInt("match_percentage", matchConfidencePercentage));
+                matchConfidencePercentage = parsePercentage(
+                        profile.opt("confidence") != null ? profile.opt("confidence") : profile.opt("match_percentage"),
+                        matchConfidencePercentage
+                );
+
                 aliases = profile.optString("philippine_name", profile.optString("aliases", aliases));
                 distribution = profile.optString("distribution_text", profile.optString("origin", distribution));
                 habitat = profile.optString("habitat", habitat);
@@ -443,12 +482,14 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 lifespan = profile.optString("lifespan", lifespan);
 
                 careDifficultyText = profile.optString("care_difficulty", profile.optString("difficulty_level", careDifficultyText));
-                careDifficultyPercentage = profile.optInt("care_difficulty_percentage", profile.optInt("difficulty_percentage", careDifficultyPercentage));
+                careDifficultyPercentage = parsePercentage(
+                        profile.opt("care_difficulty_percentage") != null ? profile.opt("care_difficulty_percentage") : profile.opt("difficulty_percentage"),
+                        careDifficultyPercentage
+                );
 
-                // Secondary check for artificial plants via type or name keywords
-                String lowerType = plantType.toLowerCase();
-                String lowerName = plantName.toLowerCase();
-                if (lowerType.contains("artificial") || lowerType.contains("plastic") || lowerType.contains("fake") || lowerType.contains("ai")
+                String lowerType = plantType != null ? plantType.toLowerCase() : "";
+                String lowerName = plantName != null ? plantName.toLowerCase() : "";
+                if (lowerType.contains("artificial") || lowerType.contains("plastic") || lowerType.contains("fake")
                         || lowerName.contains("artificial") || lowerName.contains("plastic") || lowerName.contains("fake")) {
                     isArtificial = true;
                 }
@@ -490,14 +531,15 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
                 if (colorsArray != null && colorsArray.length() > 0) {
                     for (int i = 0; i < colorsArray.length(); i++) {
-                        leafColorsList.add(colorsArray.optString(i));
+                        String colorVal = colorsArray.optString(i, "");
+                        if (!colorVal.isEmpty()) leafColorsList.add(colorVal);
                     }
                 } else if (characteristics.has("leaf_color_hex")) {
                     String colorVal = characteristics.optString("leaf_color_hex", "#4CAF50");
                     if (colorVal.contains(",")) {
                         String[] splitColors = colorVal.split(",");
                         for (String c : splitColors) {
-                            leafColorsList.add(c.trim());
+                            if (!c.trim().isEmpty()) leafColorsList.add(c.trim());
                         }
                     } else {
                         leafColorsList.add(colorVal.trim());
@@ -509,6 +551,15 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             if (ecosystem != null) {
                 temperatureRange = ecosystem.optString("temp_range", temperatureRange);
                 hardinessZones = ecosystem.optString("hardiness_zones", hardinessZones);
+                sunlightText = ecosystem.optString("sunlight", sunlightText);
+                soilText = ecosystem.optString("soil", soilText);
+            }
+
+            JSONObject howTos = root.optJSONObject("how_tos");
+            if (howTos != null) {
+                pruningText = howTos.optString("pruning", pruningText);
+                propagationText = howTos.optString("propagation", propagationText);
+                repottingText = howTos.optString("repotting", repottingText);
             }
 
             JSONObject extraDetails = root.optJSONObject("extra_details");
@@ -521,15 +572,17 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 symbolismText = extraDetails.optString("symbolism", symbolismText);
             }
 
-            // Health Scanner JSON Parsing Validation
             JSONObject health = root.optJSONObject("health_scanner");
             if (health != null) {
                 healthStatus = health.optString("status", healthStatus);
-                healthPercentage = health.optInt("health_score", health.optInt("percentage", healthPercentage));
+                healthPercentage = parsePercentage(
+                        health.opt("health_score") != null ? health.opt("health_score") : health.opt("confidence"),
+                        healthPercentage
+                );
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Failed to parse JSON", e);
+            Log.e(TAG, "Failed to parse JSON safely", e);
         }
         updateUI();
     }
@@ -546,6 +599,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             if (lower.contains("name:")) plantName = extractValue(line);
             else if (lower.contains("scientific name:")) scientificName = extractValue(line);
             else if (lower.contains("health:")) healthStatus = extractValue(line);
+            else if (lower.contains("confidence:")) matchConfidencePercentage = parsePercentage(extractValue(line), matchConfidencePercentage);
             else if (lower.contains("difficulty:")) careDifficultyText = extractValue(line);
             else if (lower.contains("type:") && (lower.contains("artificial") || lower.contains("fake") || lower.contains("plastic"))) {
                 isArtificial = true;
@@ -558,20 +612,14 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         return (line != null && line.contains(":")) ? line.substring(line.indexOf(":") + 1).trim() : (line != null ? line.trim() : "");
     }
 
-    /**
-     * Determines color HEX based on health status and percentage:
-     * Red (#F44336) = Sick
-     * Yellow (#FFC107) = Moderate
-     * Green (#4CAF50) = Healthy / Okay
-     */
     private String getHealthColorHex() {
         String statusLower = (healthStatus != null) ? healthStatus.toLowerCase() : "";
         if (healthPercentage < 50 || statusLower.contains("sick") || statusLower.contains("unhealthy") || statusLower.contains("diseased") || statusLower.contains("poor")) {
-            return "#F44336"; // Red
+            return "#F44336";
         } else if (healthPercentage < 80 || statusLower.contains("moderate") || statusLower.contains("fair") || statusLower.contains("warning")) {
-            return "#FFC107"; // Yellow
+            return "#FFC107";
         } else {
-            return "#4CAF50"; // Green
+            return "#81C784";
         }
     }
 
@@ -579,23 +627,38 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         if (isDestroyed() || isFinishing()) return;
 
         if (tvPlantTitle != null) {
-            tvPlantTitle.setText(plantName + " (" + matchConfidencePercentage + "% Match)");
+            tvPlantTitle.setText(plantName);
         }
         if (tvScientificName != null) tvScientificName.setText(scientificName);
 
-        // Display Health Status (Include status for AI/Artificial plants, but omit the percentage score)
         if (tvHealthState != null) {
             tvHealthState.setVisibility(View.VISIBLE);
             if (isArtificial) {
+                // Show only the status when the plant is artificial
                 tvHealthState.setText(healthStatus);
             } else {
-                tvHealthState.setText(healthStatus + " • " + healthPercentage + "% Health Score");
+                // Show status along with percentage for real plants
+                tvHealthState.setText(healthStatus + " (" + healthPercentage + "%)");
             }
             tvHealthState.setTextColor(Color.parseColor(getHealthColorHex()));
         }
 
+        if (tvHealthScore != null) {
+            if (isArtificial) {
+                // Display status only or hide/customize as needed
+                tvHealthScore.setText("Status: " + healthStatus);
+            } else {
+                tvHealthScore.setText("Health: " + healthPercentage + "%");
+            }
+            tvHealthScore.setTextColor(Color.parseColor(getHealthColorHex()));
+        }
+
+        if (tvMatchConfidence != null) {
+            tvMatchConfidence.setText("Match Confidence: " + matchConfidencePercentage + "%");
+        }
+
         if (tvCareDifficulty != null) {
-            tvCareDifficulty.setText("Difficulty: " + careDifficultyText + " (" + careDifficultyPercentage + "%)");
+            tvCareDifficulty.setText(careDifficultyText);
         }
 
         if (tvAliases != null) tvAliases.setText("Also known as: " + aliases);
@@ -617,6 +680,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         if (tvTemp != null) tvTemp.setText("Temperature: " + temperatureRange);
         if (tvHardiness != null) tvHardiness.setText("Hardiness Zones: " + hardinessZones);
+        if (tvSunlight != null) tvSunlight.setText(sunlightText);
+        if (tvSoil != null) tvSoil.setText(soilText);
+
+        if (tvPruningContent != null) tvPruningContent.setText(pruningText);
+        if (tvPropagationContent != null) tvPropagationContent.setText(propagationText);
+        if (tvRepottingContent != null) tvRepottingContent.setText(repottingText);
 
         if (tvUsesContent != null) tvUsesContent.setText(usesText);
         if (tvAdaptationContent != null) tvAdaptationContent.setText(adaptationText);
@@ -635,9 +704,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
 
         for (String hexColor : leafColorsList) {
+            if (hexColor == null || hexColor.trim().isEmpty()) continue;
+
             View colorSwatch = new View(this);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dpToPx(24), dpToPx(24));
-            params.setMargins(0, 0, dpToPx(8), 0);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dpToPx(16), dpToPx(16));
+            params.setMargins(dpToPx(4), 0, 0, 0);
             colorSwatch.setLayoutParams(params);
 
             try {
@@ -647,12 +718,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 GradientDrawable circleDrawable = new GradientDrawable();
                 circleDrawable.setShape(GradientDrawable.OVAL);
                 circleDrawable.setColor(Color.parseColor(colorStr));
-                circleDrawable.setStroke(dpToPx(1), Color.parseColor("#40FFFFFF"));
 
                 colorSwatch.setBackground(circleDrawable);
             } catch (Exception e) {
-                Log.w(TAG, "Invalid color code: " + hexColor);
-                colorSwatch.setBackgroundColor(Color.GRAY);
+                Log.w(TAG, "Invalid color code fallback: " + hexColor);
+                colorSwatch.setBackgroundColor(Color.parseColor("#4CAF50"));
             }
 
             layoutLeafColorsContainer.addView(colorSwatch);
@@ -779,7 +849,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 ? problemImageUrl
                 : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
 
-        android.content.Intent intent = new android.content.Intent(this, ProblemDetailsActivity.class);
+        Intent intent = new Intent(this, ProblemDetailsActivity.class);
         intent.putExtra("problem_title", problemTitle);
         intent.putExtra("problem_description", problemDescription);
         intent.putExtra("symptom_analysis", symptomAnalysis);
@@ -812,7 +882,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     card.setLayoutParams(cardParams);
                     card.setRadius(dpToPx(16));
                     card.setCardElevation(dpToPx(2));
-                    card.setCardBackgroundColor(Color.parseColor("#262626"));
+                    card.setCardBackgroundColor(Color.parseColor("#1E1E1E"));
                     card.setStrokeWidth(0);
 
                     LinearLayout innerLayout = new LinearLayout(this);
@@ -830,8 +900,8 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     if (targetProblemImg != null && targetProblemImg.startsWith("http")) {
                         Glide.with(getApplicationContext())
                                 .load(targetProblemImg)
-                                .placeholder(defaultDrawableRes) // Shown while loading
-                                .error(defaultDrawableRes)       // ALWAYS fall back to R.drawable.disease on error
+                                .placeholder(defaultDrawableRes)
+                                .error(defaultDrawableRes)
                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                                 .into(problemImageView);
                     } else {
@@ -880,7 +950,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("scientificName", scientificName);
         diaryEntry.put("healthStatus", healthStatus);
         diaryEntry.put("healthPercentage", healthPercentage);
-        diaryEntry.put("healthColor", getHealthColorHex()); // Added health status color code to Firebase
+        diaryEntry.put("healthColor", getHealthColorHex());
         diaryEntry.put("matchConfidencePercentage", matchConfidencePercentage);
         diaryEntry.put("careDifficultyText", careDifficultyText);
         diaryEntry.put("careDifficultyPercentage", careDifficultyPercentage);
@@ -894,13 +964,18 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("lifespan", lifespan);
         diaryEntry.put("isArtificial", isArtificial);
 
-        // Updated additional details to Firebase
         diaryEntry.put("ultimateHeight", ultimateHeight);
         diaryEntry.put("ultimateSpread", ultimateSpread);
         diaryEntry.put("leafType", leafType);
         diaryEntry.put("plantingTime", plantingTime);
         diaryEntry.put("temperatureRange", temperatureRange);
         diaryEntry.put("hardinessZones", hardinessZones);
+        diaryEntry.put("sunlight", sunlightText);
+        diaryEntry.put("soil", soilText);
+        diaryEntry.put("pruning", pruningText);
+        diaryEntry.put("propagation", propagationText);
+        diaryEntry.put("repotting", repottingText);
+
         diaryEntry.put("usesText", usesText);
         diaryEntry.put("adaptationText", adaptationText);
         diaryEntry.put("ecologicalText", ecologicalText);
@@ -921,7 +996,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(this, "Added to My Garden Diary!", Toast.LENGTH_SHORT).show();
 
-                        // Navigate back to MainActivity
                         Intent intent = new Intent(this, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                         startActivity(intent);

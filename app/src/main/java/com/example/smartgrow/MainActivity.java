@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.ImageDecoder;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
@@ -56,6 +57,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -184,19 +186,46 @@ public class MainActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        String imagePath = result.getData().getStringExtra(CameraScannerActivity.EXTRA_IMAGE_PATH);
-                        if (imagePath != null) {
-                            try (FileInputStream is = openFileInput(imagePath)) {
-                                Bitmap bitmap = BitmapFactory.decodeStream(is);
-                                if (bitmap != null) {
-                                    Bitmap resized = getResizedBitmap(bitmap, 1024);
-                                    setPendingImageForChat(resized);
+                        Intent data = result.getData();
+                        Bitmap capturedBitmap = null;
+
+                        // Check full absolute path first
+                        String fullPath = data.getStringExtra(CameraScannerActivity.EXTRA_FULL_IMAGE_PATH);
+                        if (fullPath != null && new File(fullPath).exists()) {
+                            capturedBitmap = BitmapFactory.decodeFile(fullPath);
+                        }
+
+                        // Check Uri from Intent data
+                        if (capturedBitmap == null && data.getData() != null) {
+                            Uri imageUri = data.getData();
+                            try {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                    capturedBitmap = ImageDecoder.decodeBitmap(
+                                            ImageDecoder.createSource(getContentResolver(), imageUri));
                                 } else {
-                                    Toast.makeText(this, "Error: Could not decode captured image.", Toast.LENGTH_SHORT).show();
+                                    try (InputStream is = getContentResolver().openInputStream(imageUri)) {
+                                        capturedBitmap = BitmapFactory.decodeStream(is);
+                                    }
                                 }
-                            } catch (IOException e) {
-                                Toast.makeText(this, "Failed to load captured photo.", Toast.LENGTH_SHORT).show();
+                            } catch (Exception ignored) {}
+                        }
+
+                        // Fallback to internal storage relative file name
+                        if (capturedBitmap == null) {
+                            String imagePath = data.getStringExtra(CameraScannerActivity.EXTRA_IMAGE_PATH);
+                            if (imagePath != null) {
+                                File internalFile = new File(getFilesDir(), imagePath);
+                                if (internalFile.exists()) {
+                                    capturedBitmap = BitmapFactory.decodeFile(internalFile.getAbsolutePath());
+                                }
                             }
+                        }
+
+                        if (capturedBitmap != null) {
+                            Bitmap resized = getResizedBitmap(capturedBitmap, 1024);
+                            setPendingImageForChat(resized);
+                        } else {
+                            Toast.makeText(this, "Failed to load captured photo.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 }

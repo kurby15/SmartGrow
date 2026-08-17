@@ -58,6 +58,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraScannerActivity";
     public static final String EXTRA_IMAGE_PATH = "extra_scanned_image_path";
+    public static final String EXTRA_FULL_IMAGE_PATH = "extra_full_image_path";
     public static final String EXTRA_MODE = "extra_mode";
     public static final String MODE_CHAT_ATTACHMENT = "mode_chat_attachment";
     public static final String TEMP_IMAGE_NAME = "temp_scanned_plant.jpg";
@@ -412,21 +413,25 @@ public class CameraScannerActivity extends AppCompatActivity {
     }
 
     /**
-     * Directs result back to MainActivity for chat paste without calling PlantAnalyzer.
+     * Directs result back to MainActivity/Chat for attachment without calling PlantAnalyzer.
      */
     private void returnResultToCaller() {
         runOnUiThread(() -> {
             showLoading(false);
+
+            File savedFile = new File(getFilesDir(), TEMP_IMAGE_NAME);
+
             Intent resultIntent = new Intent();
             resultIntent.putExtra(EXTRA_IMAGE_PATH, TEMP_IMAGE_NAME);
+            resultIntent.putExtra(EXTRA_FULL_IMAGE_PATH, savedFile.getAbsolutePath());
+            resultIntent.setData(Uri.fromFile(savedFile));
+
             setResult(RESULT_OK, resultIntent);
             finish();
         });
     }
 
     private void analyzeAndOpenDetails(Bitmap bitmap) {
-        showLoading(true);
-
         PlantAnalyzer analyzer = new PlantAnalyzer();
         analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
             @Override
@@ -456,7 +461,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     showLoading(false);
                     unfreezeScreen();
-                    if (error.equals(PlantAnalyzer.ERROR_NON_PLANT)) {
+                    if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
                         Toast.makeText(CameraScannerActivity.this,
                                 "The image does not appear to contain a plant. Please scan a clear plant image.",
                                 Toast.LENGTH_LONG).show();

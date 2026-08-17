@@ -34,6 +34,8 @@ public class PlantAnalyzer {
 
     private static final String SAMBANOVA_API_URL =
             "https://api.sambanova.ai/v1/chat/completions";
+
+    // Kept gemini-3.5-flash as requested
     private static final String GEMINI_API_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
@@ -116,7 +118,7 @@ public class PlantAnalyzer {
             systemMsg.put("content", "You are SmartGrow Assistant, powered by DeepSeek.\n\n" +
                     "The user has uploaded a plant image context:\n" + contextHistory + "\n\n" +
                     "Your job now is to answer follow-up questions ONLY about:\n" +
-                    "• The identified plant\n• Its health condition\n• Diseases, pests, watering, fertilizer, soil, sunlight, or general care\n\n" +
+                    "• The identified plant\n• Its health condition\n• Diseases, pests, watering, fertilizer, soil, sunlight, pruning, propagation, repotting, or general care\n\n" +
                     "If the user asks a completely unrelated question, reply only with:\n" +
                     "\"Sorry, I can only answer questions related to plants or the plant you previously uploaded.\"");
             messages.put(systemMsg);
@@ -156,13 +158,16 @@ public class PlantAnalyzer {
                     "3. GLOBAL BOTANICAL DISTRIBUTION & HABITAT MANDATE:\n" +
                     "   - Identify species taxonomy (scientific name) to determine its exact WORLDWIDE distribution.\n" +
                     "   - You MUST supply 4 to 20 representative coordinate pins in \"distribution_coordinates\" covering ALL countries and continents where this species naturally occurs OR has been introduced/naturalized.\n" +
-                    "   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned (e.g. 'Found in tropical rainforests of South America, low-elevation disturbed grounds in Southeast Asia, and Mediterranean coastal thickets').\n" +
+                    "   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned.\n" +
                     "   - Provide full distribution_text summarizing all global range countries where pins are set.\n" +
                     "   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n\n" +
                     "4. COMMON PROBLEMS SCHEMA MANDATE:\n" +
                     "   - Provide 2 to 4 common health problems or diseases for this specific plant species.\n" +
                     "   - Each item in \"common_problems\" MUST contain detailed fields: title, description, symptom_analysis, disease_cause, solutions, and prevention.\n\n" +
-                    "5. Return ONLY pure JSON matching EXACTLY this structure:\n" +
+                    "5. CARE & HOW-TOS MANDATE:\n" +
+                    "   - Detail the essential care conditions (sunlight, soil, temperature, humidity, hardiness_zones).\n" +
+                    "   - Detail specific how-to guides for pruning, propagation, and repotting in the \"how_tos\" object.\n\n" +
+                    "6. Return ONLY pure JSON matching EXACTLY this structure:\n" +
                     "{\n" +
                     "  \"is_plant\": true,\n" +
                     "  \"is_artificial\": false,\n" +
@@ -193,7 +198,8 @@ public class PlantAnalyzer {
                     "    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n" +
                     "    \"pet_toxicity\": \"Non-toxic to pets / Toxic to pets\",\n" +
                     "    \"weed_potential\": \"Low weed potential / Invasive weed\",\n" +
-                    "    \"lifespan\": \"Perennial / Annual\"\n" +
+                    "    \"lifespan\": \"Perennial / Annual\",\n" +
+                    "    \"care_difficulty\": \"Easy / Moderate / Hard\"\n" +
                     "  },\n" +
                     "  \"common_problems\": [\n" +
                     "    {\n" +
@@ -217,11 +223,17 @@ public class PlantAnalyzer {
                     "    \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"\n" +
                     "  },\n" +
                     "  \"ecosystem\": {\n" +
-                    "    \"humidity_preference\": \"High/Medium/Low\",\n" +
+                    "    \"humidity_preference\": \"High (60-80%) / Medium (40-60%) / Low\",\n" +
                     "    \"temp_range\": \"18-30°C\",\n" +
+                    "    \"soil\": \"Well-draining, nutrient-rich potting mix with perlite\",\n" +
                     "    \"soil_type\": \"Well-draining potting mix\",\n" +
                     "    \"hardiness_zones\": \"9-11\",\n" +
                     "    \"sunlight\": \"Bright indirect light\"\n" +
+                    "  },\n" +
+                    "  \"how_tos\": {\n" +
+                    "    \"pruning\": \"Trim yellowed or damaged leaves near the base using sterilized shears during spring/summer.\",\n" +
+                    "    \"propagation\": \"Take 4-6 inch stem cuttings below a node, root in water or moist soil for 2-3 weeks.\",\n" +
+                    "    \"repotting\": \"Repot every 1-2 years in spring into a container 2 inches larger with drainage holes.\"\n" +
                     "  },\n" +
                     "  \"characteristics\": {\n" +
                     "    \"ultimate_height\": \"e.g., 30 cm to 1 m\",\n" +
@@ -251,7 +263,6 @@ public class PlantAnalyzer {
                     "  },\n" +
                     "  \"smart_grow_lesson\": \"Short educational note\"\n" +
                     "}\n\n" +
-                    "NOTE ON HEALTH_SCORE: If status is Healthy, health_score should be 80-100. If Diseased, health_score should accurately reflect health level (e.g., 10-60 based on severity).\n\n" +
                     "OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.";
 
             JSONObject textPart = new JSONObject();
@@ -337,7 +348,7 @@ public class PlantAnalyzer {
                     String responseStr = res.body() != null ? res.body().string() : "";
 
                     if (!res.isSuccessful()) {
-                        Log.w(TAG, "Primary API error observed (" + res.code() + "). Checking failover rules... Body: " + responseStr);
+                        Log.w(TAG, "Primary API error observed (" + res.code() + "). Body: " + responseStr);
                         handleNetworkFailure();
                         return;
                     }
@@ -460,6 +471,7 @@ public class PlantAnalyzer {
             JSONObject health = root.optJSONObject("health_scanner");
             JSONObject hydration = root.optJSONObject("hydration_scanner");
             JSONObject ecosystem = root.optJSONObject("ecosystem");
+            JSONObject howTos = root.optJSONObject("how_tos");
             JSONArray symptoms = root.optJSONArray("symptoms_checklist");
             JSONObject intervention = root.optJSONObject("intervention_strategy");
 
@@ -503,6 +515,9 @@ public class PlantAnalyzer {
             if (profile.has("type")) {
                 sb.append("• Type: ").append(profile.optString("type", "N/A")).append("\n");
             }
+            if (profile.has("care_difficulty")) {
+                sb.append("• Care Difficulty: ").append(profile.optString("care_difficulty", "N/A")).append("\n");
+            }
             if (ecosystem != null && ecosystem.has("soil_type")) {
                 sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
             }
@@ -523,17 +538,36 @@ public class PlantAnalyzer {
                 sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
+            // Care Conditions Section
             if (hydration != null || ecosystem != null) {
-                sb.append("💧 Care Guide\n");
+                sb.append("💧 Care Conditions\n");
                 if (hydration != null && !isArtificial) {
                     sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A"))
                             .append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
                 }
                 if (ecosystem != null) {
-                    sb.append("• Soil: ").append(ecosystem.optString("soil_type", "N/A")).append("\n");
-                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append(" °C\n");
+                    sb.append("• Sunlight: ").append(ecosystem.optString("sunlight", "N/A")).append("\n");
+                    sb.append("• Soil: ").append(ecosystem.optString("soil", ecosystem.optString("soil_type", "N/A"))).append("\n");
+                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append("\n");
                     sb.append("• Humidity: ").append(ecosystem.optString("humidity_preference", "N/A")).append("\n");
+                    sb.append("• Hardiness Zones: ").append(ecosystem.optString("hardiness_zones", "N/A")).append("\n");
                 }
+                sb.append("\n");
+            }
+
+            // How-Tos Section
+            if (!isArtificial && howTos != null) {
+                sb.append("✂️ Plant Care How-Tos\n");
+                if (howTos.has("pruning")) {
+                    sb.append("• Pruning: ").append(howTos.optString("pruning", "N/A")).append("\n");
+                }
+                if (howTos.has("propagation")) {
+                    sb.append("• Propagation: ").append(howTos.optString("propagation", "N/A")).append("\n");
+                }
+                if (howTos.has("repotting")) {
+                    sb.append("• Repotting: ").append(howTos.optString("repotting", "N/A")).append("\n");
+                }
+                sb.append("\n");
             }
 
             if (!isArtificial && symptoms != null && symptoms.length() > 0) {
@@ -547,12 +581,12 @@ public class PlantAnalyzer {
                     }
                 }
                 if (hasRealSymptoms) {
-                    sb.append("\n⚠️ Problems Detected\n").append(symptomsBuilder);
+                    sb.append("⚠️ Problems Detected\n").append(symptomsBuilder).append("\n");
                 }
             }
 
             if (intervention != null) {
-                sb.append("\n✅ Recommendations\n");
+                sb.append("✅ Recommendations\n");
                 if (isArtificial) {
                     sb.append("• Immediate: Keep free of dust with a damp cloth.\n");
                     sb.append("• Long-term: Keep away from direct high heat to prevent plastic degradation.\n\n");
@@ -601,7 +635,7 @@ public class PlantAnalyzer {
 
     private String bitmapToBase64(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(byteArray, Base64.NO_WRAP);
     }
