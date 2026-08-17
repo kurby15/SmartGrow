@@ -324,16 +324,15 @@ public class MainActivity extends AppCompatActivity {
         PlantAnalyzer analyzer = new PlantAnalyzer();
 
         if (imageBitmap != null) {
-            analyzer.analyzePlantDetailed(imageBitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+            PlantAnalyzer.PlantAnalysisCallback detailedCallback = new PlantAnalyzer.PlantAnalysisCallback() {
                 @Override
                 public void onSuccess(String formattedResult, String rawJson) {
                     runOnUiThread(() -> {
                         removeLoadingIndicator();
 
-                        if (rawJson == null || rawJson.isEmpty()
-                                || rawJson.contains("\"is_plant\": false")
+                        if (rawJson != null && (rawJson.contains("\"is_plant\": false")
                                 || rawJson.contains("\"is_plant\":false")
-                                || rawJson.contains("plant_not_detected")) {
+                                || rawJson.contains("plant_not_detected"))) {
 
                             ChatMessageModel notPlantMsg = new ChatMessageModel(
                                     "We couldn't detect a plant in the provided image. Please make sure the photo is clear, well-lit, and focused on a plant before trying again.",
@@ -408,7 +407,13 @@ public class MainActivity extends AppCompatActivity {
                         appendMessageToFirestore(errorMsg);
                     });
                 }
-            });
+            };
+
+            if (messageText != null && !messageText.trim().isEmpty()) {
+                analyzer.analyzePlantWithQuestion(messageText, imageBitmap, detailedCallback);
+            } else {
+                analyzer.analyzePlantDetailed(imageBitmap, detailedCallback);
+            }
         } else {
             PlantAnalyzer.PlantCallback aiCallback = new PlantAnalyzer.PlantCallback() {
                 @Override

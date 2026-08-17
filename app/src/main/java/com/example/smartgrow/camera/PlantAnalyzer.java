@@ -35,7 +35,6 @@ public class PlantAnalyzer {
     private static final String SAMBANOVA_API_URL =
             "https://api.sambanova.ai/v1/chat/completions";
 
-    // Kept gemini-3.5-flash as requested
     private static final String GEMINI_API_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
@@ -86,13 +85,17 @@ public class PlantAnalyzer {
         askAI(null, imageBitmap, null, null, detailedCallback);
     }
 
+    public void analyzePlantWithQuestion(String question, Bitmap imageBitmap, PlantAnalysisCallback detailedCallback) {
+        askAI(question, imageBitmap, null, null, detailedCallback);
+    }
+
     private void askAI(String question, Bitmap imageBitmap, String contextHistory,
                        PlantCallback callback, PlantAnalysisCallback detailedCallback) {
         try {
             boolean isVisionRequest = (imageBitmap != null);
 
             if (isVisionRequest) {
-                String bodyStr = buildGeminiPayload(null, imageBitmap, null);
+                String bodyStr = buildGeminiPayload(question, imageBitmap, contextHistory);
                 sendApiRequest(bodyStr, true, true, question, imageBitmap, contextHistory, callback, detailedCallback);
             } else {
                 String bodyStr = buildSambaNovaPayload(question, contextHistory);
@@ -146,127 +149,150 @@ public class PlantAnalyzer {
         JSONArray partsArray = new JSONArray();
 
         if (imageBitmap != null) {
-            String basePrompt = "You are an expert botanical computer vision engine and global ecology system.\n\n" +
-                    "TASK INSTRUCTIONS:\n" +
-                    "1. First, check if the image contains a plant (real or artificial/fake/plastic).\n" +
-                    "   - If NO plant or botanical element is present, return JSON: {\"is_plant\": false}\n\n" +
-                    "2. ARTIFICIAL PLANT INSPECTION:\n" +
-                    "   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n" +
-                    "   - Look for plastic gloss, injection molding seams, unnatural leaf patterns, synthetic stems, or fabric textures.\n" +
-                    "   - Set \"is_artificial\" to true if artificial, otherwise false.\n" +
-                    "   - In \"artificial_details\", list specific reasons why it is identified as artificial. If real, leave this array empty.\n\n" +
-                    "3. GLOBAL BOTANICAL DISTRIBUTION & HABITAT MANDATE:\n" +
-                    "   - Identify species taxonomy (scientific name) to determine its exact WORLDWIDE distribution.\n" +
-                    "   - You MUST supply 4 to 20 representative coordinate pins in \"distribution_coordinates\" covering ALL countries and continents where this species naturally occurs OR has been introduced/naturalized.\n" +
-                    "   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned.\n" +
-                    "   - Provide full distribution_text summarizing all global range countries where pins are set.\n" +
-                    "   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n\n" +
-                    "4. COMMON PROBLEMS SCHEMA MANDATE:\n" +
-                    "   - Provide 2 to 4 common health problems or diseases for this specific plant species.\n" +
-                    "   - Each item in \"common_problems\" MUST contain detailed fields: title, description, symptom_analysis, disease_cause, solutions, and prevention.\n\n" +
-                    "5. CARE & HOW-TOS MANDATE:\n" +
-                    "   - Detail the essential care conditions (sunlight, soil, temperature, humidity, hardiness_zones).\n" +
-                    "   - Detail specific how-to guides for pruning, propagation, and repotting in the \"how_tos\" object.\n\n" +
-                    "6. Return ONLY pure JSON matching EXACTLY this structure:\n" +
-                    "{\n" +
-                    "  \"is_plant\": true,\n" +
-                    "  \"is_artificial\": false,\n" +
-                    "  \"artificial_details\": [],\n" +
-                    "  \"plant_profile\": {\n" +
-                    "    \"name\": \"Common Name (Scientific Name)\",\n" +
-                    "    \"scientific_name\": \"Scientific Name\",\n" +
-                    "    \"philippine_name\": \"Local Philippine Name or N/A\",\n" +
-                    "    \"aliases\": \"Common aliases\",\n" +
-                    "    \"origin\": \"Native origin region/countries\",\n" +
-                    "    \"distribution_text\": \"Complete worldwide geographic distribution listing all country locations pinned on map.\",\n" +
-                    "    \"habitat\": \"Detailed habitat summary encompassing environmental conditions across all countries where it is pinned.\",\n" +
-                    "    \"distribution_confidence\": \"High\",\n" +
-                    "    \"distribution_coordinates\": [\n" +
-                    "      {\n" +
-                    "        \"latitude\": -14.2350,\n" +
-                    "        \"longitude\": -51.9253,\n" +
-                    "        \"title\": \"Brazil\",\n" +
-                    "        \"region\": \"South America\",\n" +
-                    "        \"country\": \"Brazil\",\n" +
-                    "        \"distribution_type\": \"Native\",\n" +
-                    "        \"is_native\": true,\n" +
-                    "        \"confidence\": \"High\",\n" +
-                    "        \"snippet\": \"Native tropical rainforest habitat.\",\n" +
-                    "        \"description\": \"Part of native range in South America.\"\n" +
-                    "      }\n" +
-                    "    ],\n" +
-                    "    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n" +
-                    "    \"pet_toxicity\": \"Non-toxic to pets / Toxic to pets\",\n" +
-                    "    \"weed_potential\": \"Low weed potential / Invasive weed\",\n" +
-                    "    \"lifespan\": \"Perennial / Annual\",\n" +
-                    "    \"care_difficulty\": \"Easy / Moderate / Hard\"\n" +
-                    "  },\n" +
-                    "  \"common_problems\": [\n" +
-                    "    {\n" +
-                    "      \"title\": \"Aged yellow and dry\",\n" +
-                    "      \"description\": \"Natural aging can cause leaves to turn yellow and dry out.\",\n" +
-                    "      \"symptom_analysis\": \"When plants have progressed through their natural developmental stages, leaves will start to yellow, droop, and turn papery brown.\",\n" +
-                    "      \"disease_cause\": \"At the end of its life, genetic coding within the plant increases the production of ethylene, leading to natural cell breakdown.\",\n" +
-                    "      \"solutions\": \"If yellowing is a natural progression due to age, nothing can be done to stop it. Prune dead leaves to keep the plant clean.\",\n" +
-                    "      \"prevention\": \"To prolong leaf life, ensure proper water, adequate sunlight, and balanced fertilization.\",\n" +
-                    "      \"image_url\": \"\"\n" +
-                    "    }\n" +
-                    "  ],\n" +
-                    "  \"health_scanner\": {\n" +
-                    "    \"status\": \"Healthy / Artificial / Diseased / Indeterminate\",\n" +
-                    "    \"confidence\": \"85%\",\n" +
-                    "    \"health_score\": 85,\n" +
-                    "    \"tissue_damage\": \"Description of damage or N/A\"\n" +
-                    "  },\n" +
-                    "  \"hydration_scanner\": {\n" +
-                    "    \"turgor_pressure\": \"High/Optimal/Wilting/N/A\",\n" +
-                    "    \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"\n" +
-                    "  },\n" +
-                    "  \"ecosystem\": {\n" +
-                    "    \"humidity_preference\": \"High (60-80%) / Medium (40-60%) / Low\",\n" +
-                    "    \"temp_range\": \"18-30°C\",\n" +
-                    "    \"soil\": \"Well-draining, nutrient-rich potting mix with perlite\",\n" +
-                    "    \"soil_type\": \"Well-draining potting mix\",\n" +
-                    "    \"hardiness_zones\": \"9-11\",\n" +
-                    "    \"sunlight\": \"Bright indirect light\"\n" +
-                    "  },\n" +
-                    "  \"how_tos\": {\n" +
-                    "    \"pruning\": \"Trim yellowed or damaged leaves near the base using sterilized shears during spring/summer.\",\n" +
-                    "    \"propagation\": \"Take 4-6 inch stem cuttings below a node, root in water or moist soil for 2-3 weeks.\",\n" +
-                    "    \"repotting\": \"Repot every 1-2 years in spring into a container 2 inches larger with drainage holes.\"\n" +
-                    "  },\n" +
-                    "  \"characteristics\": {\n" +
-                    "    \"ultimate_height\": \"e.g., 30 cm to 1 m\",\n" +
-                    "    \"ultimate_spread\": \"e.g., 20 cm to 50 cm\",\n" +
-                    "    \"leaf_color_hex\": \"#2E7D32\",\n" +
-                    "    \"leaf_type\": \"Evergreen\",\n" +
-                    "    \"planting_time\": \"Spring\"\n" +
-                    "  },\n" +
-                    "  \"care_profile\": {\n" +
-                    "    \"difficulty\": \"Easy\",\n" +
-                    "    \"watering_frequency\": \"Water when top inch is dry\",\n" +
-                    "    \"propagation_method\": \"Stem cuttings\"\n" +
-                    "  },\n" +
-                    "  \"extra_details\": {\n" +
-                    "    \"uses\": \"Decorative / Ornamental\",\n" +
-                    "    \"uses_disclaimer\": \"\",\n" +
-                    "    \"adaptation_strategies\": \"Drought tolerant\",\n" +
-                    "    \"ecological_application\": \"Air purifier\",\n" +
-                    "    \"history_and_legends\": \"Historical context\",\n" +
-                    "    \"name_story\": \"Etymology\",\n" +
-                    "    \"symbolism\": \"Symbolic meaning\"\n" +
-                    "  },\n" +
-                    "  \"symptoms_checklist\": [],\n" +
-                    "  \"intervention_strategy\": {\n" +
-                    "    \"immediate_action\": \"No watering required if artificial.\",\n" +
-                    "    \"long_term_care\": \"Dust periodically.\"\n" +
-                    "  },\n" +
-                    "  \"smart_grow_lesson\": \"Short educational note\"\n" +
-                    "}\n\n" +
-                    "OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.";
+            StringBuilder basePromptBuilder = new StringBuilder();
+
+            // Check if there is a custom user question AND no context history (so simple uploads run normal JSON scan)
+            boolean isConversationalQuestion = (question != null && !question.trim().isEmpty()) && (contextHistory == null || contextHistory.trim().isEmpty());
+
+            if (isConversationalQuestion) {
+                // MODIFIED: Conversational prompt ONLY when user attached an image with text/question
+                basePromptBuilder.append("You are SmartGrow Assistant, an expert AI plant care assistant.\n")
+                        .append("The user has attached an image of their plant along with a specific question.\n\n")
+                        .append("USER QUESTION: \"").append(question.trim()).append("\"\n\n")
+                        .append("INSTRUCTIONS:\n")
+                        .append("1. First, verify if the image contains a plant or botanical element.\n")
+                        .append("2. If NO plant is found, state politely that no plant was detected.\n")
+                        .append("3. Identify the plant and directly, naturally answer the user's question based on what you observe.\n")
+                        .append("4. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
+                        .append("5. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
+            } else {
+                // Default detailed camera scan prompt (normal profile mode for image-only uploads)
+                basePromptBuilder.append("You are an expert botanical computer vision engine and global ecology system.\n\n")
+                        .append("TASK INSTRUCTIONS:\n")
+                        .append("1. First, check if the image contains a plant (real or artificial/fake/plastic).\n")
+                        .append("   - If NO plant or botanical element is present, return JSON: {\"is_plant\": false}\n\n")
+                        .append("2. ARTIFICIAL PLANT INSPECTION:\n")
+                        .append("   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n")
+                        .append("   - Look for plastic gloss, injection molding seams, unnatural leaf patterns, synthetic stems, or fabric textures.\n")
+                        .append("   - Set \"is_artificial\" to true if artificial, otherwise false.\n")
+                        .append("   - In \"artificial_details\", list specific reasons why it is identified as artificial. If real, leave this array empty.\n\n")
+                        .append("3. GLOBAL BOTANICAL DISTRIBUTION & HABITAT MANDATE:\n")
+                        .append("   - Identify species taxonomy (scientific name) to determine its exact WORLDWIDE distribution.\n")
+                        .append("   - You MUST supply 4 to 20 representative coordinate pins in \"distribution_coordinates\" covering ALL countries and continents where this species naturally occurs OR has been introduced/naturalized.\n")
+                        .append("   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned.\n")
+                        .append("   - Provide full distribution_text summarizing all global range countries where pins are set.\n")
+                        .append("   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n\n")
+                        .append("4. COMMON PROBLEMS SCHEMA MANDATE:\n")
+                        .append("   - Provide 2 to 4 common health problems or diseases for this specific plant species.\n")
+                        .append("   - Each item in \"common_problems\" MUST contain detailed fields: title, description, symptom_analysis, disease_cause, solutions, and prevention.\n\n")
+                        .append("5. CARE & HOW-TOS MANDATE:\n")
+                        .append("   - Detail the essential care conditions (sunlight, soil, temperature, humidity, hardiness_zones).\n")
+                        .append("   - Detail specific how-to guides for pruning, propagation, and repotting in the \"how_tos\" object.\n\n")
+                        .append("6. Return ONLY pure JSON matching EXACTLY this structure:\n")
+                        .append("{\n")
+                        .append("  \"is_plant\": true,\n")
+                        .append("  \"is_artificial\": false,\n")
+                        .append("  \"artificial_details\": [],\n")
+                        .append("  \"plant_profile\": {\n")
+                        .append("    \"name\": \"Common Name (Scientific Name)\",\n")
+                        .append("    \"scientific_name\": \"Scientific Name\",\n")
+                        .append("    \"philippine_name\": \"Local Philippine Name or N/A\",\n")
+                        .append("    \"aliases\": \"Common aliases\",\n")
+                        .append("    \"origin\": \"Native origin region/countries\",\n")
+                        .append("    \"distribution_text\": \"Complete worldwide geographic distribution listing all country locations pinned on map.\",\n")
+                        .append("    \"habitat\": \"Detailed habitat summary encompassing environmental conditions across all countries where it is pinned.\",\n")
+                        .append("    \"distribution_confidence\": \"High\",\n")
+                        .append("    \"distribution_coordinates\": [\n")
+                        .append("      {\n")
+                        .append("        \"latitude\": -14.2350,\n")
+                        .append("        \"longitude\": -51.9253,\n")
+                        .append("        \"title\": \"Brazil\",\n")
+                        .append("        \"region\": \"South America\",\n")
+                        .append("        \"country\": \"Brazil\",\n")
+                        .append("        \"distribution_type\": \"Native\",\n")
+                        .append("        \"is_native\": true,\n")
+                        .append("        \"confidence\": \"High\",\n")
+                        .append("        \"snippet\": \"Native tropical rainforest habitat.\",\n")
+                        .append("        \"description\": \"Part of native range in South America.\"\n")
+                        .append("      }\n")
+                        .append("    ],\n")
+                        .append("    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n")
+                        .append("    \"pet_toxicity\": \"Non-toxic to pets / Toxic to pets\",\n")
+                        .append("    \"weed_potential\": \"Low weed potential / Invasive weed\",\n")
+                        .append("    \"lifespan\": \"Perennial / Annual\",\n")
+                        .append("    \"care_difficulty\": \"Easy / Moderate / Hard\"\n")
+                        .append("  },\n")
+                        .append("  \"common_problems\": [\n")
+                        .append("    {\n")
+                        .append("      \"title\": \"Aged yellow and dry\",\n")
+                        .append("      \"description\": \"Natural aging can cause leaves to turn yellow and dry out.\",\n")
+                        .append("      \"symptom_analysis\": \"When plants have progressed through their natural developmental stages, leaves will start to yellow, droop, and turn papery brown.\",\n")
+                        .append("      \"disease_cause\": \"At the end of its life, genetic coding within the plant increases the production of ethylene, leading to natural cell breakdown.\",\n")
+                        .append("      \"solutions\": \"If yellowing is a natural progression due to age, nothing can be done to stop it. Prune dead leaves to keep the plant clean.\",\n")
+                        .append("      \"prevention\": \"To prolong leaf life, ensure proper water, adequate sunlight, and balanced fertilization.\",\n")
+                        .append("      \"image_url\": \"\"\n")
+                        .append("    }\n")
+                        .append("  ],\n")
+                        .append("  \"health_scanner\": {\n")
+                        .append("    \"status\": \"Healthy / Artificial / Diseased / Indeterminate\",\n")
+                        .append("    \"confidence\": \"85%\",\n")
+                        .append("    \"health_score\": 85,\n")
+                        .append("    \"tissue_damage\": \"Description of damage or N/A\"\n")
+                        .append("  },\n")
+                        .append("  \"hydration_scanner\": {\n")
+                        .append("    \"turgor_pressure\": \"High/Optimal/Wilting/N/A\",\n")
+                        .append("    \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"\n")
+                        .append("  },\n")
+                        .append("  \"ecosystem\": {\n")
+                        .append("    \"humidity_preference\": \"High (60-80%) / Medium (40-60%) / Low\",\n")
+                        .append("    \"temp_range\": \"18-30°C\",\n")
+                        .append("    \"soil\": \"Well-draining, nutrient-rich potting mix with perlite\",\n")
+                        .append("    \"soil_type\": \"Well-draining potting mix\",\n")
+                        .append("    \"hardiness_zones\": \"9-11\",\n")
+                        .append("    \"sunlight\": \"Bright indirect light\"\n")
+                        .append("  },\n")
+                        .append("  \"how_tos\": {\n")
+                        .append("    \"pruning\": \"Trim yellowed or damaged leaves near the base using sterilized shears during spring/summer.\",\n")
+                        .append("    \"propagation\": \"Take 4-6 inch stem cuttings below a node, root in water or moist soil for 2-3 weeks.\",\n")
+                        .append("    \"repotting\": \"Repot every 1-2 years in spring into a container 2 inches larger with drainage holes.\"\n")
+                        .append("  },\n")
+                        .append("  \"characteristics\": {\n")
+                        .append("    \"ultimate_height\": \"e.g., 30 cm to 1 m\",\n")
+                        .append("    \"ultimate_spread\": \"e.g., 20 cm to 50 cm\",\n")
+                        .append("    \"leaf_color_hex\": \"#2E7D32\",\n")
+                        .append("    \"leaf_type\": \"Evergreen\",\n")
+                        .append("    \"planting_time\": \"Spring\"\n")
+                        .append("  },\n")
+                        .append("  \"care_profile\": {\n")
+                        .append("    \"difficulty\": \"Easy\",\n")
+                        .append("    \"watering_frequency\": \"Water when top inch is dry\",\n")
+                        .append("    \"propagation_method\": \"Stem cuttings\"\n")
+                        .append("  },\n")
+                        .append("  \"extra_details\": {\n")
+                        .append("    \"uses\": \"Decorative / Ornamental\",\n")
+                        .append("    \"uses_disclaimer\": \"\",\n")
+                        .append("    \"adaptation_strategies\": \"Drought tolerant\",\n")
+                        .append("    \"ecological_application\": \"Air purifier\",\n")
+                        .append("    \"history_and_legends\": \"Historical context\",\n")
+                        .append("    \"name_story\": \"Etymology\",\n")
+                        .append("    \"symbolism\": \"Symbolic meaning\"\n")
+                        .append("  },\n")
+                        .append("  \"symptoms_checklist\": [],\n")
+                        .append("  \"intervention_strategy\": {\n")
+                        .append("    \"immediate_action\": \"No watering required if artificial.\",\n")
+                        .append("    \"long_term_care\": \"Dust periodically.\"\n")
+                        .append("  },\n")
+                        .append("  \"smart_grow_lesson\": \"Short educational note\"\n")
+                        .append("}\n\n")
+                        .append("OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.");
+
+                JSONObject generationConfig = new JSONObject();
+                generationConfig.put("responseMimeType", "application/json");
+                body.put("generationConfig", generationConfig);
+            }
 
             JSONObject textPart = new JSONObject();
-            textPart.put("text", basePrompt);
+            textPart.put("text", basePromptBuilder.toString());
             partsArray.put(textPart);
 
             JSONObject imagePart = new JSONObject();
@@ -276,9 +302,6 @@ public class PlantAnalyzer {
             imagePart.put("inlineData", inlineData);
             partsArray.put(imagePart);
 
-            JSONObject generationConfig = new JSONObject();
-            generationConfig.put("responseMimeType", "application/json");
-            body.put("generationConfig", generationConfig);
         } else {
             String systemInstructions = "You are SmartGrow Assistant, backed up by Gemini. Your ONLY purpose is to help users with plants. " +
                     "If the user's question is NOT related to plants, gardening, farming, or care, reply with: " +
@@ -386,25 +409,37 @@ public class PlantAnalyzer {
 
                         final String finalReply = replyText;
                         if (isVisionRequest) {
-                            String rawJsonBlock = extractJsonBlock(finalReply);
+                            // Check if this is a conversational query (Question present + no context history)
+                            boolean isConversationalQuestion = (origQuestion != null && !origQuestion.trim().isEmpty()) && (origContext == null || origContext.trim().isEmpty());
 
-                            try {
-                                JSONObject parsedRoot = new JSONObject(rawJsonBlock);
-                                if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
-                                    mainHandler.post(() -> {
-                                        if (callback != null) callback.onError(REJECT_MESSAGE);
-                                        if (detailedCallback != null) detailedCallback.onError(ERROR_NON_PLANT);
-                                    });
-                                    return;
-                                }
-                            } catch (Exception ignored) {}
+                            if (isConversationalQuestion) {
+                                // MODIFIED: Plain conversational response when text question is attached
+                                mainHandler.post(() -> {
+                                    if (callback != null) callback.onSuccess(finalReply);
+                                    if (detailedCallback != null) detailedCallback.onSuccess(finalReply, "");
+                                });
+                            } else {
+                                // Standard camera scanner mode or image-only upload (returns full plant profile JSON)
+                                String rawJsonBlock = extractJsonBlock(finalReply);
 
-                            String structuredProfile = parseAndFormatPlantJson(finalReply);
+                                try {
+                                    JSONObject parsedRoot = new JSONObject(rawJsonBlock);
+                                    if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
+                                        mainHandler.post(() -> {
+                                            if (callback != null) callback.onError(REJECT_MESSAGE);
+                                            if (detailedCallback != null) detailedCallback.onError(ERROR_NON_PLANT);
+                                        });
+                                        return;
+                                    }
+                                } catch (Exception ignored) {}
 
-                            mainHandler.post(() -> {
-                                if (callback != null) callback.onSuccess(structuredProfile);
-                                if (detailedCallback != null) detailedCallback.onSuccess(structuredProfile, rawJsonBlock);
-                            });
+                                String structuredProfile = parseAndFormatPlantJson(finalReply);
+
+                                mainHandler.post(() -> {
+                                    if (callback != null) callback.onSuccess(structuredProfile);
+                                    if (detailedCallback != null) detailedCallback.onSuccess(structuredProfile, rawJsonBlock);
+                                });
+                            }
                         } else {
                             mainHandler.post(() -> {
                                 if (callback != null) callback.onSuccess(finalReply);
