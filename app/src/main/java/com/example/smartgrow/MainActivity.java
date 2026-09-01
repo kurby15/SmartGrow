@@ -42,8 +42,8 @@ import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
-import com.example.smartgrow.plants.DiaryFragment;
 import com.example.smartgrow.plants.HomeFragment;
+import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.profile.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -58,7 +58,6 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -141,18 +140,16 @@ public class MainActivity extends AppCompatActivity {
 
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
-                Fragment selectedFragment = null;
                 int itemId = item.getItemId();
 
                 if (itemId == R.id.nav_home) {
-                    selectedFragment = new HomeFragment();
-                } else if (itemId == R.id.nav_diary) {
-                    selectedFragment = new DiaryFragment();
-                }
-
-                if (selectedFragment != null) {
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.fragment_container, selectedFragment)
+                            .replace(R.id.fragment_container, new HomeFragment())
+                            .commit();
+                    return true;
+                } else if (itemId == R.id.nav_diary) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, new MyGardenFragment())
                             .commit();
                     return true;
                 }
@@ -168,7 +165,8 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            if (current instanceof ProfileFragment || current instanceof ArchiveFragment) {
+            // Show bottom navigation bar and assistant button on ProfileFragment
+            if (current instanceof ArchiveFragment) {
                 hideSystemBars();
             } else {
                 showSystemBars();
@@ -181,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
     // ==========================================
 
     private void setupLaunchers() {
-        // Camera Capture Result Handler
         cameraScannerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -189,13 +186,11 @@ public class MainActivity extends AppCompatActivity {
                         Intent data = result.getData();
                         Bitmap capturedBitmap = null;
 
-                        // Check full absolute path first
                         String fullPath = data.getStringExtra(CameraScannerActivity.EXTRA_FULL_IMAGE_PATH);
                         if (fullPath != null && new File(fullPath).exists()) {
                             capturedBitmap = BitmapFactory.decodeFile(fullPath);
                         }
 
-                        // Check Uri from Intent data
                         if (capturedBitmap == null && data.getData() != null) {
                             Uri imageUri = data.getData();
                             try {
@@ -210,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
                             } catch (Exception ignored) {}
                         }
 
-                        // Fallback to internal storage relative file name
                         if (capturedBitmap == null) {
                             String imagePath = data.getStringExtra(CameraScannerActivity.EXTRA_IMAGE_PATH);
                             if (imagePath != null) {
@@ -231,7 +225,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        // Camera Permission Launcher
         cameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
@@ -243,7 +236,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        // Gallery Image Selection Result Handler
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -291,13 +283,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private String buildChatHistoryContext() {
+        if (activeChatList == null || activeChatList.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder historyBuilder = new StringBuilder();
+        int startIndex = Math.max(0, activeChatList.size() - 10);
+
+        for (int i = startIndex; i < activeChatList.size(); i++) {
+            ChatMessageModel msg = activeChatList.get(i);
+            if (msg.getMessageType() == ChatMessageModel.TYPE_USER) {
+                if (msg.getMessageText() != null && !msg.getMessageText().trim().isEmpty()) {
+                    historyBuilder.append("User: ").append(msg.getMessageText()).append("\n");
+                }
+            } else if (msg.getMessageType() == ChatMessageModel.TYPE_AI) {
+                if (msg.getMessageText() != null && !msg.getMessageText().trim().isEmpty()) {
+                    historyBuilder.append("Assistant: ").append(msg.getMessageText()).append("\n");
+                }
+            }
+        }
+        return historyBuilder.toString().trim();
+    }
+
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
         if (currentSessionId == null) {
             String title = !messageText.isEmpty() ? messageText : "Scanned Plant Image";
             saveSessionToHistory(title);
         }
 
-        // Add user message to UI list
         ChatMessageModel userMsg = new ChatMessageModel(messageText, getCurrentPhTime(), ChatMessageModel.TYPE_USER);
         if (imageBitmap != null) {
             userMsg.setImageBitmap(imageBitmap);
@@ -308,10 +322,8 @@ public class MainActivity extends AppCompatActivity {
             activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
         }
 
-        // Save User Message into single session document inside messages array
         appendMessageToFirestore(userMsg);
 
-        // Add loading indicator message for UI only
         activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
         if (activeChatAdapter != null) {
             activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
@@ -347,7 +359,6 @@ public class MainActivity extends AppCompatActivity {
                                 activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
                             }
 
-                            // === SAVE AI RESPONSE TO FIRESTORE ===
                             appendMessageToFirestore(notPlantMsg);
                             return;
                         }
@@ -372,7 +383,6 @@ public class MainActivity extends AppCompatActivity {
                             activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
                         }
 
-                        // === SAVE AI RESPONSE TO FIRESTORE ===
                         appendMessageToFirestore(aiMsg);
                     });
                 }
@@ -403,7 +413,6 @@ public class MainActivity extends AppCompatActivity {
                             activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
                         }
 
-                        // === SAVE AI ERROR RESPONSE TO FIRESTORE ===
                         appendMessageToFirestore(errorMsg);
                     });
                 }
@@ -481,7 +490,6 @@ public class MainActivity extends AppCompatActivity {
                             activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
                         }
 
-                        // === SAVE AI REPLY TO FIRESTORE ===
                         appendMessageToFirestore(msg);
                     });
                 }
@@ -504,16 +512,22 @@ public class MainActivity extends AppCompatActivity {
                             activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
                         }
 
-                        // === SAVE AI ERROR REPLY TO FIRESTORE ===
                         appendMessageToFirestore(errorMsg);
                     });
                 }
             };
 
-            if (lastAnalyzedPlantProfile == null || lastAnalyzedPlantProfile.trim().isEmpty()) {
+            String chatHistoryContext = buildChatHistoryContext();
+            String fullContext = lastAnalyzedPlantProfile;
+
+            if (!chatHistoryContext.isEmpty()) {
+                fullContext = (fullContext.isEmpty() ? "" : fullContext + "\n\n") + "Previous Conversation Context:\n" + chatHistoryContext;
+            }
+
+            if (fullContext.trim().isEmpty()) {
                 analyzer.askQuestion(messageText, aiCallback);
             } else {
-                analyzer.askFollowUpQuestion(messageText, lastAnalyzedPlantProfile, aiCallback);
+                analyzer.askFollowUpQuestion(messageText, fullContext, aiCallback);
             }
         }
     }
@@ -651,10 +665,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Stores messages inside a single Firestore document (document ID = currentSessionId)
-     * under the "messages" array field. Handles deduplication inside the array.
-     */
     private void appendMessageToFirestore(ChatMessageModel message) {
         String userId = getCurrentUserId();
         if (userId == null || currentSessionId == null) return;
@@ -688,7 +698,6 @@ public class MainActivity extends AppCompatActivity {
                             String lastText = (String) lastMsg.get("messageText");
                             String lastImage = (String) lastMsg.get("imageBase64");
 
-                            // Check if consecutive exact duplicate text + image combination
                             boolean isDuplicate = lastText != null
                                     && lastText.equalsIgnoreCase(message.getMessageText().trim())
                                     && ((lastImage == null && currentImageBase64 == null)
@@ -706,7 +715,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
 
-                        // Append new message entry to the existing document array
                         newMsgMap.put("repeatCount", 1);
                         db.collection("ai_chat_messages")
                                 .document(currentSessionId)
@@ -715,7 +723,6 @@ public class MainActivity extends AppCompatActivity {
                                         "lastUpdated", System.currentTimeMillis()
                                 );
                     } else {
-                        // Create initial document for the session
                         newMsgMap.put("repeatCount", 1);
                         List<Map<String, Object>> initialMessages = new ArrayList<>();
                         initialMessages.add(newMsgMap);
@@ -734,9 +741,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Fetches chat messages from the single document corresponding to currentSessionId.
-     */
     private void loadUserChatHistoryFromFirestore() {
         String userId = getCurrentUserId();
         if (userId == null || currentSessionId == null) {
@@ -904,7 +908,6 @@ public class MainActivity extends AppCompatActivity {
         ImageButton ibMenu = chatView.findViewById(R.id.ib_chat_menu);
         ImageButton ibAttach = chatView.findViewById(R.id.ib_chat_attach);
 
-        // Preview views initialization
         layoutImagePreviewContainer = chatView.findViewById(R.id.layout_image_preview_container);
         ivPreviewSelectedImage = chatView.findViewById(R.id.iv_preview_selected_image);
         ibRemovePreviewImage = chatView.findViewById(R.id.ib_remove_preview_image);

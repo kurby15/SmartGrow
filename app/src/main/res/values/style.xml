@@ -8,4 +8,12 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipBackgroundColor">#3B3B3D</item>
+        <item name="android:textColor">#CCCCCC</item>
+        <item name="chipCornerRadius">6dp</item>
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipMinTouchTargetSize">0dp</item>
+    </style>
+
 </resources>

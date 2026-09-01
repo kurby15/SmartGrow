@@ -16,6 +16,8 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -117,22 +119,25 @@ public class PlantAnalyzer {
         JSONObject systemMsg = new JSONObject();
         systemMsg.put("role", "system");
 
-        if (contextHistory != null) {
+        if (contextHistory != null && !contextHistory.trim().isEmpty()) {
             systemMsg.put("content", "You are SmartGrow Assistant, powered by DeepSeek.\n\n" +
-                    "The user has uploaded a plant image context:\n" + contextHistory + "\n\n" +
-                    "Your job now is to answer follow-up questions ONLY about:\n" +
-                    "• The identified plant\n• Its health condition\n• Diseases, pests, watering, fertilizer, soil, sunlight, pruning, propagation, repotting, or general care\n\n" +
+                    "Below is the conversation history and plant details from previous chats:\n" +
+                    "--- PREVIOUS CONVERSATION & PLANT CONTEXT ---\n" +
+                    contextHistory + "\n" +
+                    "---------------------------------------------\n\n" +
+                    "Your job now is to answer follow-up questions while maintaining memory of what was discussed previously.\n" +
+                    "Answer ONLY questions related to plants, plant health, diseases, pests, watering, fertilizer, soil, sunlight, pruning, propagation, repotting, or general care.\n\n" +
                     "If the user asks a completely unrelated question, reply only with:\n" +
                     "\"Sorry, I can only answer questions related to plants or the plant you previously uploaded.\"");
-            messages.put(systemMsg);
         } else {
             systemMsg.put("content", "You are SmartGrow Assistant, an AI assistant for the SmartGrow application powered by DeepSeek.\n\n" +
                     "Your ONLY purpose is to help users with plants.\n\n" +
                     "If the user's question is NOT related to plants, gardening, farming, or plant care, reply only with:\n" +
                     "\"Sorry, I can only answer questions related to plants and plant care. Please ask me something about plants.\"");
-            messages.put(systemMsg);
         }
+        messages.put(systemMsg);
 
+        // Include the latest user question
         JSONObject userMsg = new JSONObject();
         userMsg.put("role", "user");
         userMsg.put("content", question);
@@ -151,11 +156,10 @@ public class PlantAnalyzer {
         if (imageBitmap != null) {
             StringBuilder basePromptBuilder = new StringBuilder();
 
-            // Check if there is a custom user question AND no context history (so simple uploads run normal JSON scan)
+            // Check if there is a custom user question AND no context history
             boolean isConversationalQuestion = (question != null && !question.trim().isEmpty()) && (contextHistory == null || contextHistory.trim().isEmpty());
 
             if (isConversationalQuestion) {
-                // MODIFIED: Conversational prompt ONLY when user attached an image with text/question
                 basePromptBuilder.append("You are SmartGrow Assistant, an expert AI plant care assistant.\n")
                         .append("The user has attached an image of their plant along with a specific question.\n\n")
                         .append("USER QUESTION: \"").append(question.trim()).append("\"\n\n")
@@ -166,7 +170,6 @@ public class PlantAnalyzer {
                         .append("4. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
                         .append("5. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
             } else {
-                // Default detailed camera scan prompt (normal profile mode for image-only uploads)
                 basePromptBuilder.append("You are an expert botanical computer vision engine and global ecology system.\n\n")
                         .append("TASK INSTRUCTIONS:\n")
                         .append("1. First, check if the image contains a plant (real or artificial/fake/plastic).\n")
@@ -197,7 +200,7 @@ public class PlantAnalyzer {
                         .append("    \"name\": \"Common Name (Scientific Name)\",\n")
                         .append("    \"scientific_name\": \"Scientific Name\",\n")
                         .append("    \"philippine_name\": \"Local Philippine Name or N/A\",\n")
-                        .append("    \"aliases\": \"Common aliases\",\n")
+                        .append("    \"aliases\": \"Provide 3 to 5 real alternative common names specifically for THIS exact species separated by commas. Do not invent unrelated plant names.\",\n")
                         .append("    \"origin\": \"Native origin region/countries\",\n")
                         .append("    \"distribution_text\": \"Complete worldwide geographic distribution listing all country locations pinned on map.\",\n")
                         .append("    \"habitat\": \"Detailed habitat summary encompassing environmental conditions across all countries where it is pinned.\",\n")
@@ -307,8 +310,8 @@ public class PlantAnalyzer {
                     "If the user's question is NOT related to plants, gardening, farming, or care, reply with: " +
                     "\"Sorry, I can only answer questions related to plants and plant care.\" ";
 
-            if (contextHistory != null) {
-                systemInstructions += "\n\nHistorical plant profile uploaded by user for context:\n" + contextHistory;
+            if (contextHistory != null && !contextHistory.trim().isEmpty()) {
+                systemInstructions += "\n\nPrevious conversation & historical plant profile context:\n" + contextHistory;
             }
 
             JSONObject textPart = new JSONObject();
@@ -409,17 +412,14 @@ public class PlantAnalyzer {
 
                         final String finalReply = replyText;
                         if (isVisionRequest) {
-                            // Check if this is a conversational query (Question present + no context history)
                             boolean isConversationalQuestion = (origQuestion != null && !origQuestion.trim().isEmpty()) && (origContext == null || origContext.trim().isEmpty());
 
                             if (isConversationalQuestion) {
-                                // MODIFIED: Plain conversational response when text question is attached
                                 mainHandler.post(() -> {
                                     if (callback != null) callback.onSuccess(finalReply);
                                     if (detailedCallback != null) detailedCallback.onSuccess(finalReply, "");
                                 });
                             } else {
-                                // Standard camera scanner mode or image-only upload (returns full plant profile JSON)
                                 String rawJsonBlock = extractJsonBlock(finalReply);
 
                                 try {
@@ -475,6 +475,49 @@ public class PlantAnalyzer {
                 }
             }
         });
+    }
+
+    /**
+     * Extracts plant name suggestions and aliases from the raw JSON string generated by Gemini
+     */
+    public static List<String> extractPlantSuggestionsFromRawJson(String rawJson) {
+        List<String> suggestions = new ArrayList<>();
+        if (rawJson == null || rawJson.trim().isEmpty()) return suggestions;
+
+        try {
+            int firstBrace = rawJson.indexOf('{');
+            int lastBrace = rawJson.lastIndexOf('}');
+            if (firstBrace != -1 && lastBrace > firstBrace) {
+                rawJson = rawJson.substring(firstBrace, lastBrace + 1).trim();
+            }
+
+            JSONObject root = new JSONObject(rawJson);
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String nameString = profile.optString("name", "");
+                if (nameString.contains("(")) {
+                    nameString = nameString.substring(0, nameString.indexOf("(")).trim();
+                }
+                if (!nameString.isEmpty()) {
+                    suggestions.add(nameString);
+                }
+
+                String aliasesStr = profile.optString("aliases", "");
+                if (!aliasesStr.isEmpty() && !"N/A".equalsIgnoreCase(aliasesStr)) {
+                    String[] split = aliasesStr.split("[,;/]");
+                    for (String alias : split) {
+                        String cleaned = alias.trim();
+                        if (!cleaned.isEmpty() && !suggestions.contains(cleaned)) {
+                            suggestions.add(cleaned);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error extracting plant suggestions from raw JSON", e);
+        }
+
+        return suggestions;
     }
 
     private String parseAndFormatPlantJson(String jsonRawString) {
@@ -550,9 +593,6 @@ public class PlantAnalyzer {
             if (profile.has("type")) {
                 sb.append("• Type: ").append(profile.optString("type", "N/A")).append("\n");
             }
-            if (profile.has("care_difficulty")) {
-                sb.append("• Care Difficulty: ").append(profile.optString("care_difficulty", "N/A")).append("\n");
-            }
             if (ecosystem != null && ecosystem.has("soil_type")) {
                 sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
             }
@@ -573,36 +613,17 @@ public class PlantAnalyzer {
                 sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
-            // Care Conditions Section
             if (hydration != null || ecosystem != null) {
-                sb.append("💧 Care Conditions\n");
+                sb.append("💧 Care Guide\n");
                 if (hydration != null && !isArtificial) {
                     sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A"))
                             .append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
                 }
                 if (ecosystem != null) {
-                    sb.append("• Sunlight: ").append(ecosystem.optString("sunlight", "N/A")).append("\n");
-                    sb.append("• Soil: ").append(ecosystem.optString("soil", ecosystem.optString("soil_type", "N/A"))).append("\n");
-                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append("\n");
+                    sb.append("• Soil: ").append(ecosystem.optString("soil_type", "N/A")).append("\n");
+                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append(" °C\n");
                     sb.append("• Humidity: ").append(ecosystem.optString("humidity_preference", "N/A")).append("\n");
-                    sb.append("• Hardiness Zones: ").append(ecosystem.optString("hardiness_zones", "N/A")).append("\n");
                 }
-                sb.append("\n");
-            }
-
-            // How-Tos Section
-            if (!isArtificial && howTos != null) {
-                sb.append("✂️ Plant Care How-Tos\n");
-                if (howTos.has("pruning")) {
-                    sb.append("• Pruning: ").append(howTos.optString("pruning", "N/A")).append("\n");
-                }
-                if (howTos.has("propagation")) {
-                    sb.append("• Propagation: ").append(howTos.optString("propagation", "N/A")).append("\n");
-                }
-                if (howTos.has("repotting")) {
-                    sb.append("• Repotting: ").append(howTos.optString("repotting", "N/A")).append("\n");
-                }
-                sb.append("\n");
             }
 
             if (!isArtificial && symptoms != null && symptoms.length() > 0) {
@@ -616,12 +637,12 @@ public class PlantAnalyzer {
                     }
                 }
                 if (hasRealSymptoms) {
-                    sb.append("⚠️ Problems Detected\n").append(symptomsBuilder).append("\n");
+                    sb.append("\n⚠️ Problems Detected\n").append(symptomsBuilder);
                 }
             }
 
             if (intervention != null) {
-                sb.append("✅ Recommendations\n");
+                sb.append("\n✅ Recommendations\n");
                 if (isArtificial) {
                     sb.append("• Immediate: Keep free of dust with a damp cloth.\n");
                     sb.append("• Long-term: Keep away from direct high heat to prevent plastic degradation.\n\n");
@@ -670,7 +691,7 @@ public class PlantAnalyzer {
 
     private String bitmapToBase64(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(byteArray, Base64.NO_WRAP);
     }

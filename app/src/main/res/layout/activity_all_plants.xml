@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AACBB9"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Screen Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="Plant Diary"
+        android:textColor="#052E1B"
+        android:textSize="32sp"
+        android:textStyle="bold" />
+
+    <!-- Search Input Bar -->
+    <EditText
+        android:id="@+id/et_search_all_plants"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_search_input"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="12dp"
+        android:drawableTint="#808B84"
+        android:hint="Search your plants..."
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:textColor="#1A2E22"
+        android:textColorHint="#808B84"
+        android:textSize="15sp" />
+
+    <!-- Section Title Row -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Plants"
+            android:textColor="#052E1B"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- View Less Button -->
+        <LinearLayout
+            android:id="@+id/layout_view_less"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View less"
+                android:textColor="#052E1B"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/more"
+                app:tint="#052E1B"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- Full 2-Column Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_all_plant_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2" />
+
+</LinearLayout>

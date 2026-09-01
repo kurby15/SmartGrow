@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,14 +46,27 @@ import androidx.exifinterface.media.ExifInterface;
 import com.example.smartgrow.R;
 import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CameraScannerActivity extends AppCompatActivity {
 
@@ -447,6 +461,9 @@ public class CameraScannerActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // Auto-save the scanned details into 'diary_history' Firestore collection
+                    autoSaveToDiaryHistory(bitmap, rawJson);
+
                     PlantDetailsActivity.tempScannedBitmap = bitmap;
 
                     Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
@@ -471,6 +488,236 @@ public class CameraScannerActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "User not logged in. Skipping auto-save to diary_history.");
+            return;
+        }
+
+        try {
+            JSONObject root = new JSONObject(rawJson);
+
+            if (!root.optBoolean("is_plant", true)) {
+                return;
+            }
+
+            String userId = currentUser.getUid();
+            String docId = String.valueOf(System.currentTimeMillis());
+
+            String plantName = "Unknown Plant";
+            String scientificName = "N/A";
+            String healthStatus = "Healthy";
+            int healthPercentage = 100;
+            int matchConfidencePercentage = 95;
+            String careDifficultyText = "Easy";
+            int careDifficultyPercentage = 50;
+
+            String aliases = "N/A";
+            String petToxicity = "Non-toxic";
+            String weedPotential = "Low";
+            String distribution = "N/A";
+            String habitat = "N/A";
+            String plantType = "Unknown";
+            String lifespan = "N/A";
+            boolean isArtificial = root.optBoolean("is_artificial", false);
+
+            List<String> leafColorsList = new ArrayList<>();
+
+            // Parse plant profile
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String fullTitle = profile.optString("name", plantName);
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    int close = fullTitle.indexOf(")");
+                    if (open < close) {
+                        plantName = fullTitle.substring(0, open).trim();
+                        scientificName = fullTitle.substring(open + 1, close).trim();
+                    } else {
+                        plantName = fullTitle;
+                    }
+                } else {
+                    plantName = fullTitle;
+                }
+
+                if (profile.has("scientific_name") && !profile.optString("scientific_name").isEmpty()) {
+                    scientificName = profile.optString("scientific_name", scientificName);
+                }
+
+                matchConfidencePercentage = parsePercentage(
+                        profile.opt("confidence") != null ? profile.opt("confidence") : profile.opt("match_percentage"),
+                        matchConfidencePercentage
+                );
+
+                aliases = profile.optString("philippine_name", profile.optString("aliases", aliases));
+                distribution = profile.optString("distribution_text", profile.optString("origin", distribution));
+                habitat = profile.optString("habitat", habitat);
+                plantType = profile.optString("type", profile.optString("plant_type", plantType));
+                petToxicity = profile.optString("pet_toxicity", petToxicity);
+                weedPotential = profile.optString("weed_potential", weedPotential);
+                lifespan = profile.optString("lifespan", lifespan);
+
+                careDifficultyText = profile.optString("care_difficulty", profile.optString("difficulty_level", careDifficultyText));
+                careDifficultyPercentage = parsePercentage(
+                        profile.opt("care_difficulty_percentage") != null ? profile.opt("care_difficulty_percentage") : profile.opt("difficulty_percentage"),
+                        careDifficultyPercentage
+                );
+
+                String lowerType = plantType != null ? plantType.toLowerCase() : "";
+                String lowerName = plantName != null ? plantName.toLowerCase() : "";
+                if (lowerType.contains("artificial") || lowerType.contains("plastic") || lowerType.contains("fake")
+                        || lowerName.contains("artificial") || lowerName.contains("plastic") || lowerName.contains("fake")) {
+                    isArtificial = true;
+                }
+            }
+
+            // Parse physical characteristics
+            JSONObject characteristics = root.optJSONObject("characteristics");
+            String ultimateHeight = characteristics != null ? characteristics.optString("ultimate_height", "N/A") : "N/A";
+            String ultimateSpread = characteristics != null ? characteristics.optString("ultimate_spread", "N/A") : "N/A";
+            String leafType = characteristics != null ? characteristics.optString("leaf_type", "N/A") : "N/A";
+            String plantingTime = characteristics != null ? characteristics.optString("planting_time", "N/A") : "N/A";
+
+            if (characteristics != null) {
+                JSONArray colorsArray = characteristics.optJSONArray("leaf_colors");
+                if (colorsArray != null && colorsArray.length() > 0) {
+                    for (int i = 0; i < colorsArray.length(); i++) {
+                        String colorVal = colorsArray.optString(i, "");
+                        if (!colorVal.isEmpty()) leafColorsList.add(colorVal);
+                    }
+                } else if (characteristics.has("leaf_color_hex")) {
+                    String colorVal = characteristics.optString("leaf_color_hex", "#4CAF50");
+                    if (colorVal.contains(",")) {
+                        String[] splitColors = colorVal.split(",");
+                        for (String c : splitColors) {
+                            if (!c.trim().isEmpty()) leafColorsList.add(c.trim());
+                        }
+                    } else {
+                        leafColorsList.add(colorVal.trim());
+                    }
+                }
+            }
+
+            // Parse environmental conditions
+            JSONObject ecosystem = root.optJSONObject("ecosystem");
+            String temperatureRange = ecosystem != null ? ecosystem.optString("temp_range", "N/A") : "N/A";
+            String hardinessZones = ecosystem != null ? ecosystem.optString("hardiness_zones", "N/A") : "N/A";
+            String sunlightText = ecosystem != null ? ecosystem.optString("sunlight", "Partial sun") : "Partial sun";
+            String soilText = ecosystem != null ? ecosystem.optString("soil", "Loam, Sandy loam") : "Loam, Sandy loam";
+
+            // Parse care instructions
+            JSONObject howTos = root.optJSONObject("how_tos");
+            String pruningText = howTos != null ? howTos.optString("pruning", "N/A") : "N/A";
+            String propagationText = howTos != null ? howTos.optString("propagation", "N/A") : "N/A";
+            String repottingText = howTos != null ? howTos.optString("repotting", "N/A") : "N/A";
+
+            // Parse background and story information
+            JSONObject extraDetails = root.optJSONObject("extra_details");
+            String usesText = extraDetails != null ? extraDetails.optString("uses", "N/A") : "N/A";
+            String adaptationText = extraDetails != null ? extraDetails.optString("adaptation_strategies", "N/A") : "N/A";
+            String ecologicalText = extraDetails != null ? extraDetails.optString("ecological_application", "N/A") : "N/A";
+            String historyText = extraDetails != null ? extraDetails.optString("history_and_legends", "N/A") : "N/A";
+            String nameStoryText = extraDetails != null ? extraDetails.optString("name_story", "N/A") : "N/A";
+            String symbolismText = extraDetails != null ? extraDetails.optString("symbolism", "N/A") : "N/A";
+
+            // Parse health details
+            JSONObject health = root.optJSONObject("health_scanner");
+            if (health != null) {
+                healthStatus = health.optString("status", healthStatus);
+                healthPercentage = parsePercentage(
+                        health.opt("health_score") != null ? health.opt("health_score") : health.opt("confidence"),
+                        healthPercentage
+                );
+            }
+
+            String healthColorHex;
+            String statusLower = healthStatus.toLowerCase();
+            if (healthPercentage < 50 || statusLower.contains("sick") || statusLower.contains("unhealthy") || statusLower.contains("diseased") || statusLower.contains("poor")) {
+                healthColorHex = "#F44336";
+            } else if (healthPercentage < 80 || statusLower.contains("moderate") || statusLower.contains("fair") || statusLower.contains("warning")) {
+                healthColorHex = "#FFC107";
+            } else {
+                healthColorHex = "#81C784";
+            }
+
+            // Construct complete map
+            Map<String, Object> historyEntry = new HashMap<>();
+            historyEntry.put("id", docId);
+            historyEntry.put("userId", userId);
+            historyEntry.put("plantName", plantName);
+            historyEntry.put("scientificName", scientificName);
+            historyEntry.put("healthStatus", healthStatus);
+            historyEntry.put("healthPercentage", healthPercentage);
+            historyEntry.put("healthColor", healthColorHex);
+            historyEntry.put("matchConfidencePercentage", matchConfidencePercentage);
+            historyEntry.put("careDifficultyText", careDifficultyText);
+            historyEntry.put("careDifficultyPercentage", careDifficultyPercentage);
+            historyEntry.put("leafColors", leafColorsList);
+            historyEntry.put("aliases", aliases);
+            historyEntry.put("petToxicity", petToxicity);
+            historyEntry.put("weedPotential", weedPotential);
+            historyEntry.put("distribution", distribution);
+            historyEntry.put("habitat", habitat);
+            historyEntry.put("plantType", plantType);
+            historyEntry.put("lifespan", lifespan);
+            historyEntry.put("isArtificial", isArtificial);
+
+            historyEntry.put("ultimateHeight", ultimateHeight);
+            historyEntry.put("ultimateSpread", ultimateSpread);
+            historyEntry.put("leafType", leafType);
+            historyEntry.put("plantingTime", plantingTime);
+            historyEntry.put("temperatureRange", temperatureRange);
+            historyEntry.put("hardinessZones", hardinessZones);
+            historyEntry.put("sunlight", sunlightText);
+            historyEntry.put("soil", soilText);
+            historyEntry.put("pruning", pruningText);
+            historyEntry.put("propagation", propagationText);
+            historyEntry.put("repotting", repottingText);
+
+            historyEntry.put("usesText", usesText);
+            historyEntry.put("adaptationText", adaptationText);
+            historyEntry.put("ecologicalText", ecologicalText);
+            historyEntry.put("historyText", historyText);
+            historyEntry.put("nameStoryText", nameStoryText);
+            historyEntry.put("symbolismText", symbolismText);
+
+            historyEntry.put("timestamp", System.currentTimeMillis());
+
+            if (bitmap != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                historyEntry.put("imageBase64", Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT));
+            }
+
+            // Save into Firestore under "diary_history"
+            FirebaseFirestore.getInstance()
+                    .collection("diary_history")
+                    .document(docId)
+                    .set(historyEntry)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully auto-saved scan to diary_history collection."))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error saving entry to diary_history: " + e.getMessage(), e));
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error auto-saving diary_history entry from AI JSON", e);
+        }
+    }
+
+    private int parsePercentage(Object rawVal, int fallback) {
+        if (rawVal == null) return fallback;
+        if (rawVal instanceof Integer) return (Integer) rawVal;
+        if (rawVal instanceof Double) return ((Double) rawVal).intValue();
+
+        String strVal = String.valueOf(rawVal);
+        Matcher matcher = Pattern.compile("(\\d+)").matcher(strVal);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {}
+        }
+        return fallback;
     }
 
     private int getExifRotationDegrees(String filePath) {

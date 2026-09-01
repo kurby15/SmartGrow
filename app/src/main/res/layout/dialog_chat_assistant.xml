@@ -151,7 +151,7 @@
                     android:id="@+id/ib_remove_preview_image"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:background="@drawable/remove"
+                    android:src="@drawable/remove"
                     android:backgroundTint="@color/text_secondary"
                     app:layout_constraintTop_toTopOf="@id/card_preview_image"
                     app:layout_constraintEnd_toEndOf="@id/card_preview_image"/>

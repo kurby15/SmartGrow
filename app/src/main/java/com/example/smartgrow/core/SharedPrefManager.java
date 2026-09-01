@@ -31,28 +31,29 @@ public class SharedPrefManager {
     }
 
     public static synchronized SharedPrefManager getInstance(Context context) {
-        if (instance == null) {
+        if (instance == null && context != null) {
             instance = new SharedPrefManager(context.getApplicationContext());
         }
         return instance;
     }
 
     public void saveUser(User user) {
+        if (sharedPreferences == null || user == null) return;
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        
+
         if (user.getUid() != null) editor.putString("uid", user.getUid());
         if (user.getUsername() != null && !user.getUsername().isEmpty() && !user.getUsername().equals("unknown")) {
             editor.putString("username", user.getUsername());
         }
-        
+
         if (user.getFullName() != null) editor.putString("fullname", user.getFullName());
         if (user.getEmail() != null) editor.putString("email", user.getEmail());
         if (user.getAddress() != null) editor.putString("address", user.getAddress());
         if (user.getPhone() != null) editor.putString("phone", user.getPhone());
         if (user.getProfilePic() != null) editor.putString("profile_pic", user.getProfilePic());
-        
+
         editor.putBoolean("is_logged_in", true);
-        editor.apply();
+        editor.commit();
     }
 
     public User getUser() {
@@ -69,28 +70,41 @@ public class SharedPrefManager {
     }
 
     public void saveProfilePic(String profilePic) {
-        sharedPreferences.edit().putString("profile_pic", profilePic).apply();
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putString("profile_pic", profilePic).commit();
+        }
     }
 
     public String getUsername() {
-        return sharedPreferences.getString("username", "unknown");
+        return sharedPreferences != null ? sharedPreferences.getString("username", "unknown") : "unknown";
     }
 
     public String getFullName() {
-        return sharedPreferences.getString("fullname", "SmartGrow User");
+        return sharedPreferences != null ? sharedPreferences.getString("fullname", "SmartGrow User") : "SmartGrow User";
     }
 
     public String getProfilePic() {
-        return sharedPreferences.getString("profile_pic", null);
+        return sharedPreferences != null ? sharedPreferences.getString("profile_pic", null) : null;
     }
 
     public boolean isLoggedIn() {
+        if (sharedPreferences == null) return false;
         String username = getUsername();
         return sharedPreferences.getBoolean("is_logged_in", false) && !username.equals("unknown");
     }
 
     public void logout(Context context) {
-        sharedPreferences.edit().clear().apply();
-        context.getSharedPreferences(OLD_PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply();
+        try {
+            if (sharedPreferences != null) {
+                sharedPreferences.edit().clear().commit();
+            }
+            if (context != null) {
+                context.getSharedPreferences(OLD_PREF_NAME, Context.MODE_PRIVATE).edit().clear().commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            instance = null;
+        }
     }
 }

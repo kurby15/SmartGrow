@@ -3,6 +3,7 @@ package com.example.smartgrow.profile;
 import static android.app.Activity.RESULT_OK;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -38,7 +39,6 @@ import com.example.smartgrow.settings.SupportInfoFragment;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.material.chip.Chip;
 
-// Modern Firebase Imports
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -61,14 +61,15 @@ public class ProfileFragment extends Fragment {
     private ImageView ivProfilePic;
     private View btnCameraBadge;
 
-    // Firebase Auth & Firestore
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private DocumentReference userDocRef;
+
     private ListenerRegistration userListenerRegistration;
+    private ListenerRegistration plantListenerRegistration;
+    private ListenerRegistration postListenerRegistration;
 
     private String currentUid;
-    private String currentUsername;
     private SharedPrefManager prefManager;
 
     private Uri cameraImageUri;
@@ -83,14 +84,16 @@ public class ProfileFragment extends Fragment {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        prefManager = SharedPrefManager.getInstance(requireContext());
+
+        Context context = getContext();
+        if (context != null) {
+            prefManager = SharedPrefManager.getInstance(context);
+        }
 
         if (mAuth.getCurrentUser() != null) {
             currentUid = mAuth.getCurrentUser().getUid();
         }
-        currentUsername = prefManager.getUsername();
 
-        // Restore camera URI on config change
         if (savedInstanceState != null) {
             cameraImageUri = savedInstanceState.getParcelable("cameraImageUri");
         }
@@ -112,7 +115,6 @@ public class ProfileFragment extends Fragment {
         tvFullName = view.findViewById(R.id.tv_user_display_name);
         tvRank = view.findViewById(R.id.tv_user_rank);
 
-        // Dynamic Interest Chips
         chipChoice2 = view.findViewById(R.id.tv_choice2);
         chipChoice3 = view.findViewById(R.id.tv_choice3);
         chipChoice4 = view.findViewById(R.id.tv_choice4);
@@ -142,8 +144,21 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        removeListeners();
+    }
+
+    private void removeListeners() {
         if (userListenerRegistration != null) {
             userListenerRegistration.remove();
+            userListenerRegistration = null;
+        }
+        if (plantListenerRegistration != null) {
+            plantListenerRegistration.remove();
+            plantListenerRegistration = null;
+        }
+        if (postListenerRegistration != null) {
+            postListenerRegistration.remove();
+            postListenerRegistration = null;
         }
     }
 
@@ -163,11 +178,13 @@ public class ProfileFragment extends Fragment {
     }
 
     private void fetchUserData() {
-        String docKey = (currentUsername != null && !currentUsername.trim().isEmpty() && !currentUsername.equals("unknown"))
-                ? currentUsername
-                : currentUid;
+        if (currentUid == null || currentUid.trim().isEmpty()) {
+            Toast.makeText(getContext(), "User session invalid.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        userDocRef = db.collection("users").document(docKey);
+        // Always query directly by document key (UID)
+        userDocRef = db.collection("users").document(currentUid);
 
         userListenerRegistration = userDocRef.addSnapshotListener((snapshot, error) -> {
             if (!isAdded() || error != null) return;
@@ -175,15 +192,7 @@ public class ProfileFragment extends Fragment {
             if (snapshot != null && snapshot.exists()) {
                 populateUserData(snapshot);
             } else {
-                // Dual document-key fallback check using UID field query
-                db.collection("users").whereEqualTo("uid", currentUid).limit(1).get()
-                        .addOnSuccessListener(querySnapshot -> {
-                            if (isAdded() && !querySnapshot.isEmpty()) {
-                                DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                                userDocRef = doc.getReference();
-                                populateUserData(doc);
-                            }
-                        });
+                Toast.makeText(getContext(), "User profile not found in database.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -191,6 +200,8 @@ public class ProfileFragment extends Fragment {
     }
 
     private void populateUserData(DocumentSnapshot snapshot) {
+        if (!isAdded()) return;
+
         String rawFullName = snapshot.getString("fullName");
         String choice1 = snapshot.getString("choice1");
         String choice2 = snapshot.getString("choice2");
@@ -198,7 +209,6 @@ public class ProfileFragment extends Fragment {
         String choice4 = snapshot.getString("choice4");
         String profilePic = snapshot.getString("profilePic");
 
-        // Decrypt display name
         if (tvFullName != null && rawFullName != null) {
             String decryptedName = FirebaseCryptoUtils.decrypt(rawFullName, currentUid);
             tvFullName.setText(decryptedName);
@@ -208,7 +218,6 @@ public class ProfileFragment extends Fragment {
             tvRank.setText(choice1 != null && !choice1.isEmpty() ? choice1 : "Beginner Grower");
         }
 
-        // Interest Tags
         updateInterestTag(chipChoice2, choice2);
         updateInterestTag(chipChoice3, choice3);
         updateInterestTag(chipChoice4, choice4);
@@ -227,7 +236,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadProfileImage(String profileData) {
-        if (ivProfilePic == null) return;
+        if (ivProfilePic == null || !isAdded()) return;
 
         if (profileData == null || profileData.isEmpty()) {
             ivProfilePic.setImageResource(R.drawable.ic_user);
@@ -252,8 +261,7 @@ public class ProfileFragment extends Fragment {
     private void loadUserStats() {
         if (userDocRef == null) return;
 
-        // Count user plants subcollection
-        userDocRef.collection("plants").addSnapshotListener((querySnapshot, error) -> {
+        plantListenerRegistration = userDocRef.collection("plants").addSnapshotListener((querySnapshot, error) -> {
             if (!isAdded() || error != null || querySnapshot == null) return;
             int count = querySnapshot.size();
             if (tvPlantCount != null) {
@@ -261,8 +269,7 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // Count posts created by current user
-        db.collection("posts")
+        postListenerRegistration = db.collection("posts")
                 .whereEqualTo("userId", currentUid)
                 .addSnapshotListener((querySnapshot, error) -> {
                     if (!isAdded() || error != null || querySnapshot == null) return;
@@ -278,7 +285,7 @@ public class ProfileFragment extends Fragment {
             isGranted -> {
                 if (isGranted) {
                     launchCameraIntent();
-                } else {
+                } else if (isAdded()) {
                     Toast.makeText(getContext(), "Camera permission is required to take photos", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -286,7 +293,7 @@ public class ProfileFragment extends Fragment {
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null && isAdded()) {
                     try {
                         InputStream is = requireContext().getContentResolver().openInputStream(result.getData().getData());
                         Bitmap bitmap = BitmapFactory.decodeStream(is);
@@ -301,9 +308,8 @@ public class ProfileFragment extends Fragment {
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == RESULT_OK) {
+                if (result.getResultCode() == RESULT_OK && isAdded()) {
                     try {
-                        // Priority 1: Read full quality image from URI
                         if (cameraImageUri != null) {
                             InputStream is = requireContext().getContentResolver().openInputStream(cameraImageUri);
                             Bitmap photo = BitmapFactory.decodeStream(is);
@@ -313,7 +319,6 @@ public class ProfileFragment extends Fragment {
                             }
                         }
 
-                        // Priority 2: Fallback to thumbnail from intent extras if URI read failed
                         if (result.getData() != null && result.getData().getExtras() != null) {
                             Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
                             if (photo != null) {
@@ -328,6 +333,7 @@ public class ProfileFragment extends Fragment {
             });
 
     private void showImageSourceOptions() {
+        if (!isAdded()) return;
         String[] options = {"Take Photo", "Choose from Gallery", "Cancel"};
         new AlertDialog.Builder(requireContext()).setTitle("Update Profile Picture")
                 .setItems(options, (dialog, which) -> {
@@ -340,6 +346,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void checkCameraPermissionAndLaunch() {
+        if (!isAdded()) return;
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             launchCameraIntent();
@@ -349,6 +356,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void launchCameraIntent() {
+        if (!isAdded()) return;
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         try {
             File photoFile = createImageFile();
@@ -364,12 +372,12 @@ public class ProfileFragment extends Fragment {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // Fallback launch directly without custom FileProvider if error occurs
             cameraLauncher.launch(cameraIntent);
         }
     }
 
     private File createImageFile() throws IOException {
+        if (!isAdded()) return null;
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -377,7 +385,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void uploadProfilePic(Bitmap bitmap) {
-        if (userDocRef == null) return;
+        if (userDocRef == null || !isAdded()) return;
 
         Bitmap resized = Bitmap.createScaledBitmap(bitmap, 300, 300, true);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -386,7 +394,9 @@ public class ProfileFragment extends Fragment {
 
         userDocRef.update("profilePic", base64Image).addOnCompleteListener(task -> {
             if (isAdded() && task.isSuccessful()) {
-                prefManager.saveProfilePic(base64Image);
+                if (prefManager != null) {
+                    prefManager.saveProfilePic(base64Image);
+                }
                 loadProfileImage(base64Image);
                 Toast.makeText(getContext(), "Profile updated!", Toast.LENGTH_SHORT).show();
             }
@@ -394,15 +404,32 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showCustomLogoutDialog() {
+        if (!isAdded() || getContext() == null) return;
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_logout, null);
         AlertDialog dialog = new AlertDialog.Builder(requireContext()).setView(dialogView).create();
         if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         dialogView.findViewById(R.id.btn_logout_yes).setOnClickListener(v -> {
             dialog.dismiss();
-            if (mAuth != null) mAuth.signOut();
-            prefManager.logout(requireContext());
-            startActivity(new Intent(getActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+
+            removeListeners();
+
+            if (mAuth != null) {
+                mAuth.signOut();
+            }
+
+            Context ctx = getContext();
+            if (ctx != null) {
+                SharedPrefManager.getInstance(ctx).logout(ctx);
+            }
+
+            if (getActivity() != null) {
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                getActivity().finish();
+            }
         });
 
         dialogView.findViewById(R.id.btn_logout_no).setOnClickListener(v -> dialog.dismiss());

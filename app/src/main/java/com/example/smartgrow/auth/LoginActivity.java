@@ -17,7 +17,6 @@ import com.example.smartgrow.profile.User;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.material.button.MaterialButton;
 
-// Firebase Imports
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,18 +30,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Check if user is already logged in
-        if (mAuth.getCurrentUser() != null && SharedPrefManager.getInstance(this).isLoggedIn()) {
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+
+        if (mAuth.getCurrentUser() != null && prefManager != null && prefManager.isLoggedIn()) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
             return;
+        } else if (mAuth.getCurrentUser() != null && (prefManager == null || !prefManager.isLoggedIn())) {
+            mAuth.signOut();
         }
+
+        setContentView(R.layout.activity_login);
 
         etUsername = findViewById(R.id.et_username);
         etPassword = findViewById(R.id.et_password);
@@ -62,11 +64,9 @@ public class LoginActivity extends AppCompatActivity {
             btnLogin.setEnabled(false);
             btnLogin.setText("Signing in...");
 
-            // If input is an email address
             if (Patterns.EMAIL_ADDRESS.matcher(input).matches()) {
                 loginWithEmailAndPassword(input, password, btnLogin);
             } else {
-                // Search users to resolve encrypted username to authentic email
                 findEmailByUsername(input, (foundEmail) -> {
                     if (foundEmail != null) {
                         loginWithEmailAndPassword(foundEmail, password, btnLogin);
@@ -96,7 +96,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void fetchUserProfile(String uid, MaterialButton btnLogin) {
-        // Retrieve directly by document key (UID)
         db.collection("users").document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -105,18 +104,17 @@ public class LoginActivity extends AppCompatActivity {
                         User user = new User();
                         user.setUid(uid);
 
-                        // DECRYPT ENCRYPTED FIELDS USING UID
                         String encUsername = doc.getString("username");
                         String encEmail = doc.getString("email");
                         String encFullName = doc.getString("fullName");
                         String encAddress = doc.getString("address");
                         String encPhone = doc.getString("phone");
 
-                        user.setUsername(encUsername != null ? FirebaseCryptoUtils.decrypt(encUsername, uid) : "");
-                        user.setEmail(encEmail != null ? FirebaseCryptoUtils.decrypt(encEmail, uid) : "");
-                        user.setFullName(encFullName != null ? FirebaseCryptoUtils.decrypt(encFullName, uid) : "");
-                        user.setAddress(encAddress != null ? FirebaseCryptoUtils.decrypt(encAddress, uid) : "");
-                        user.setPhone(encPhone != null ? FirebaseCryptoUtils.decrypt(encPhone, uid) : "");
+                        user.setUsername(encUsername != null && !encUsername.isEmpty() ? FirebaseCryptoUtils.decrypt(encUsername, uid) : "");
+                        user.setEmail(encEmail != null && !encEmail.isEmpty() ? FirebaseCryptoUtils.decrypt(encEmail, uid) : "");
+                        user.setFullName(encFullName != null && !encFullName.isEmpty() ? FirebaseCryptoUtils.decrypt(encFullName, uid) : "");
+                        user.setAddress(encAddress != null && !encAddress.isEmpty() ? FirebaseCryptoUtils.decrypt(encAddress, uid) : "");
+                        user.setPhone(encPhone != null && !encPhone.isEmpty() ? FirebaseCryptoUtils.decrypt(encPhone, uid) : "");
 
                         user.setProfilePic(doc.getString("profilePic"));
                         user.setChoice1(doc.getString("choice1"));
@@ -124,8 +122,10 @@ public class LoginActivity extends AppCompatActivity {
                         user.setChoice3(doc.getString("choice3"));
                         user.setChoice4(doc.getString("choice4"));
 
-                        // Save decrypted profile into shared preferences
-                        SharedPrefManager.getInstance(LoginActivity.this).saveUser(user);
+                        SharedPrefManager prefManager = SharedPrefManager.getInstance(LoginActivity.this);
+                        if (prefManager != null) {
+                            prefManager.saveUser(user);
+                        }
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
@@ -150,11 +150,11 @@ public class LoginActivity extends AppCompatActivity {
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         String docUid = doc.getId();
                         String encUsername = doc.getString("username");
-                        if (encUsername != null) {
+                        if (encUsername != null && !encUsername.isEmpty()) {
                             String decryptedUsername = FirebaseCryptoUtils.decrypt(encUsername, docUid);
                             if (targetUsername.equalsIgnoreCase(decryptedUsername)) {
                                 String encEmail = doc.getString("email");
-                                String decryptedEmail = encEmail != null ? FirebaseCryptoUtils.decrypt(encEmail, docUid) : null;
+                                String decryptedEmail = encEmail != null && !encEmail.isEmpty() ? FirebaseCryptoUtils.decrypt(encEmail, docUid) : null;
                                 listener.onResult(decryptedEmail);
                                 return;
                             }

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#161719"
+    android:orientation="vertical">
+
+    <!-- ==================== TOP NAVIGATION TABS ==================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <!-- My Garden Tab (Inactive) -->
+        <TextView
+            android:id="@+id/tv_tab_my_garden"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="My Garden"
+            android:textColor="#72777D"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Snap History Tab (Active) -->
+        <LinearLayout
+            android:id="@+id/tab_snap_history"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Snap History"
+                android:textColor="#54D194"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Active Line Indicator -->
+            <View
+                android:layout_width="20dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_active_tab_indicator" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp">
+
+        <!-- ==================== SEARCH / SELECT / FILTER ==================== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Search Input -->
+            <EditText
+                android:id="@+id/et_search_history"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_search_input_rounded"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawableTint="#80858C"
+                android:drawablePadding="10dp"
+                android:hint="Search plants"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#80858C"
+                android:textSize="15sp" />
+
+
+
+        </LinearLayout>
+
+        <!-- ==================== EXPIRATION BANNER ==================== -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_expiration_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#EFE0B6"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ==================== SNAP HISTORY RECYCLERVIEW ==================== -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_snap_history_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
