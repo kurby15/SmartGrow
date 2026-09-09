@@ -24,7 +24,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_extrabold"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/view_drag_handle"
         app:layout_constraintStart_toStartOf="parent" />
@@ -36,7 +36,7 @@
         android:text="Tell the community about your plant journey!"
         android:textColor="@color/text_secondary"
         android:textSize="13sp"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_semibold"
         android:layout_marginTop="4dp"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
 
@@ -60,7 +60,7 @@
             android:textColorHint="@color/text_secondary"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_medium"
             android:padding="16dp"
             android:gravity="top|start"
             android:inputType="textMultiLine"
@@ -77,8 +77,8 @@
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins"
-        app:backgroundTint="@color/primary_green"
+        android:fontFamily="@font/inter_extrabold"
+        app:backgroundTint="#1e4620"
         app:cornerRadius="14dp"
         app:layout_constraintTop_toBottomOf="@id/card_input"
         app:layout_constraintBottom_toBottomOf="parent" />

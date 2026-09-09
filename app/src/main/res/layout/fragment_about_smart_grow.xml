@@ -2,79 +2,88 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_about_smartgrow"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="20dp">
+    android:background="@color/app_background"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-    <!-- HEADERS (Naka-anchor sa Taas) -->
+    <!-- Back Button -->
     <ImageView
         android:id="@+id/btn_back_about"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
-        android:src="@drawable/ic_back"
         android:padding="4dp"
+        android:src="@drawable/ic_back"
+        app:tint="@color/profile_title_color"
+        app:layout_constraintBottom_toBottomOf="@id/tv_about_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_primary"
+        app:layout_constraintTop_toTopOf="@id/tv_about_title"
         android:contentDescription="Go back"/>
 
+    <!-- Title -->
     <TextView
         android:id="@+id/tv_about_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/inter_extrabold"
         android:text="About SmartGrow"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
+        android:textColor="@color/profile_title_color"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btn_back_about"
-        app:layout_constraintBottom_toBottomOf="@id/btn_back_about"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Divider -->
     <View
         android:id="@+id/header_divider_about"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="1dp"
-        android:background="@color/divider"
         android:layout_marginTop="12dp"
+        android:background="@color/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_about_title"/>
 
-
-    <!-- COPYRIGHT (Naka-anchor sa pinaka-ibaba para laging nasa ilalim) -->
+    <!-- COPYRIGHT -->
     <TextView
         android:id="@+id/tv_copyright"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/inter_semibold"
         android:text="© 2026 SmartGrow. All Rights Reserved."
         android:textColor="@color/text_secondary"
         android:textSize="11sp"
-        android:fontFamily="@font/poppins"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
-    <!-- MIDDLE CONTENT (Naka-center sa pagitan ng Divider at Copyright) -->
+    <!-- MIDDLE CONTENT -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center_horizontal"
-        app:layout_constraintTop_toBottomOf="@id/header_divider_about"
-        app:layout_constraintBottom_toTopOf="@id/tv_copyright">
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        app:layout_constraintBottom_toTopOf="@id/tv_copyright"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_divider_about">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_app_logo"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            app:cardBackgroundColor="@color/card_background"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            app:cardBackgroundColor="@color/profile_card_bg"
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp"
             app:strokeColor="@color/divider"
@@ -83,109 +92,32 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@color/profile_title_color"
                 android:padding="20dp"
-                android:background="@color/primary_green"
-                android:src="@drawable/smartgrow_logo" />
+                app:tint="@color/app_background"
+                android:src="@drawable/smartgrow_logo"
+                android:contentDescription="SmartGrow Logo"/>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/inter_extrabold"
             android:text="SmartGrow"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/poppins" />
+            android:textColor="@color/profile_title_color"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:fontFamily="@font/inter_semibold"
             android:text="Version 1.0.0"
             android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            android:fontFamily="@font/poppins" />
+            android:textSize="12sp" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="40dp"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/divider"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RelativeLayout
-                    android:id="@+id/btn_official_website"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerInParent="true"
-                        android:text="Official Website"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:fontFamily="@font/poppins" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerInParent="true"
-                        android:src="@drawable/ic_next"
-                        app:tint="@color/text_secondary" />
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider"
-                    android:layout_marginHorizontal="20dp"/>
-
-                <RelativeLayout
-                    android:id="@+id/btn_rate_app"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerInParent="true"
-                        android:text="Check for Updates"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:fontFamily="@font/poppins" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerInParent="true"
-                        android:src="@drawable/ic_next"
-                        app:tint="@color/text_secondary" />
-                </RelativeLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

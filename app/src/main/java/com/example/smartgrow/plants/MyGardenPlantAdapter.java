@@ -1,14 +1,23 @@
 package com.example.smartgrow.plants;
 
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,8 +26,11 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
+import com.google.android.material.button.MaterialButton;
 
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdapter.PlantViewHolder> {
 
@@ -28,6 +40,7 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
     // 🔴 Updated Interface to include "Rename" / "Name My Plant" and "Remove"
     public interface OnPlantClickListener {
         void onAddReminderClick(MyGardenPlantModel plant);
+        void onPlantClick(MyGardenPlantModel plant);
         void onRenamePlantClick(MyGardenPlantModel plant);
         void onRemovePlantClick(MyGardenPlantModel plant);
     }
@@ -87,7 +100,14 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
             holder.tvHealthPercentage.setTextColor(Color.parseColor("#E74C3C"));
         }
 
-        // Reminder Click
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onPlantClick(plantList.get(position));
+            }
+        });
+
+
+
         holder.btnAddReminder.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onAddReminderClick(plant);
@@ -129,19 +149,12 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
             int itemId = item.getItemId();
             String plantName = plant.getPlantName() != null ? plant.getPlantName() : "Plant";
 
-            if (itemId == R.id.action_move) {
-                Toast.makeText(view.getContext(), "Move " + plantName, Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.action_name_plant) {
-                // 🔴 FIXED: Delegate to listener to trigger BottomSheet in Fragment instead of Toast!
+            if (itemId == R.id.action_name_plant) {
                 if (listener != null) {
                     listener.onRenamePlantClick(plant);
                 }
                 return true;
-            } else if (itemId == R.id.action_add_notes) {
-                Toast.makeText(view.getContext(), "Add Notes for " + plantName, Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.action_remove) {
+            }else if (itemId == R.id.action_remove) {
                 if (listener != null) {
                     listener.onRemovePlantClick(plant);
                 }
@@ -158,7 +171,7 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
         ImageView ivPlantImage;
         TextView tvCommonName, tvScientificName, tvHealthStatus, tvHealthPercentage;
         View btnAddReminder;
-        ImageButton ibMoreOptions;
+        ImageView ibMoreOptions;
 
         public PlantViewHolder(@NonNull View itemView) {
             super(itemView);

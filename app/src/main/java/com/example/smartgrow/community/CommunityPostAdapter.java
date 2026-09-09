@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
@@ -67,8 +68,6 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
             holder.tvTime.setText(timeAgo);
         }
 
-        holder.tvLocation.setVisibility(View.GONE);
-        holder.tvDotSeparator.setVisibility(View.GONE);
 
         loadProfileImage(post.getProfileImageUri(), holder.ivUserAvatar);
 
@@ -89,14 +88,38 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
             holder.cardPostImage.setVisibility(View.GONE);
         }
 
-        boolean isLiked = post.getLikes() != null && post.getLikes().containsKey(currentUserId);
-        holder.ivLikeIcon.setColorFilter(isLiked ? Color.RED : Color.parseColor("#555555"));
-        holder.tvLikeCount.setTextColor(isLiked ? Color.RED : Color.parseColor("#555555"));
 
-        holder.btnLike.setOnClickListener(v -> { if (listener != null) listener.onLikeClick(post); });
-        holder.btnComment.setOnClickListener(v -> { if (listener != null) listener.onCommentClick(post); });
+
+        // Direktang i-check sa Firestore subcollection kung naka-like ang current user para sigurado
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("posts").document(post.getPostId())
+                .collection("likes").document(currentUserId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
+                        if (documentSnapshot.exists()) {
+                            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart_filled);
+                            holder.ivLikeIcon.setColorFilter(Color.RED);
+                            holder.tvLikeCount.setTextColor(Color.RED);
+                        } else {
+                            // Babalik sa tamang theme color kapag na-unlike na
+                            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart);
+                            holder.ivLikeIcon.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
+                            holder.tvLikeCount.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
+
+                        }
+                    }
+                });
+
+        View.OnClickListener likeClickListener = v -> { if (listener != null) listener.onLikeClick(post); };
+        holder.ivLikeIcon.setOnClickListener(likeClickListener);
+        holder.tvLikeCount.setOnClickListener(likeClickListener);
+
+        View.OnClickListener commentClickListener = v -> { if (listener != null) listener.onCommentClick(post); };
+        holder.ivCommentIcon.setOnClickListener(commentClickListener);
+        holder.tvCommentCount.setOnClickListener(commentClickListener);
+
         holder.btnMore.setOnClickListener(v -> { if (listener != null) listener.onMoreClick(v, post); });
-        
         holder.btnMore.setVisibility(View.VISIBLE);
     }
 
@@ -161,28 +184,26 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
-        TextView tvUsername, tvTime, tvContent, tvLikeCount, tvCommentCount, tvLocation, tvDotSeparator;
-        ImageView ivUserAvatar, ivPostImage, ivLikeIcon;
+        TextView tvUsername, tvTime, tvContent, tvLikeCount, tvCommentCount;
+        ImageView ivUserAvatar, ivPostImage, ivLikeIcon, ivCommentIcon;
         MaterialCardView cardPostImage;
-        LinearLayout btnLike, btnComment;
-        ImageButton btnMore;
+        ImageView btnMore;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
             ivUserAvatar = itemView.findViewById(R.id.iv_post_user_avatar);
             tvUsername = itemView.findViewById(R.id.tv_post_username);
             tvTime = itemView.findViewById(R.id.tv_post_time);
-            tvLocation = itemView.findViewById(R.id.tv_post_location);
-            tvDotSeparator = itemView.findViewById(R.id.tv_dot_separator);
             tvContent = itemView.findViewById(R.id.tv_post_content);
             cardPostImage = itemView.findViewById(R.id.card_post_image);
             ivPostImage = itemView.findViewById(R.id.iv_post_image);
             ivLikeIcon = itemView.findViewById(R.id.iv_like_icon);
-            btnLike = itemView.findViewById(R.id.btn_post_like);
-            btnComment = itemView.findViewById(R.id.btn_post_comment);
+            ivCommentIcon = itemView.findViewById(R.id.iv_comment_icon);
             tvLikeCount = itemView.findViewById(R.id.tv_like_count);
             tvCommentCount = itemView.findViewById(R.id.tv_comment_count);
             btnMore = itemView.findViewById(R.id.btn_post_more);
+
+
         }
     }
 }

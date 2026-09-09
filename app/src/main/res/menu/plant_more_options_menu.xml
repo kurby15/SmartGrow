@@ -2,16 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_move"
-        android:title="Move" />
-
-    <item
         android:id="@+id/action_name_plant"
         android:title="Name My Plant" />
-
-    <item
-        android:id="@+id/action_add_notes"
-        android:title="Add Notes" />
 
     <item
         android:id="@+id/action_remove"

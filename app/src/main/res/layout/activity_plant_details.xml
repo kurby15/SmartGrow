@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/app_background">
 
     <!-- Scrollable Main Content -->
     <androidx.core.widget.NestedScrollView
@@ -79,15 +79,16 @@
                 </LinearLayout>
 
                 <!-- Back Arrow Button -->
-                <ImageButton
+                <ImageView
                     android:id="@+id/ib_back"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:padding="8dp"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/shape_circle_translucent"
                     android:contentDescription="Navigate back"
-                    android:src="@android:drawable/ic_menu_revert"
+                    android:background="@drawable/bg_match"
+                    android:src="@drawable/ic_back2"
                     app:tint="#FFFFFF" />
 
                 <!-- Match Confidence Badge -->
@@ -98,12 +99,12 @@
                     android:layout_alignParentBottom="true"
                     android:layout_marginStart="16dp"
                     android:layout_marginBottom="16dp"
-                    android:background="@drawable/shape_circle_translucent"
+                    android:background="@drawable/bg_match"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="98% Match Confidence" />
 
             </RelativeLayout>
@@ -120,9 +121,9 @@
                     android:id="@+id/tv_plant_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/primary_green"
                     android:textSize="24sp"
-                    android:textStyle="bold"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="Goosegrass" />
 
                 <LinearLayout
@@ -137,8 +138,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/text_secondary"
-                        android:textSize="15sp"
-                        android:textStyle="italic"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_light_italic"
                         tools:text="Eleusine indica" />
 
                     <ImageView
@@ -147,7 +148,7 @@
                         android:layout_height="20dp"
                         android:layout_marginStart="8dp"
                         android:contentDescription="Pronunciation audio"
-                        android:src="@android:drawable/ic_lock_silent_mode_off"
+                        android:src="@drawable/ic_speaker"
                         app:tint="#81C784" />
                 </LinearLayout>
 
@@ -157,78 +158,82 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/inter_medium"
                     tools:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass" />
             </LinearLayout>
 
-            <!-- TAB NAVIGATION BAR -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="40dp"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:orientation="horizontal"
+                android:padding="4dp"
                 android:weightSum="3">
 
+                <!-- 1. OVERVIEW TAB (Active State Example) -->
                 <LinearLayout
                     android:id="@+id/tab_overview"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@drawable/bg_pill_active"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8px">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_extrabold"
                         android:text="Overview"
-                        android:textColor="#81C784"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="24dp"
-                        android:layout_height="3dp"
-                        android:layout_marginTop="6dp"
-                        android:background="#81C784" />
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
+                <!-- 2. CARE TAB (Inactive State) -->
                 <LinearLayout
                     android:id="@+id/tab_care"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8px">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_extrabold"
                         android:text="Care"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="15sp" />
+                        android:textColor="@color/primary_green"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
+                <!-- 3. DISCOVER TAB (Inactive State) -->
                 <LinearLayout
                     android:id="@+id/tab_explore"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8px">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Explore"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="15sp" />
+                        android:fontFamily="@font/inter_extrabold"
+                        android:text="Discover"
+                        android:textColor="@color/primary_green"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider" />
+
 
             <!-- HEALTH BANNER CARD -->
             <com.google.android.material.card.MaterialCardView
@@ -280,17 +285,17 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Health Score"
-                                android:textColor="@color/text_primary"
+                                android:textColor="@color/primary_green"
                                 android:textSize="15sp"
-                                android:textStyle="bold" />
+                                android:fontFamily="@font/inter_extrabold"/>
 
                             <TextView
                                 android:id="@+id/tv_health_score"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textColor="#81C784"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
+                                android:textSize="12sp"
+                                android:fontFamily="@font/inter_extrabold"
                                 tools:text="92/100" />
                         </LinearLayout>
 
@@ -315,7 +320,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="Status: "
                                 android:textColor="@color/text_secondary"
-                                android:textSize="13sp" />
+                                android:textSize="13sp"
+                                android:fontFamily="@font/inter_extrabold"/>
 
                             <TextView
                                 android:id="@+id/tv_health_state"
@@ -323,22 +329,11 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="#81C784"
                                 android:textSize="13sp"
-                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_extrabold"
                                 tools:text="Healthy!" />
                         </LinearLayout>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_inline_save"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="40dp"
-                            android:layout_marginTop="8dp"
-                            android:text="Save to My Pot"
-                            android:textAllCaps="false"
-                            android:textColor="#81C784"
-                            app:cornerRadius="20dp"
-                            app:strokeColor="#81C784"
-                            app:strokeWidth="1dp" />
+
                     </LinearLayout>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -350,9 +345,9 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="24dp"
                 android:text="Basic Info"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/primary_green"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -374,17 +369,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Toxicity to Pets"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_pet_toxicity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Non-toxic to pets" />
 
                     <View
@@ -397,17 +393,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Weed Potential"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_weed_potential"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Commonly considered weeds" />
 
                     <View
@@ -430,17 +427,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Distribution"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
                             android:id="@+id/tv_distribution"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
+                            android:textColor="@color/primary_green"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/inter_extrabold"
                             tools:text="Native to Philippines" />
                     </LinearLayout>
 
@@ -455,17 +453,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Habitat"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_habitat"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Roadsides, waste places" />
 
                     <!-- MAP CONTAINER -->
@@ -487,10 +486,11 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="7dp"
                         android:text="* The map above only represents the distribution of plants."
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="10sp"
+                        android:fontFamily="@font/inter_light_italic"/>
 
                     <!-- MAP LEGENDS -->
                     <LinearLayout
@@ -520,16 +520,17 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Native"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="#4CAF50"
                                     android:textSize="14sp"
-                                    android:textStyle="bold" />
+                                    android:fontFamily="@font/inter_extrabold"/>
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Species present in wild and native habitats"
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
 
@@ -555,16 +556,17 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Cultivated"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="#00BCD4"
                                     android:textSize="14sp"
-                                    android:textStyle="bold" />
+                                    android:fontFamily="@font/inter_extrabold"/>
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Species cultivated as garden or house plant"
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
 
@@ -590,16 +592,17 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Introduced"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="#2196F3"
                                     android:textSize="14sp"
-                                    android:textStyle="bold" />
+                                    android:fontFamily="@font/inter_extrabold" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Species present in wild and exotic habitats, not reported as invasive."
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
 
@@ -625,16 +628,17 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Invasive"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="#F44336"
                                     android:textSize="14sp"
-                                    android:textStyle="bold" />
+                                    android:fontFamily="@font/inter_extrabold" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Species labeled as invasive by law enforcement."
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
+                                    android:textSize="12sp"
+                                    android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -649,17 +653,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Plant Type"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_plant_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Grass" />
 
                     <View
@@ -672,17 +677,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Lifespan"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_lifespan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:textColor="@color/primary_green"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Annual, Biennial" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -694,9 +700,9 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="24dp"
                 android:text="Characteristics"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/primary_green"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter_extrabold"/>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -723,17 +729,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Ultimate Height"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
                             android:id="@+id/tv_ultimate_height"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
+                            android:textColor="@color/primary_green"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"
                             tools:text="10 cm to 90 cm" />
                     </RelativeLayout>
 
@@ -751,17 +758,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Ultimate Spread"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold" />
 
                         <TextView
                             android:id="@+id/tv_ultimate_spread"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
+                            android:textColor="@color/primary_green"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"
                             tools:text="5 cm to 8 cm" />
                     </RelativeLayout>
 
@@ -780,8 +788,9 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:text="Leaf Color"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold" />
 
                         <LinearLayout
                             android:id="@+id/layout_leaf_colors_container"
@@ -807,17 +816,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Leaf Type"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold" />
 
                         <TextView
                             android:id="@+id/tv_leaf_type"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
+                            android:textColor="@color/primary_green"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"
                             tools:text="Deciduous" />
                     </RelativeLayout>
 
@@ -835,68 +845,23 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Planting Time"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
                             android:id="@+id/tv_planting_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
+                            android:textColor="@color/primary_green"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter_extrabold"
                             tools:text="Spring" />
                     </RelativeLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- CARE PROFILE SECTION -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Care Profile"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="130dp"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:contentDescription="Care difficulty indicator"
-                        android:src="@android:drawable/ic_media_play"
-                        app:tint="#81C784" />
-
-                    <TextView
-                        android:id="@+id/tv_care_difficulty"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="#81C784"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        tools:text="Easy" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: CARE CONDITION -->
             <TextView
@@ -905,9 +870,9 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="24dp"
                 android:text="Care Condition"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/primary_green"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <!-- Climate Card -->
             <com.google.android.material.card.MaterialCardView
@@ -930,7 +895,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Climate icon"
-                        android:src="@android:drawable/ic_menu_compass"
+                        android:src="@drawable/ic_climate"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -940,9 +905,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_climate"
                         android:text="Climate"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
                         android:id="@+id/tv_temp"
@@ -951,7 +916,8 @@
                         android:layout_below="@id/tv_climate_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Temperature: 5 - 43°C" />
 
                     <TextView
@@ -961,7 +927,8 @@
                         android:layout_below="@id/tv_temp"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Hardiness Zones: 10-12" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -987,7 +954,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Sunlight icon"
-                        android:src="@drawable/sun"
+                        android:src="@drawable/ic_sunlight"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -997,9 +964,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_sunlight"
                         android:text="Sunlight"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
                         android:id="@+id/tv_sunlight"
@@ -1008,7 +975,8 @@
                         android:layout_below="@id/tv_sunlight_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Partial sun" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -1034,7 +1002,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Soil icon"
-                        android:src="@android:drawable/ic_menu_mapmode"
+                        android:src="@drawable/ic_soil"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -1044,9 +1012,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_soil"
                         android:text="Soil"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold"  />
 
                     <TextView
                         android:id="@+id/tv_soil"
@@ -1055,7 +1023,8 @@
                         android:layout_below="@id/tv_soil_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Loam, Sandy loam" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -1067,9 +1036,9 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="24dp"
                 android:text="How-tos"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/primary_green"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <!-- Pruning Card -->
             <com.google.android.material.card.MaterialCardView
@@ -1092,7 +1061,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Pruning icon"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@drawable/ic_pruning"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -1102,9 +1071,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_pruning"
                         android:text="Pruning"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_pruning_content"
@@ -1113,7 +1082,8 @@
                         android:layout_below="@id/tv_pruning_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Spring, Summer" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -1139,7 +1109,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Propagation icon"
-                        android:src="@android:drawable/ic_menu_agenda"
+                        android:src="@drawable/ic_propagation"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -1149,9 +1119,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_propagation"
                         android:text="Propagation"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
                         android:id="@+id/tv_propagation_content"
@@ -1160,7 +1130,8 @@
                         android:layout_below="@id/tv_propagation_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Cutting" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -1186,7 +1157,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Repotting icon"
-                        android:src="@android:drawable/ic_menu_delete"
+                        android:src="@drawable/ic_repotting"
                         app:tint="#52C48A" />
 
                     <TextView
@@ -1196,9 +1167,9 @@
                         android:layout_marginStart="12dp"
                         android:layout_toEndOf="@id/iv_ic_repotting"
                         android:text="Repotting"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/primary_green"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
                         android:id="@+id/tv_repotting_content"
@@ -1207,7 +1178,8 @@
                         android:layout_below="@id/tv_repotting_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_extrabold"
                         tools:text="Growing season" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -1220,9 +1192,9 @@
                 android:paddingTop="24dp"
                 android:paddingBottom="8dp"
                 android:text="Common Problems"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/primary_green"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -1240,16 +1212,30 @@
             </HorizontalScrollView>
 
             <!-- SECTION: USES -->
-            <TextView
-                android:id="@+id/tv_uses_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Uses"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_uses"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_uses_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Uses"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold"/>
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1268,21 +1254,36 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: ADAPTATION STRATEGIES -->
-            <TextView
-                android:id="@+id/tv_adaptation_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Adaptation Strategies"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_adaptation"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_adaptation_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Adaptation Strategies"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold" />
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1301,21 +1302,36 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: ECOLOGICAL APPLICATION -->
-            <TextView
-                android:id="@+id/tv_ecological_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Ecological Application"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_ecological"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_ecological_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ecological Application"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold"/>
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1334,21 +1350,36 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: HISTORY & LEGENDS -->
-            <TextView
-                android:id="@+id/tv_history_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="History &amp; Legends"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_history"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_history_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="History &amp; Legends"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold" />
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1367,21 +1398,36 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: NAME STORY -->
-            <TextView
-                android:id="@+id/tv_namestory_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Name Story"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_namestory"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_namestory_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Name Story"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold" />
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1400,21 +1446,36 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- SECTION: SYMBOLISM -->
-            <TextView
-                android:id="@+id/tv_symbolism_title"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="24dp"
-                android:text="Symbolism"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingTop="24dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_symbolism"
+                    app:tint="@color/primary_green" />
+
+                <TextView
+                    android:id="@+id/tv_symbolism_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Symbolism"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/inter_extrabold" />
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -1433,7 +1494,8 @@
                     android:layout_height="wrap_content"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -1446,7 +1508,6 @@
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/background"
         android:elevation="8dp"
         android:gravity="center"
         android:orientation="horizontal"
@@ -1456,13 +1517,17 @@
             android:id="@+id/btn_save_to_garden_bottom"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:backgroundTint="#4EBA7E"
-            android:text="+ Save to My Pot"
+            android:backgroundTint="#3a7d44"
+            android:text="Save to My Garden"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:cornerRadius="26dp" />
+            android:textSize="14sp"
+            android:fontFamily="@font/inter_extrabold"
+            app:cornerRadius="26dp"
+            app:icon="@drawable/ic_my_garden"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconTint="#FFFFFF" />
 
     </LinearLayout>
 

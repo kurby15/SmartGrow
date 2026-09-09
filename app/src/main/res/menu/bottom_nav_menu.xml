@@ -4,7 +4,7 @@
     <!-- 1. HOME ICON (KALIWA) -->
     <item
         android:id="@+id/nav_home"
-        android:icon="@drawable/ic_home_green"
+        android:icon="@drawable/ic_home"
         android:title="Home" />
 
     <!-- 2. PLACEHOLDER (GITNA) - Ginawang clickable=false para walang mangyari kapag pinindot sa likod ng chat bubble -->
@@ -17,7 +17,7 @@
     <!-- 3. JOURNAL/PLANTS ICON (KANAN) -->
     <item
         android:id="@+id/nav_diary"
-        android:icon="@drawable/ic_diary_book"
+        android:icon="@drawable/ic_diary"
         android:title="My Plants" />
 
 </menu>

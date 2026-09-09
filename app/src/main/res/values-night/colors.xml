@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#121212</color>
-    <color name="card_background">#1E1E1E</color>
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B0B0B0</color>
-    <color name="divider">#333333</color>
-    <color name="switch_thumb">#4CAF50</color>
-    <color name="switch_track">#2E7D32</color>
-
-    <color name="surface_translucent">#66FFFFFF</color>
+    <color name="app_background">#161A17</color>
+    <color name="header_background">#1E2420</color>
+    <color name="primary_green">#C8D6AF</color>
+    <color name="text_primary">#F4EFEA</color>
+    <color name="text_secondary">#C8D6AF</color>
+    <color name="card_background">#232A25</color>
+    <color name="divider_color">#313A33</color>
+    <color name="divider">#3D483F</color>
+    <color name="surface_translucent">#80161A17</color>
+    <color name="white">#F4EFEA</color>
+    <color name="background">#161A17</color>
+    <color name="ic_theme_tint">#E5C158</color>
+    <color name="profile_title_color">#C8D6AF</color>
+    <color name="profile_subtitle_color">#A8B892</color>
+    <color name="profile_card_bg">#232A25</color>
 </resources>

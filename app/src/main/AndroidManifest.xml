@@ -135,11 +135,6 @@
             android:name=".plants.ProblemDetailsActivity"
             android:exported="false" />
 
-        <!-- 🔴 Added AllPlantsActivity -->
-        <activity
-            android:name=".plants.AllPlantsActivity"
-            android:exported="false" />
-
         <!-- 🔔 Alarm & Boot Receivers -->
         <receiver
             android:name=".core.AlarmReceiver"

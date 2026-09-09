@@ -5,169 +5,99 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/app_background"
+    android:fitsSystemWindows="true"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-    <!-- Fixed Header Section -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_header_fixed"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="20dp"
-        android:paddingBottom="8dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageButton
-            android:id="@+id/btn_register_back"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/back_button_login"
-            android:contentDescription="Back"
-            android:scaleType="centerInside"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:tint="@color/text_primary" />
-
-        <LinearLayout
-            android:id="@+id/layout_register_header"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="12dp"
-            app:layout_constraintTop_toBottomOf="@id/btn_register_back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:src="@drawable/smartgrow_logo"
-                app:tint="#12A703"
-                android:contentDescription="SmartGrow Logo" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Create Account"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
-                    android:textColor="@color/primary_green" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Set credentials"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
-                    android:textColor="@color/text_secondary" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layout_indicator_bars"
-            android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp"
-            android:weightSum="5"
-            app:layout_constraintTop_toBottomOf="@id/layout_register_header">
-
-            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
-            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
-            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
-            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
-            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/indicator_green" />
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Scrollable content area -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view_content"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/layout_header_fixed"
-        app:layout_constraintBottom_toTopOf="@id/btn_sign_up">
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_sign_up"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="24dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="24dp">
+            android:paddingTop="125dp"
+            android:paddingBottom="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <TextView
                 android:id="@+id/tv_form_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Create your account"
+                android:text="Personal Information"
                 android:textSize="22sp"
                 android:textStyle="bold"
-                android:textColor="@color/primary_green"
-                android:fontFamily="@font/poppins"
+                android:textColor="@color/text_primary"
+                android:fontFamily="@font/inter_extrabold"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tv_form_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Enter your profile details to finish setup."
+                android:text="Please fill in your details below."
                 android:textSize="13sp"
                 android:textColor="@color/text_secondary"
-                android:fontFamily="@font/poppins"
-                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter_medium"
+                android:layout_marginTop="4dp"
                 app:layout_constraintTop_toBottomOf="@id/tv_form_title" />
 
+            <!-- FIELDS CONTAINER -->
             <LinearLayout
                 android:id="@+id/layout_fields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@id/tv_form_subtitle">
+                android:layout_marginTop="20dp"
+                app:layout_constraintTop_toBottomOf="@id/tv_form_subtitle"
+                android:clipChildren="false"
+                android:clipToPadding="false">
 
                 <!-- Username -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Username"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="16dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
                     <EditText
                         android:id="@+id/et_signup_username"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         android:background="@null"
                         android:hint="Enter your username"
                         android:textColorHint="@color/text_secondary"
                         android:inputType="text"
-                        android:paddingHorizontal="16dp"
-                        android:textSize="14sp"
+                        android:paddingHorizontal="18dp"
+                        android:textSize="12sp"
                         android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins" />
+                        android:fontFamily="@font/inter_medium" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Full Name -->
@@ -175,33 +105,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Full Name"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="16dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
                     <EditText
                         android:id="@+id/et_signup_fullname"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         android:background="@null"
                         android:hint="Enter your full name"
                         android:textColorHint="@color/text_secondary"
                         android:inputType="textPersonName"
-                        android:paddingHorizontal="16dp"
-                        android:textSize="14sp"
+                        android:paddingHorizontal="18dp"
+                        android:textSize="12sp"
                         android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins" />
+                        android:fontFamily="@font/inter_medium" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Email Address -->
@@ -209,33 +139,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Email Address"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="16dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
                     <EditText
                         android:id="@+id/et_signup_email"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         android:background="@null"
                         android:hint="example@gmail.com"
                         android:textColorHint="@color/text_secondary"
                         android:inputType="textEmailAddress"
-                        android:paddingHorizontal="16dp"
-                        android:textSize="14sp"
+                        android:paddingHorizontal="18dp"
+                        android:textSize="12sp"
                         android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins" />
+                        android:fontFamily="@font/inter_medium" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Phone Number -->
@@ -243,33 +173,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Phone Number"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="16dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
                     <EditText
                         android:id="@+id/et_signup_phone"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         android:background="@null"
                         android:hint="+1234567890"
                         android:textColorHint="@color/text_secondary"
                         android:inputType="phone"
-                        android:paddingHorizontal="16dp"
-                        android:textSize="14sp"
+                        android:paddingHorizontal="18dp"
+                        android:textSize="12sp"
                         android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins" />
+                        android:fontFamily="@font/inter_medium" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Address -->
@@ -277,61 +207,67 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Address"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="16dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
                     <EditText
                         android:id="@+id/et_signup_address"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         android:background="@null"
                         android:hint="Enter your address"
                         android:textColorHint="@color/text_secondary"
                         android:inputType="textPostalAddress"
-                        android:paddingHorizontal="16dp"
-                        android:textSize="14sp"
+                        android:paddingHorizontal="18dp"
+                        android:textSize="12sp"
                         android:textColor="@color/text_primary"
-                        android:fontFamily="@font/poppins" />
+                        android:fontFamily="@font/inter_medium" />
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Password -->
+                <!-- Password Label -->
                 <TextView
+                    android:id="@+id/tv_label_password"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Password"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
+
+                <!-- Password CardView -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_password"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
+
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         app:hintEnabled="false"
                         app:passwordToggleEnabled="true"
                         app:passwordToggleTint="@color/text_secondary"
-                        style="@style/Widget.Design.TextInputLayout">
+                        app:boxBackgroundMode="none">
+
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_signup_password"
                             android:layout_width="match_parent"
@@ -340,21 +276,21 @@
                             android:hint="Enter your password"
                             android:textColorHint="@color/text_secondary"
                             android:inputType="textPassword"
-                            android:paddingHorizontal="16dp"
-                            android:textSize="14sp"
+                            android:paddingHorizontal="18dp"
+                            android:textSize="12sp"
                             android:textColor="@color/text_primary"
-                            android:fontFamily="@font/poppins" />
+                            android:fontFamily="@font/inter_medium" />
+
                     </com.google.android.material.textfield.TextInputLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Password Requirements List -->
                 <LinearLayout
                     android:id="@+id/layout_password_requirements"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginHorizontal="8dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_marginTop="8dp"
                     android:layout_marginBottom="16dp">
 
                     <TextView
@@ -363,8 +299,8 @@
                         android:layout_height="wrap_content"
                         android:text="Password must be between 8 and 12 characters."
                         android:textColor="#FF9800"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter_medium"
                         android:layout_marginBottom="2dp" />
 
                     <TextView
@@ -373,8 +309,8 @@
                         android:layout_height="wrap_content"
                         android:text="Password must include at least one uppercase letter."
                         android:textColor="#FF9800"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter_medium"
                         android:layout_marginBottom="2dp" />
 
                     <TextView
@@ -383,8 +319,8 @@
                         android:layout_height="wrap_content"
                         android:text="Password must include at least one number."
                         android:textColor="#FF9800"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter_medium"
                         android:layout_marginBottom="2dp" />
 
                     <TextView
@@ -393,37 +329,43 @@
                         android:layout_height="wrap_content"
                         android:text="Password must include at least one special character."
                         android:textColor="#FF9800"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins" />
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter_medium" />
                 </LinearLayout>
 
-                <!-- Confirm Password -->
+                <!-- Confirm Password Label -->
                 <TextView
+                    android:id="@+id/tv_label_confirm"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Confirm Password"
-                    android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_extrabold"
                     android:layout_marginBottom="4dp" />
+
+                <!-- Confirm Password CardView -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_confirm_password"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginHorizontal="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="2dp"
                     android:layout_marginBottom="24dp"
                     app:cardElevation="2dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="22dp"
                     app:cardBackgroundColor="@color/card_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider">
+
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="50dp"
                         app:hintEnabled="false"
                         app:passwordToggleEnabled="true"
                         app:passwordToggleTint="@color/text_secondary"
-                        style="@style/Widget.Design.TextInputLayout">
+                        app:boxBackgroundMode="none">
+
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_confirm_password"
                             android:layout_width="match_parent"
@@ -432,42 +374,143 @@
                             android:hint="Re-enter password"
                             android:textColorHint="@color/text_secondary"
                             android:inputType="textPassword"
-                            android:paddingHorizontal="16dp"
-                            android:textSize="14sp"
+                            android:paddingHorizontal="18dp"
+                            android:textSize="12sp"
                             android:textColor="@color/text_primary"
-                            android:fontFamily="@font/poppins" />
+                            android:fontFamily="@font/inter_medium" />
+
                     </com.google.android.material.textfield.TextInputLayout>
                 </com.google.android.material.card.MaterialCardView>
-
-                <!-- Hidden Stubs for Onboarding Choices (Required by SignUpFragment bindings) -->
-                <EditText android:id="@+id/et_choice1" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-                <EditText android:id="@+id/et_choice2" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-                <EditText android:id="@+id/et_choice3" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-                <EditText android:id="@+id/et_choice4" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
 
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Footer Button Action -->
+    <!-- FIXED FOOTER BUTTON -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_sign_up"
-        android:layout_width="match_parent"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="0dp"
         android:layout_height="54dp"
         android:layout_marginHorizontal="24dp"
         android:layout_marginBottom="24dp"
         android:text="Sign Up"
-        android:textSize="18sp"
-        android:fontFamily="@font/poppins"
+        android:textSize="16sp"
+        android:fontFamily="@font/inter_extrabold"
         android:textStyle="bold"
         android:textColor="@color/white"
         android:textAllCaps="false"
         android:backgroundTint="@color/primary_green"
-        app:cornerRadius="16dp"
+        app:cornerRadius="26dp"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- FIXED HEADER -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/app_background"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back Button -->
+        <ImageView
+            android:id="@+id/btn_register_back"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/back_button_login"
+            app:tint="@color/primary_green"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Back" />
+
+        <!-- TITLE & LOGO ROW -->
+        <LinearLayout
+            android:id="@+id/layout_title_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintBottom_toBottomOf="@id/btn_register_back"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_register_back">
+
+            <ImageView
+                android:id="@+id/img_register_mini_logo"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/smartgrow_logo"
+                app:tint="@color/primary_green"
+                android:contentDescription="SmartGrow" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Create Account"
+                android:textColor="@color/text_primary"
+                android:fontFamily="@font/inter_extrabold"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- STEP COUNTER -->
+        <TextView
+            android:id="@+id/tv_step_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="12dp"
+            android:text="Set credentials"
+            android:textSize="13sp"
+            android:fontFamily="@font/inter_extrabold"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_register_back" />
+
+        <!-- INDICATOR BARS -->
+        <LinearLayout
+            android:id="@+id/layout_indicator_bars"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:weightSum="5"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_step_counter">
+
+            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
+            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
+            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
+            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/indicator_green" />
+            <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="@drawable/indicator_green" />
+        </LinearLayout>
+
+        <!-- Header Divider Line -->
+        <View
+            android:id="@+id/header_divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_indicator_bars"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Loading Indicator -->
     <ProgressBar

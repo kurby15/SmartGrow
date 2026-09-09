@@ -1,65 +1,115 @@
 package com.example.smartgrow.plants;
 
-import java.io.Serializable;
-
-public class PlantModel implements Serializable {
+public class PlantModel {
     private String id;
     private String name;
-    private String species;
-    private String medicinalUse;
-    private String datePlanted;
+    private String scientificName;
+    private String dateAdded;
     private String healthStatus;
+    private String medicinal;
     private int healthPercentage;
     private String imageUrl;
     private ReminderModel reminders;
 
+    // Required empty constructor para sa Firebase
     public PlantModel() {
-        // Required for Firebase
     }
 
-    public PlantModel(String name, String species, String datePlanted, String healthStatus) {
+    // Constructor na ginagamit sa pag-save ng tanim
+    public PlantModel(String name, String scientificName, String dateAdded, String healthStatus, String medicinal, int healthPercentage) {
         this.name = name;
-        this.species = species;
-        this.datePlanted = datePlanted;
+        this.scientificName = scientificName;
+        this.dateAdded = dateAdded;
         this.healthStatus = healthStatus;
-        this.medicinalUse = "General Herb";
-        this.healthPercentage = 100;
-    }
-
-    public PlantModel(String name, String species, String datePlanted, String healthStatus, String medicinalUse, int healthPercentage) {
-        this.name = name;
-        this.species = species;
-        this.datePlanted = datePlanted;
-        this.healthStatus = healthStatus;
-        this.medicinalUse = medicinalUse;
+        this.medicinal = medicinal;
         this.healthPercentage = healthPercentage;
     }
 
-    // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // Getters at Setters
+    public String getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getSpecies() { return species; }
-    public void setSpecies(String species) { this.species = species; }
+    public String getName() {
+        return name;
+    }
 
-    public String getMedicinalUse() { return medicinalUse; }
-    public void setMedicinalUse(String medicinalUse) { this.medicinalUse = medicinalUse; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getDatePlanted() { return datePlanted; }
-    public void setDatePlanted(String datePlanted) { this.datePlanted = datePlanted; }
+    public String getScientificName() {
+        return scientificName;
+    }
 
-    public String getHealthStatus() { return healthStatus; }
-    public void setHealthStatus(String healthStatus) { this.healthStatus = healthStatus; }
+    public void setScientificName(String scientificName) {
+        this.scientificName = scientificName;
+    }
 
-    public int getHealthPercentage() { return healthPercentage; }
-    public void setHealthPercentage(int healthPercentage) { this.healthPercentage = healthPercentage; }
+    public String getDateAdded() {
+        return dateAdded;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setDateAdded(String dateAdded) {
+        this.dateAdded = dateAdded;
+    }
 
-    public ReminderModel getReminders() { return reminders; }
-    public void setReminders(ReminderModel reminders) { this.reminders = reminders; }
+    public String getHealthStatus() {
+        return healthStatus;
+    }
+
+    public void setHealthStatus(String healthStatus) {
+        this.healthStatus = healthStatus;
+    }
+
+    public String getMedicinal() {
+        return medicinal;
+    }
+
+    public void setMedicinal(String medicinal) {
+        this.medicinal = medicinal;
+    }
+
+    public int getHealthPercentage() {
+        return healthPercentage;
+    }
+
+    public void setHealthPercentage(int healthPercentage) {
+        this.healthPercentage = healthPercentage;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public ReminderModel getReminders() {
+        return reminders;
+    }
+
+    public void setReminders(ReminderModel reminders) {
+        this.reminders = reminders;
+    }
+    public String getPlantName() {
+        return name;
+    }
+
+    public android.graphics.Bitmap getPlantBitmap() {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            try {
+                byte[] decodedString = android.util.Base64.decode(imageUrl, android.util.Base64.DEFAULT);
+                return android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 }

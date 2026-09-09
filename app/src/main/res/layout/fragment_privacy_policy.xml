@@ -6,154 +6,177 @@
     android:id="@+id/layout_privacy_policy"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="20dp">
+    android:background="@color/app_background">
 
-    <ImageView
-        android:id="@+id/btn_back_privacy"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/ic_back"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_primary"
-        android:contentDescription="Go back"/>
-
-    <TextView
-        android:id="@+id/tv_privacy_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins"
-        android:text="Privacy Policy"
-        android:textAlignment="center"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <View
-        android:id="@+id/header_divider_privacy"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_privacy_title"/>
-
+    <!-- 1. SCROLLABLE CONTENT (Nasa ilalim para hindi matakpan ang header) -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/header_divider_privacy"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:overScrollMode="never"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="70dp"
             android:paddingBottom="24dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="1. Introduction"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/inter_semibold"
+                android:lineSpacingMultiplier="1.3"
                 android:text="We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safe-keep your information when you utilize our smart services, features, and identification tools."
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3"
-                android:fontFamily="@font/poppins" />
+                android:textSize="12sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="2. Information We Collect"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/inter_semibold"
+                android:lineSpacingMultiplier="1.3"
                 android:text="To provide optimal functionality, we may access certain elements such as device information, camera permissions for image detection features, and standard profile details submitted through interaction forms or community areas."
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3"
-                android:fontFamily="@font/poppins" />
+                android:textSize="12sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="3. Data Protection &amp; Security"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/inter_semibold"
+                android:lineSpacingMultiplier="1.3"
                 android:text="We implement rigorous technical security measures to safeguard backend database transaction systems against unauthorized entry, alteration, or leaks, in tight alignment with established local data privacy regulations."
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3"
-                android:fontFamily="@font/poppins" />
+                android:textSize="12sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="4. Third-Party Services"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                android:fontFamily="@font/inter_semibold"
+                android:lineSpacingMultiplier="1.3"
                 android:text="Any shared logs or assets analyzed via specialized algorithms remain anonymous and are strictly handled according to modern framework standards, ensuring no persistent personal files are disclosed to external actors without permission."
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3"
-                android:fontFamily="@font/poppins" />
+                android:textSize="12sp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/divider"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                android:background="@color/divider" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_semibold"
                 android:text="Last Updated: June 2026"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
                 android:textAlignment="center"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- 2. FIXED HEADER (Nasa ibabaw na may solid background, naka-center ang title, at nasa kaliwa ang back button) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/app_background"
+        android:paddingBottom="-1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back Button sa Kaliwa -->
+        <ImageView
+            android:id="@+id/btn_back_privacy"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/profile_title_color"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Go back"/>
+
+        <!-- Screen Title na naka-CENTER sa buong header -->
+        <TextView
+            android:id="@+id/tv_privacy_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_extrabold"
+            android:text="Privacy Policy"
+            android:textColor="@color/profile_title_color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back_privacy"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_back_privacy" />
+
+        <View
+            android:id="@+id/header_divider_privacy"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_privacy_title"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

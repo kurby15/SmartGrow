@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/card_background">
+    android:background="@color/profile_card_bg">
 
     <View
         android:id="@+id/view_drag_handle"
@@ -21,9 +21,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_extrabold"
         android:text="User List"
-        android:textColor="@color/text_primary"
+        android:textColor="@color/profile_title_color"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -62,7 +62,7 @@
         android:id="@+id/tv_empty_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_medium"
         android:text="No users found."
         android:textColor="@color/text_secondary"
         android:textSize="14sp"

@@ -214,7 +214,7 @@
                         android:text="See Archive"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
-                        app:icon="@drawable/ic_diary_book"
+                        app:icon="@drawable/ic_diary"
                         app:iconSize="14dp"
                         app:iconTint="@color/text_secondary"
                         android:visibility="gone"

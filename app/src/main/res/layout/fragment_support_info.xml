@@ -4,236 +4,268 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="20dp">
+    android:background="@color/app_background"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
+    <!-- Back Button -->
     <ImageView
         android:id="@+id/btn_back_support"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
+        android:padding="4dp"
         android:src="@drawable/ic_back"
+        app:tint="@color/profile_title_color"
+        app:layout_constraintBottom_toBottomOf="@id/tv_support_info_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_primary"
+        app:layout_constraintTop_toTopOf="@id/tv_support_info_title"
         android:contentDescription="Go back"/>
 
+    <!-- Title -->
     <TextView
         android:id="@+id/tv_support_info_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Support &amp; Information"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
+        android:textColor="@color/profile_title_color"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_extrabold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_back_support" />
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Divider -->
     <View
         android:id="@+id/header_divider"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="1dp"
+        android:layout_marginTop="12dp"
         android:background="@color/divider"
-        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_support_info_title"/>
 
+    <!-- List container with horizontal margins -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_divider">
 
+        <!-- Help Center / FAQ -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/item_help_center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardElevation="2dp">
-            <androidx.constraintlayout.widget.ConstraintLayout
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Help Center / FAQ"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:textColor="@color/profile_title_color"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter_extrabold" />
+
                 <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_up_right"
-                    app:tint="@color/text_secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_next"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Contact Us / Feedback -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/item_contact_us"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardElevation="2dp">
-            <androidx.constraintlayout.widget.ConstraintLayout
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Contact Us / Feedback"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:textColor="@color/profile_title_color"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter_extrabold" />
+
                 <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_up_right"
-                    app:tint="@color/text_secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_next"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Privacy Policy -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/item_privacy_policy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardElevation="2dp">
-            <androidx.constraintlayout.widget.ConstraintLayout
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Privacy Policy"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:textColor="@color/profile_title_color"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter_extrabold" />
+
                 <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_up_right"
-                    app:tint="@color/text_secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_next"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Terms of Service -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/item_terms_service"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginTop="10dp"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardElevation="2dp">
-            <androidx.constraintlayout.widget.ConstraintLayout
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Terms of Service"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:textColor="@color/profile_title_color"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter_extrabold" />
+
                 <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_up_right"
-                    app:tint="@color/text_secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_next"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- About Us -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/item_about_smartgrow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            android:layout_marginTop="10dp"
-            app:cardElevation="2dp">
-            <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="18dp">
+
                 <TextView
-                    android:id="@+id/tv_about_app"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="About Us"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-                <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:src="@drawable/ic_up_right"
-                    app:tint="@color/text_secondary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
+                    android:text="About SmartGrow"
+                    android:textColor="@color/profile_title_color"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter_extrabold" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_next"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

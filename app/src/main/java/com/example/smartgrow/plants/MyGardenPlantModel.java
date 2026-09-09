@@ -7,6 +7,7 @@ import com.google.firebase.firestore.PropertyName;
 public class MyGardenPlantModel {
 
     private String id;
+    private String plantId;
     private String userId; // 🔴 Added userId field
     private String plantName;
     private String scientificName;
@@ -23,6 +24,16 @@ public class MyGardenPlantModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @PropertyName("plantId")
+    public String getPlantId() {
+        return plantId;
+    }
+
+    @PropertyName("plantId")
+    public void setPlantId(String plantId) {
+        this.plantId = plantId;
     }
 
     // --- User ID ---

@@ -39,7 +39,7 @@
             android:id="@+id/tv_comment_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_semibold"
             android:text="User Name"
             android:textColor="@color/text_primary"
             android:textSize="12sp"
@@ -49,9 +49,8 @@
             android:id="@+id/tv_comment_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_medium"
             android:text="Rant/Comment content here"
-            android:textColor="@color/text_primary"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -61,7 +60,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:layout_marginStart="12dp"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_medium"
         android:text="2m"
         android:textColor="@color/text_secondary"
         android:textSize="10sp"

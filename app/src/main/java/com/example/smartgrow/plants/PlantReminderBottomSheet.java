@@ -6,19 +6,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.NotificationHelper;
 import com.example.smartgrow.core.SharedPrefManager;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,7 +29,8 @@ import java.util.Locale;
 
 public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
 
-    private Spinner spinnerWater, spinnerFertilizer, spinnerSunlight;
+    private AutoCompleteTextView actvWater, actvFertilizer, actvSunlight;
+    private MaterialCardView cardWater, cardFertilizer, cardSunlight;
     private EditText etTime;
     private ImageView imgClockIcon;
     private MaterialButton btnSave;
@@ -61,10 +61,10 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         if (currentUsername != null && !currentUsername.isEmpty() && !currentUsername.equals("unknown") && plantId != null) {
             databaseReference = FirebaseDatabase.getInstance().getReference("users")
                     .child(currentUsername).child("plants").child(plantId).child("reminders");
-            
+
             plantNameRef = FirebaseDatabase.getInstance().getReference("users")
                     .child(currentUsername).child("plants").child(plantId).child("name");
-            
+
             plantNameRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -85,9 +85,15 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        spinnerWater = view.findViewById(R.id.spinner_watering_frequency);
-        spinnerFertilizer = view.findViewById(R.id.spinner_fertilizing_frequency);
-        spinnerSunlight = view.findViewById(R.id.spinner_sunlight_frequency);
+        // Bind Views base sa mga bagong ID sa XML
+        actvWater = view.findViewById(R.id.actv_watering_frequency);
+        actvFertilizer = view.findViewById(R.id.actv_fertilizing_frequency);
+        actvSunlight = view.findViewById(R.id.actv_sunlight_frequency);
+
+        cardWater = view.findViewById(R.id.card_watering_frequency);
+        cardFertilizer = view.findViewById(R.id.card_fertilizing_frequency);
+        cardSunlight = view.findViewById(R.id.card_sunlight_frequency);
+
         etTime = view.findViewById(R.id.et_reminder_time);
         imgClockIcon = view.findViewById(R.id.img_clock_icon);
         btnSave = view.findViewById(R.id.btn_save_reminder);
@@ -96,19 +102,40 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         String[] fertilizerOptions = {"Every Week", "Every 2 Weeks", "Monthly", "None"};
         String[] sunlightOptions = {"Every Day", "Every 2 Days", "Weekly", "None"};
 
-        spinnerWater.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, waterOptions));
-        spinnerFertilizer.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, fertilizerOptions));
-        spinnerSunlight.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, sunlightOptions));
+        ArrayAdapter<String> waterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, waterOptions);
+        ArrayAdapter<String> fertilizerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, fertilizerOptions);
+        ArrayAdapter<String> sunlightAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, sunlightOptions);
 
+        actvWater.setAdapter(waterAdapter);
+        actvFertilizer.setAdapter(fertilizerAdapter);
+        actvSunlight.setAdapter(sunlightAdapter);
+
+        // Para kusang lumabas ang dropdown list kapag pinindot ang card o ang field mismo
+        cardWater.setOnClickListener(v -> actvWater.showDropDown());
+        actvWater.setOnClickListener(v -> actvWater.showDropDown());
+
+        cardFertilizer.setOnClickListener(v -> actvFertilizer.showDropDown());
+        actvFertilizer.setOnClickListener(v -> actvFertilizer.showDropDown());
+
+        cardSunlight.setOnClickListener(v -> actvSunlight.showDropDown());
+        actvSunlight.setOnClickListener(v -> actvSunlight.showDropDown());
+
+        // Time Picker Listeners
         View.OnClickListener timePickerListener = v -> showTimePicker();
         etTime.setOnClickListener(timePickerListener);
         imgClockIcon.setOnClickListener(timePickerListener);
 
+        // Save Button Action
         btnSave.setOnClickListener(v -> {
-            String waterSched = spinnerWater.getSelectedItem().toString();
-            String fertSched = spinnerFertilizer.getSelectedItem().toString();
-            String sunSched = spinnerSunlight.getSelectedItem().toString();
+            String waterSched = actvWater.getText().toString().trim();
+            String fertSched = actvFertilizer.getText().toString().trim();
+            String sunSched = actvSunlight.getText().toString().trim();
             String timeSet = etTime.getText().toString().trim();
+
+            if (waterSched.isEmpty() || fertSched.isEmpty() || sunSched.isEmpty()) {
+                Toast.makeText(getContext(), "Please select all care schedules!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             if (timeSet.isEmpty()) {
                 Toast.makeText(getContext(), "Please set a preferred reminder time!", Toast.LENGTH_SHORT).show();
@@ -119,18 +146,18 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
             databaseReference.setValue(reminder).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     NotificationHelper.createNotificationChannel(requireContext());
-                    
-                    if (!waterSched.equals("None")) 
+
+                    if (!waterSched.equals("None"))
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Water", timeSet, waterSched);
                     else
                         NotificationHelper.cancelReminder(requireContext(), plantId, "Water");
 
-                    if (!sunSched.equals("None")) 
+                    if (!sunSched.equals("None"))
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Sunlight", timeSet, sunSched);
                     else
                         NotificationHelper.cancelReminder(requireContext(), plantId, "Sunlight");
 
-                    if (!fertSched.equals("None")) 
+                    if (!fertSched.equals("None"))
                         NotificationHelper.scheduleReminder(requireContext(), plantId, plantName, "Fertilize", timeSet, fertSched);
                     else
                         NotificationHelper.cancelReminder(requireContext(), plantId, "Fertilize");

@@ -103,7 +103,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
     // UI Elements - Buttons
     private MaterialButton btnSaveToGardenBottom, btnInlineSave;
-    private ImageButton ibBack;
+    private ImageView ibBack;
 
     // Extracted Data Fields (Text + Percentages)
     private String plantName = "Unknown Plant";
@@ -210,6 +210,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
     }
 
+
     private void initViews() {
         mainScrollView = findViewById(R.id.scroll_container);
 
@@ -238,7 +239,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvHabitat = findViewById(R.id.tv_habitat);
         tvPlantType = findViewById(R.id.tv_plant_type);
         tvLifespan = findViewById(R.id.tv_lifespan);
-        tvCareDifficulty = findViewById(R.id.tv_care_difficulty);
 
         layoutCommonProblemsContainer = findViewById(R.id.layout_common_problems_container);
 
@@ -265,7 +265,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvSymbolismContent = findViewById(R.id.tv_symbolism_content);
 
         btnSaveToGardenBottom = findViewById(R.id.btn_save_to_garden_bottom);
-        btnInlineSave = findViewById(R.id.btn_inline_save);
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
     }
@@ -363,6 +362,73 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private void parseIntentData() {
         if (getIntent() == null) return;
 
+        // 1. Tignan muna kung may ipinasang plant_id (Galing sa My Garden o All Plants)
+        String plantId = getIntent().getStringExtra("plant_id");
+        if (plantId != null && !plantId.isEmpty()) {
+            // I-fetch ang data mula sa Firestore "diary" collection gamit ang ID
+            db.collection("diary").document(plantId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            plantName = documentSnapshot.getString("plantName");
+                            scientificName = documentSnapshot.getString("scientificName");
+                            healthStatus = documentSnapshot.getString("healthStatus");
+
+                            // Kunin ang iba pang fields para sa kumpletong details
+                            distribution = documentSnapshot.getString("distribution");
+                            habitat = documentSnapshot.getString("habitat");
+                            petToxicity = documentSnapshot.getString("petToxicity");
+                            weedPotential = documentSnapshot.getString("weedPotential");
+                            plantType = documentSnapshot.getString("plantType");
+                            lifespan = documentSnapshot.getString("lifespan");
+                            careDifficultyText = documentSnapshot.getString("careDifficultyText");
+                            aliases = documentSnapshot.getString("aliases");
+                            ultimateHeight = documentSnapshot.getString("ultimateHeight");
+                            ultimateSpread = documentSnapshot.getString("ultimateSpread");
+                            leafType = documentSnapshot.getString("leafType");
+                            plantingTime = documentSnapshot.getString("plantingTime");
+                            temperatureRange = documentSnapshot.getString("temperatureRange");
+                            hardinessZones = documentSnapshot.getString("hardinessZones");
+                            sunlightText = documentSnapshot.getString("sunlight");
+                            soilText = documentSnapshot.getString("soil");
+                            pruningText = documentSnapshot.getString("pruning");
+                            propagationText = documentSnapshot.getString("propagation");
+                            repottingText = documentSnapshot.getString("repotting");
+                            usesText = documentSnapshot.getString("usesText");
+                            adaptationText = documentSnapshot.getString("adaptationText");
+                            ecologicalText = documentSnapshot.getString("ecologicalText");
+                            historyText = documentSnapshot.getString("historyText");
+                            nameStoryText = documentSnapshot.getString("nameStoryText");
+                            symbolismText = documentSnapshot.getString("symbolismText");
+
+                            Long hPercent = documentSnapshot.getLong("healthPercentage");
+                            if (hPercent != null) healthPercentage = hPercent.intValue();
+
+                            Long mPercent = documentSnapshot.getLong("matchConfidencePercentage");
+                            if (mPercent != null) matchConfidencePercentage = mPercent.intValue();
+
+                            Boolean artificial = documentSnapshot.getBoolean("isArtificial");
+                            if (artificial != null) isArtificial = artificial;
+
+                            // Kunin ang Base64 image kung meron
+                            String base64Image = documentSnapshot.getString("imageBase64");
+                            if (base64Image != null && !base64Image.isEmpty()) {
+                                scannedBitmap = decodeBase64ToBitmap(base64Image);
+                                if (ivPlantMain != null) ivPlantMain.setImageBitmap(scannedBitmap);
+                            }
+
+                            updateUI();
+                        } else {
+                            Toast.makeText(this, "Plant details not found.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error loading details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            return; // Itigil na rito kung galing Firestore
+        }
+
+        // 2. Kung walang plant_id, iberipika kung galing sa Camera Scan (Raw JSON / Extras)
         healthPercentage = getIntent().getIntExtra("health_percentage", 100);
         matchConfidencePercentage = getIntent().getIntExtra("match_percentage", 95);
 
@@ -374,6 +440,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             } else {
                 populateDataFromText(rawJson);
             }
+            updateUI();
             return;
         }
 
@@ -383,6 +450,17 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         updateUI();
     }
+
+    private Bitmap decodeBase64ToBitmap(String base64Str) {
+        try {
+            byte[] decodedBytes = android.util.Base64.decode(base64Str, android.util.Base64.DEFAULT);
+            return android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     private String sanitizeJsonString(String raw) {
         if (raw == null) return "";

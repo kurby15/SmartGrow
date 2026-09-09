@@ -34,7 +34,7 @@
             android:id="@+id/tv_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_semibold"
             android:text="username"
             android:textColor="@color/text_primary"
             android:textSize="15sp"
@@ -44,7 +44,7 @@
             android:id="@+id/tv_full_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_medium"
             android:text="Full Name"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />

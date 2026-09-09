@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -28,8 +29,8 @@ public class ContactUsFragment extends Fragment {
     private String mParam2;
 
     private ImageView btnBackContact;
-    private RelativeLayout btnContactEmail;
-    private RelativeLayout btnContactPhone;
+    private LinearLayout btnContactEmail;
+    private LinearLayout btnContactPhone;
     private EditText etFeedbackMessage;
     private MaterialButton btnSubmitFeedback;
 

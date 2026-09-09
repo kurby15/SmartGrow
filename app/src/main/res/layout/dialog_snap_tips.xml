@@ -18,7 +18,7 @@
         android:textColor="@color/text_primary"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins" />
+        android:fontFamily="@font/inter_extrabold" />
 
     <!-- Main Good Example (Large Center Circle) -->
     <RelativeLayout
@@ -45,7 +45,7 @@
             android:layout_alignParentTop="true"
             android:layout_marginEnd="17dp"
             android:layout_marginTop="7dp"
-            android:src="@drawable/img_3" />
+            android:src="@drawable/ic_tips_check" />
     </RelativeLayout>
 
     <!-- Bad Examples Container (3 Small Circles Row) -->
@@ -83,7 +83,7 @@
                     android:layout_height="24dp"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:src="@drawable/remove" />
+                    android:src="@drawable/ic_tips_x" />
             </RelativeLayout>
 
             <TextView
@@ -94,7 +94,7 @@
                 android:text="Too close"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins" />
+                android:fontFamily="@font/inter_extrabold" />
         </LinearLayout>
 
         <!-- 2. Too Far -->
@@ -122,7 +122,7 @@
                     android:layout_height="24dp"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:src="@drawable/remove" />
+                    android:src="@drawable/ic_tips_x" />
             </RelativeLayout>
 
             <TextView
@@ -133,7 +133,7 @@
                 android:text="Too far"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins" />
+                android:fontFamily="@font/inter_extrabold" />
         </LinearLayout>
 
         <!-- 3. Multiple Species -->
@@ -161,7 +161,7 @@
                     android:layout_height="24dp"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:src="@drawable/remove" />
+                    android:src="@drawable/ic_tips_x" />
 
                 <ImageView
                     android:layout_width="24dp"
@@ -179,7 +179,7 @@
                 android:text="Multiple species"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins" />
+                android:fontFamily="@font/inter_extrabold" />
         </LinearLayout>
 
     </LinearLayout>
@@ -191,13 +191,13 @@
         android:layout_height="56dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="@color/primary_green"
+        android:backgroundTint="#1e4620"
         android:text="Continue"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_extrabold"
         app:cornerRadius="28dp" />
 
 </RelativeLayout>

@@ -29,17 +29,7 @@ public class AboutSmartGrowFragment extends Fragment {
             }
         });
 
-        // Official Website Button
-        view.findViewById(R.id.btn_official_website).setOnClickListener(v -> {
-            // TODO: Add intent to open browser
-            Toast.makeText(getContext(), "Opening website...", Toast.LENGTH_SHORT).show();
-        });
 
-        // Check for Updates Button
-        view.findViewById(R.id.btn_rate_app).setOnClickListener(v -> {
-            // TODO: Add logic to check updates or open playstore
-            Toast.makeText(getContext(), "You are on the latest version!", Toast.LENGTH_SHORT).show();
-        });
 
         return view;
     }

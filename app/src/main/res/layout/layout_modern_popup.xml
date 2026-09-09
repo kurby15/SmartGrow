@@ -19,11 +19,12 @@
         <!-- Scan Plant -->
         <LinearLayout
             android:id="@+id/item_scan_plant"
-            android:layout_width="165dp"
+            android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="20dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true">
@@ -31,18 +32,18 @@
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@drawable/qr"
+                android:src="@drawable/ic_scan_plant"
                 app:tint="@color/primary_green"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="8dp"
                 android:text="Scan Plant"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"/>
+                android:fontFamily="@font/inter_extrabold"/>
 
         </LinearLayout>
 
@@ -55,11 +56,12 @@
         <!-- AI Chat -->
         <LinearLayout
             android:id="@+id/item_ai_chatbot"
-            android:layout_width="165dp"
+            android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="20dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true">
@@ -67,18 +69,18 @@
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@drawable/chatbot"
+                android:src="@drawable/ic_ai_chat"
                 app:tint="@color/primary_green"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="8dp"
                 android:text="AI Chat"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"/>
+                android:fontFamily="@font/inter_extrabold"/>
 
         </LinearLayout>
 

@@ -95,7 +95,6 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
         super.onViewCreated(view, savedInstanceState);
         imgUserAvatar = view.findViewById(R.id.img_create_post);
         tvUsername = view.findViewById(R.id.tv_identity_user_name);
-        tvLocationTag = view.findViewById(R.id.tv_tag_location_name);
         layoutLocation = view.findViewById(R.id.layout_location_tag);
         etPostBox = view.findViewById(R.id.et_create_post_box);
         btnAddPhoto = view.findViewById(R.id.btn_add_photo);

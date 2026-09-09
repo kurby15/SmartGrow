@@ -69,7 +69,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     private CommunityPostAdapter adapter;
     private List<CommunityPostModel> postList;
     private MaterialCardView cardMind;
-    private ImageView imgUserAvatar, btnMyProfile;
+    private ImageView imgUserAvatar;
     private SwipeRefreshLayout swipeRefreshLayout;
 
     // Firebase Services
@@ -116,7 +116,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     }
 
     private String getUserDocId() {
-        return (currentUsername != null && !currentUsername.isEmpty()) ? currentUsername : currentUid;
+        return currentUid;
     }
 
     private void loadProfileImage(String profileData, ImageView imageView) {
@@ -145,14 +145,10 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         cardMind = view.findViewById(R.id.card_mind);
         imgUserAvatar = view.findViewById(R.id.img_user);
-        btnMyProfile = view.findViewById(R.id.btn_my_profile);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_forum);
 
         if (imgUserAvatar != null) loadProfileImage(currentUserProfilePic, imgUserAvatar);
-        if (btnMyProfile != null) {
-            loadProfileImage(currentUserProfilePic, btnMyProfile);
-            btnMyProfile.setOnClickListener(v -> onUserClick(currentUid));
-        }
+
 
         if (cardMind != null) {
             cardMind.setOnClickListener(v -> {
@@ -291,6 +287,15 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             });
         }
 
+        View btnRemovePhoto = v.findViewById(R.id.btn_remove_photo);
+        if (btnRemovePhoto != null) {
+            btnRemovePhoto.setOnClickListener(view -> {
+                selectedImageUri = null; // I-clear ang uri
+                if (ivPostPreview != null) ivPostPreview.setImageURI(null);
+                if (cardPreview != null) cardPreview.setVisibility(View.GONE); // Itago ang preview box
+            });
+        }
+
         if (btnPost != null) {
             btnPost.setOnClickListener(view -> {
                 String content = etContent != null ? etContent.getText().toString().trim() : "";
@@ -329,32 +334,59 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     private void savePostToDatabase(String content, String imageBase64, BottomSheetDialog dialog) {
         DocumentReference newPostRef = db.collection("posts").document();
 
-        CommunityPostModel post = new CommunityPostModel(
-                newPostRef.getId(),
-                currentUid,
-                currentUsername,
-                currentUserProfilePic,
-                System.currentTimeMillis(),
-                content,
-                imageBase64,
-                detectedLocation
-        );
+        // Kunin muna natin ang totoong pangalan mula sa 'users' collection sa Firestore gamit ang currentUid
+        if (currentUid == null) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        newPostRef.set(post)
-                .addOnSuccessListener(aVoid -> {
-                    dialog.dismiss();
-                    showSuccessDialog();
-                    selectedImageUri = null;
-                    savedDraftContent = "";
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Post failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Button btn = dialog.findViewById(R.id.btn_submit_post);
-                    if (btn != null) {
-                        btn.setEnabled(true);
-                        btn.setText("Post");
-                    }
-                });
+        db.collection("users").document(currentUid).get().addOnSuccessListener(documentSnapshot -> {
+            // Palitan ang "username" o "fullName" kung ano man ang exact field name ng pangalan sa database mo
+            String realName = documentSnapshot.getString("username");
+            if (realName == null || realName.isEmpty()) {
+                realName = documentSnapshot.getString("fullName"); // Fallback kung fullName ang ginamit
+            }
+            if (realName == null || realName.isEmpty()) {
+                realName = "SmartGrow User"; // Safety fallback
+            }
+
+            String finalRealName = realName;
+
+            CommunityPostModel post = new CommunityPostModel(
+                    newPostRef.getId(),
+                    currentUid,
+                    finalRealName,
+                    currentUserProfilePic,
+                    System.currentTimeMillis(),
+                    content,
+                    imageBase64,
+                    ""
+
+            );
+
+            newPostRef.set(post)
+                    .addOnSuccessListener(aVoid -> {
+                        dialog.dismiss();
+                        showSuccessDialog();
+                        selectedImageUri = null;
+                        savedDraftContent = "";
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Post failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Button btn = dialog.findViewById(R.id.btn_submit_post);
+                        if (btn != null) {
+                            btn.setEnabled(true);
+                            btn.setText("Post");
+                        }
+                    });
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Failed to fetch user info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Button btn = dialog.findViewById(R.id.btn_submit_post);
+            if (btn != null) {
+                btn.setEnabled(true);
+                btn.setText("Post");
+            }
+        });
     }
 
     private void showSuccessDialog() {

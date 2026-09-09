@@ -2,68 +2,19 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://tools.android.com/tools"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_contact_us"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/app_background">
 
-    <!-- Header Section (Fixed at the top) -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:id="@+id/btn_back_contact"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="6dp"
-            android:src="@drawable/ic_back"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_primary"
-            android:contentDescription="Go back"/>
-
-        <TextView
-            android:id="@+id/tv_contact_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
-            android:text="Contact Us"
-            android:textAlignment="center"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <View
-            android:id="@+id/header_divider_contact"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider"
-            android:layout_marginTop="12dp"
-            app:layout_constraintTop_toBottomOf="@id/tv_contact_title"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Scrollable Content -->
+    <!-- 1. SCROLLABLE CONTENT (Nasa ilalim para hindi matakpan ang header) -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
         android:overScrollMode="never"
-        app:layout_constraintTop_toBottomOf="@id/header_container"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -72,46 +23,53 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingTop="70dp"
+            android:paddingBottom="24dp">
 
+            <!-- Header Text -->
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Get in touch with us"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textColor="@color/profile_title_color"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="24dp"
-                android:fontFamily="@font/poppins"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/inter_semibold"
                 android:text="We'd love to hear from you. Choose a channel below."
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
-            <!-- Section 1: Support Channels Card -->
+            <!-- Section 1: Support Channels Title -->
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginBottom="8dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Support Channels"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="1dp"
-                app:strokeWidth="0dp">
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="@color/profile_card_bg"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -119,140 +77,222 @@
                     android:orientation="vertical">
 
                     <!-- Email Button -->
-                    <RelativeLayout
+                    <LinearLayout
                         android:id="@+id/btn_contact_email"
                         android:layout_width="match_parent"
-                        android:layout_height="64dp"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:paddingHorizontal="16dp">
-                        <TextView
-                            android:id="@+id/tv_email_title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_marginTop="12dp"
-                            android:text="Email Support"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/poppins" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/tv_email_title"
-                            android:layout_alignParentStart="true"
-                            android:text="support@smartgrow.com"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:fontFamily="@font/poppins" />
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerInParent="true"
-                            android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary"
-                            android:contentDescription="Open email"/>
-                    </RelativeLayout>
+                        android:orientation="vertical"
+                        android:paddingHorizontal="18dp"
+                        android:paddingVertical="18dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/tv_email_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:fontFamily="@font/inter_semibold"
+                                android:text="Email Support"
+                                android:textColor="@color/profile_title_color"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@id/tv_email_title"
+                                android:layout_alignParentStart="true"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="@font/inter_semibold"
+                                android:text="support@smartgrow.com"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+
+                            <ImageView
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:src="@drawable/ic_next"
+                                app:tint="@color/text_secondary"
+                                android:contentDescription="Open email"/>
+                        </RelativeLayout>
+                    </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/divider"
-                        android:layout_marginHorizontal="16dp"/>
+                        android:layout_marginHorizontal="18dp"
+                        android:background="@color/divider" />
 
                     <!-- Phone Button -->
-                    <RelativeLayout
+                    <LinearLayout
                         android:id="@+id/btn_contact_phone"
                         android:layout_width="match_parent"
-                        android:layout_height="64dp"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:paddingHorizontal="16dp">
-                        <TextView
-                            android:id="@+id/tv_phone_title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_marginTop="12dp"
-                            android:text="Customer Hotline"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/poppins" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/tv_phone_title"
-                            android:layout_alignParentStart="true"
-                            android:text="+63 912 345 6789"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:fontFamily="@font/poppins" />
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerInParent="true"
-                            android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary"
-                            android:contentDescription="Call hotline"/>
-                    </RelativeLayout>
+                        android:orientation="vertical"
+                        android:paddingHorizontal="18dp"
+                        android:paddingVertical="18dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/tv_phone_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:fontFamily="@font/inter_semibold"
+                                android:text="Customer Hotline"
+                                android:textColor="@color/profile_title_color"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@id/tv_phone_title"
+                                android:layout_alignParentStart="true"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="@font/inter_semibold"
+                                android:text="+63 912 345 6789"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+
+                            <ImageView
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:src="@drawable/ic_next"
+                                app:tint="@color/text_secondary"
+                                android:contentDescription="Call hotline"/>
+                        </RelativeLayout>
+                    </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Section 2: Send Feedback -->
+            <!-- Section 2: Send Feedback Title -->
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginBottom="8dp"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Send Feedback"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
+                android:textColor="@color/profile_title_color"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
+            <!-- Feedback Input Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/profile_card_bg"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/divider"
                 app:strokeWidth="1dp">
+
                 <EditText
                     android:id="@+id/et_feedback_message"
                     android:layout_width="match_parent"
                     android:layout_height="140dp"
                     android:background="@android:color/transparent"
+                    android:fontFamily="@font/inter_semibold"
                     android:gravity="top|start"
                     android:hint="Tell us how we can improve SmartGrow..."
-                    android:textColorHint="@color/text_secondary"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:fontFamily="@font/poppins"
-                    android:padding="16dp"
+                    android:importantForAutofill="no"
                     android:inputType="textMultiLine"
-                    android:importantForAutofill="no" />
+                    android:padding="18dp"
+                    android:textColor="@color/profile_title_color"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="12sp" />
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Submit Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_submit_feedback"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginBottom="30dp"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="16dp"
+                android:backgroundTint="@color/profile_title_color"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Submit Feedback"
-                android:textColor="@color/white"
-                android:textSize="15sp"
+                android:textColor="@color/app_background"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"
-                android:backgroundTint="@color/primary_green"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="16dp"
+                app:elevation="0dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- 2. FIXED HEADER (Nasa ibabaw na may solid background, naka-center ang title, at nasa kaliwa ang back button) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/app_background"
+        android:paddingBottom="-1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back Button sa Kaliwa -->
+        <ImageView
+            android:id="@+id/btn_back_contact"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/profile_title_color"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Go back"/>
+
+        <!-- Screen Title na naka-CENTER sa buong header -->
+        <TextView
+            android:id="@+id/tv_contact_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_extrabold"
+            android:text="Contact Us"
+            android:textColor="@color/profile_title_color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back_contact"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_back_contact" />
+
+        <View
+            android:id="@+id/header_divider_contact"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_contact_title"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

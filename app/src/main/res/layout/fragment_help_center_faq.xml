@@ -3,152 +3,130 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:tools2="http://schemas.android.com/tools"
     android:id="@+id/layout_help_center"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="20dp">
+    android:background="@color/app_background">
 
-    <ImageView
-        android:id="@+id/btn_back_help"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/ic_back"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_primary"
-        android:contentDescription="Go back"/>
-
-    <TextView
-        android:id="@+id/tv_help_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins"
-        android:text="Help Center"
-        android:textAlignment="center"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <View
-        android:id="@+id/header_divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_help_title"/>
-
-    <TextView
-        android:id="@+id/tv_header_help"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:fontFamily="@font/poppins"
-        android:text="How can we help you?"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_help_title" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="16dp"
-        app:cardBackgroundColor="@color/card_background"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="1dp"
-        app:strokeColor="@color/divider"
-        app:strokeWidth="1dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_header_help">
-
-        <EditText
-            android:id="@+id/et_search_faq"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent"
-            android:hint="Search.."
-            android:textColorHint="@color/text_secondary"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:fontFamily="@font/poppins"
-            android:paddingStart="40dp"
-            android:paddingEnd="16dp"
-            android:inputType="text"
-            android:importantForAutofill="no" />
-
-        <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_gravity="start|center_vertical"
-            android:layout_marginStart="14dp"
-            android:src="@drawable/ic_search"
-            app:tint="@color/text_secondary" />
-    </com.google.android.material.card.MaterialCardView>
-
+    <!-- 1. SCROLLABLE CONTENT (Nasa ilalim para hindi matakpan ang header) -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="24dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/card_search_bar"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:overScrollMode="never"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="70dp"
+            android:paddingBottom="24dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginBottom="12dp"
-                android:text="Frequently Asked Questions"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/poppins" />
-
-            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/card_background"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/inter_extrabold"
+                android:text="How can we help you?"
+                android:textColor="@color/profile_title_color"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/inter_semibold"
+                android:text="Find answers to common questions about SmartGrow."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <!-- Search Bar Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/profile_card_bg"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
-                    android:id="@+id/layout_faq_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_search"
+                        app:tint="@color/text_secondary"
+                        android:contentDescription="Search Icon"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="@font/inter_semibold"
+                        android:text="Search FAQs, topics, or keywords..."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/inter_extrabold"
+                android:text="Frequently Asked Questions"
+                android:textColor="@color/profile_title_color"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- FAQ List Container Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/profile_card_bg"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp"
-                    android:paddingVertical="18dp">
+                    android:orientation="vertical">
 
+                    <!-- FAQ Item 1 -->
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_1"
+                            android:fontFamily="@font/inter_semibold"
                             android:text="What is SmartGrow and how does it help?"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/poppins" />
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
                         <ImageView
                             android:id="@+id/iv_arrow_1"
                             android:layout_width="16dp"
@@ -156,34 +134,36 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
                             android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary" />
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
                     </RelativeLayout>
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginHorizontal="20dp"/>
 
-                <LinearLayout
-                    android:id="@+id/layout_faq_2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp"
-                    android:paddingVertical="18dp">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
 
+                    <!-- FAQ Item 2 -->
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_2"
-                            android:text="How accurate is the Plant &amp; Disease Detector?"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/poppins" />
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="Are my plant scan records saved automatically?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
                         <ImageView
                             android:id="@+id/iv_arrow_2"
                             android:layout_width="16dp"
@@ -191,34 +171,36 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
                             android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary" />
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
                     </RelativeLayout>
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginHorizontal="20dp"/>
 
-                <LinearLayout
-                    android:id="@+id/layout_faq_3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp"
-                    android:paddingVertical="18dp">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
 
+                    <!-- FAQ Item 3 -->
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_3"
+                            android:fontFamily="@font/inter_semibold"
                             android:text="Can I delete my posts in the Community Forum?"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/poppins" />
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
                         <ImageView
                             android:id="@+id/iv_arrow_3"
                             android:layout_width="16dp"
@@ -226,34 +208,36 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
                             android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary" />
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
                     </RelativeLayout>
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginHorizontal="20dp"/>
 
-                <LinearLayout
-                    android:id="@+id/layout_faq_4"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp"
-                    android:paddingVertical="18dp">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
 
+                    <!-- FAQ Item 4 -->
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_4"
+                            android:fontFamily="@font/inter_semibold"
                             android:text="Can I use the application while offline?"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/poppins" />
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
                         <ImageView
                             android:id="@+id/iv_arrow_4"
                             android:layout_width="16dp"
@@ -261,66 +245,68 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
                             android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary" />
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
                     </RelativeLayout>
+
                 </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginHorizontal="20dp"/>
-
-                <LinearLayout
-                    android:id="@+id/layout_faq_5"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp"
-                    android:paddingVertical="18dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_toStartOf="@id/iv_arrow_5"
-                            android:text="Who can interact with my posts in the Forum?"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/poppins" />
-                        <ImageView
-                            android:id="@+id/iv_arrow_5"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerInParent="true"
-                            android:src="@drawable/ic_next"
-                            app:tint="@color/text_secondary" />
-                    </RelativeLayout>
-                </LinearLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
-
-                <RelativeLayout
-                    android:id="@+id/btn_see_more_faqs"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="20dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="See More FAQs"
-                        android:textColor="@color/primary_green"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:fontFamily="@font/poppins" />
-                </RelativeLayout>
-            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- 2. FIXED HEADER (Nasa ibabaw na may solid background at naka-center ang title) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/app_background"
+        android:paddingBottom="-1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back Button sa Kaliwa -->
+        <ImageView
+            android:id="@+id/btn_back_help"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/profile_title_color"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Go back"/>
+
+        <!-- Screen Title na naka-CENTER sa buong header -->
+        <TextView
+            android:id="@+id/tv_help_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_extrabold"
+            android:text="Help Center"
+            android:textColor="@color/profile_title_color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btn_back_help"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_back_help" />
+
+        <View
+            android:id="@+id/header_divider_help"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_help_title"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

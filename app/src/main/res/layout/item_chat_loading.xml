@@ -20,7 +20,7 @@
             android:layout_height="16dp"
             android:src="@drawable/smartgrow_logo"
             android:layout_gravity="center"
-            app:tint="@color/primary_green"/>
+            app:tint="#1e4620"/>
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
@@ -47,7 +47,7 @@
                 <ProgressBar
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:indeterminateTint="@color/primary_green"/>
+                    android:indeterminateTint="#1e4620"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -56,7 +56,7 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="italic"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_light_italic"
                     android:layout_marginLeft="10dp"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

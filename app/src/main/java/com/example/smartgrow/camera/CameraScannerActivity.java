@@ -85,12 +85,14 @@ public class CameraScannerActivity extends AppCompatActivity {
     private ImageCapture imageCapture;
     private Camera camera;
 
+    private ImageView btnFlash;
+
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
     private boolean isTorchOn = false;
 
     private RelativeLayout sliderContainer;
     private View sliderThumb;
-    private ImageButton btnFlash;
+
 
     private ExecutorService cameraExecutor;
 
@@ -129,11 +131,11 @@ public class CameraScannerActivity extends AppCompatActivity {
         overlayView = findViewById(R.id.scanner_overlay);
         ivFrozenPreview = findViewById(R.id.iv_frozen_preview);
 
-        ImageButton btnClose = findViewById(R.id.btn_close_scanner);
-        ImageButton btnHelp = findViewById(R.id.btn_help);
+        ImageView btnClose = findViewById(R.id.btn_close_scanner);
+        ImageView btnHelp = findViewById(R.id.btn_help);
         btnFlash = findViewById(R.id.btn_flash);
         View btnCapture = findViewById(R.id.btn_capture_photo);
-        ImageButton btnGallery = findViewById(R.id.btn_gallery_shortcut);
+        ImageView btnGallery = findViewById(R.id.btn_gallery_shortcut);
 
         sliderContainer = findViewById(R.id.layout_slider_container);
         sliderThumb = findViewById(R.id.slider_thumb);
@@ -321,21 +323,23 @@ public class CameraScannerActivity extends AppCompatActivity {
     private void bindCameraUseCases() {
         if (cameraProvider == null) return;
 
-        Preview preview = new Preview.Builder().build();
-        preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
-
-        imageCapture = new ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .setTargetRotation(viewFinder.getDisplay().getRotation())
-                .build();
-
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(cameraFacing)
-                .build();
-
         try {
             cameraProvider.unbindAll();
+
+            Preview preview = new Preview.Builder().build();
+            preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
+
+            imageCapture = new ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .setTargetRotation(viewFinder.getDisplay().getRotation())
+                    .build();
+
+            CameraSelector cameraSelector = new CameraSelector.Builder()
+                    .requireLensFacing(cameraFacing)
+                    .build();
+
             camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
+
             if (camera != null && camera.getCameraInfo().hasFlashUnit()) {
                 camera.getCameraControl().enableTorch(isTorchOn);
             }
@@ -344,7 +348,6 @@ public class CameraScannerActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to bind camera", Toast.LENGTH_SHORT).show();
         }
     }
-
     private void takePhotoSafe() {
         if (imageCapture == null) {
             Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show();
@@ -763,7 +766,7 @@ public class CameraScannerActivity extends AppCompatActivity {
     }
 
     private void toggleTorch() {
-        if (camera != null && camera.getCameraInfo().hasFlashUnit()) {
+        if (camera != null && camera.getCameraInfo().hasFlashUnit() && btnFlash != null) {
             isTorchOn = !isTorchOn;
             camera.getCameraControl().enableTorch(isTorchOn);
             btnFlash.setBackgroundResource(isTorchOn ? R.drawable.bg_circle_yellow : R.drawable.bg_circle_translucent);

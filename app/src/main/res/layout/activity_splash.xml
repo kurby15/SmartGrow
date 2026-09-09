@@ -57,7 +57,7 @@
             android:textSize="34sp"
             android:textColor="@color/white"
             android:textStyle="bold"
-            android:fontFamily="@font/poppins"
+            android:fontFamily="@font/inter_extrabold"
             android:letterSpacing="-0.01" />
 
     </LinearLayout>
@@ -71,7 +71,7 @@
         android:textSize="12sp"
         android:textColor="@color/white"
         android:alpha="0.3"
-        android:fontFamily="@font/poppins"
+        android:fontFamily="@font/inter_extrabold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

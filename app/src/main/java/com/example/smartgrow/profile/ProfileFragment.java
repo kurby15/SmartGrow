@@ -164,7 +164,7 @@ public class ProfileFragment extends Fragment {
 
     private void setupNavigation(View view) {
         view.findViewById(R.id.btn_preferences).setOnClickListener(v -> navigateTo(new AppPreferencesFragment()));
-        view.findViewById(R.id.btn_security).setOnClickListener(v -> navigateTo(new AccountSecurityFragment()));
+        view.findViewById(R.id.btn_account).setOnClickListener(v -> navigateTo(new AccountSecurityFragment()));
         view.findViewById(R.id.btn_support).setOnClickListener(v -> navigateTo(new SupportInfoFragment()));
     }
 
@@ -229,6 +229,16 @@ public class ProfileFragment extends Fragment {
         if (chip == null) return;
         if (value != null && !value.isEmpty() && !value.equalsIgnoreCase("None")) {
             chip.setText(value);
+
+            try {
+                android.graphics.Typeface typeface = androidx.core.content.res.ResourcesCompat.getFont(requireContext(), R.font.inter_bold);
+                if (typeface != null) {
+                    chip.setTypeface(typeface);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             chip.setVisibility(View.VISIBLE);
         } else {
             chip.setVisibility(View.GONE);

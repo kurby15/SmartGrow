@@ -2,8 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@android:color/transparent">
 
     <com.google.android.material.card.MaterialCardView
@@ -24,41 +24,36 @@
             android:layout_height="wrap_content"
             android:padding="24dp">
 
-            <ImageView
-                android:id="@+id/iv_checkmark"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:src="@drawable/ic_checked"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
             <TextView
                 android:id="@+id/tv_success"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Post Created Successfully"
                 android:textColor="@color/primary_green"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginTop="10dp"
+                android:gravity="center"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_checkmark" />
+                app:layout_constraintStart_toStartOf="parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_success"
                 android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="16dp"
                 android:backgroundTint="@color/primary_green"
                 android:text="Ok"
-                android:textSize="15sp"
+                android:textSize="12sp"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"
-                app:cardCornerRadius="15dp"
+                android:fontFamily="@font/inter_extrabold"
+                android:gravity="center"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:cornerRadius="25dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_success" />

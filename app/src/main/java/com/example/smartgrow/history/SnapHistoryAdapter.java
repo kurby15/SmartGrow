@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,20 +84,22 @@ public class SnapHistoryAdapter extends RecyclerView.Adapter<SnapHistoryAdapter.
         // --- CHECK IF PLANT IS ALREADY IN MY GARDEN ---
         boolean isInGarden = isPlantInGarden(plantName);
 
+
         if (holder.fabAction != null) {
             if (isInGarden) {
-                // Style as Disabled / Added state
-                holder.fabAction.setText("Added");
-                holder.fabAction.setIconResource(R.drawable.ic_check_white); // Replace with your check drawable icon resource
-                holder.fabAction.setIconTint(ColorStateList.valueOf(Color.parseColor("#FFFFFF")));
-                holder.fabAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#8E8E93"))); // Grey color
-                holder.fabAction.setEnabled(false); // Make unclickable
+                // Style as Disabled / Added state (Kulay gray tapos check icon)
+                holder.fabAction.setCardBackgroundColor(Color.parseColor("#8E8E93"));
+                if (holder.ivFabIcon != null) {
+                    holder.ivFabIcon.setImageResource(R.drawable.ic_check); // Siguraduhing mayroon kang ganitong icon sa drawable
+                }
+                holder.fabAction.setEnabled(false);
                 holder.fabAction.setOnClickListener(null);
             } else {
-                // Style as Active "+ Add Plant" state
-                holder.fabAction.setText("+ Add Plant");
-                holder.fabAction.setIcon(null);
-                holder.fabAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#22A15D"))); // Green color
+                // Style as Active Add state (Kulay green tapos plus icon)
+                holder.fabAction.setCardBackgroundColor(Color.parseColor("#2E7D32"));
+                if (holder.ivFabIcon != null) {
+                    holder.ivFabIcon.setImageResource(R.drawable.ic_add_plus_green); // O kung ano mang plus icon ang gamit mo
+                }
                 holder.fabAction.setEnabled(true);
                 holder.fabAction.setOnClickListener(v -> {
                     if (listener != null) {
@@ -105,6 +108,7 @@ public class SnapHistoryAdapter extends RecyclerView.Adapter<SnapHistoryAdapter.
                 });
             }
         }
+
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -148,27 +152,21 @@ public class SnapHistoryAdapter extends RecyclerView.Adapter<SnapHistoryAdapter.
 
         popup.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.action_edit_name) {
-                if (listener != null) listener.onEditNameClick(snap);
-                return true;
-            } else if (itemId == R.id.action_add_notes) {
-                Toast.makeText(view.getContext(), "Add notes for " + snap.getPlantName(), Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.action_delete) {
+            if (itemId == R.id.action_delete) {
                 if (listener != null) listener.onDeleteSnapClick(snap);
                 return true;
             }
             return false;
-        });
+            });
 
         popup.show();
     }
 
     static class SnapViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivPlantImage;
+        ImageView ivPlantImage, ivFabIcon;
         TextView tvCommonName, tvScientificName;
-        ImageButton ibMoreOptions;
-        ExtendedFloatingActionButton fabAction;
+        ImageView ibMoreOptions;
+        MaterialCardView fabAction;
 
         public SnapViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -177,6 +175,11 @@ public class SnapHistoryAdapter extends RecyclerView.Adapter<SnapHistoryAdapter.
             tvScientificName = itemView.findViewById(R.id.tv_scientific_name);
             ibMoreOptions = itemView.findViewById(R.id.ib_more_options);
             fabAction = itemView.findViewById(R.id.fab_action);
+
+
+            if (fabAction != null) {
+                ivFabIcon = fabAction.findViewById(R.id.iv_fab_icon);
+            }
         }
     }
 }

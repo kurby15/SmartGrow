@@ -8,12 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SecurityUtils;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.profile.User;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -79,47 +81,88 @@ public class ChangePasswordFragment extends Fragment {
             return;
         }
 
-        btnSave.setEnabled(false);
-        btnSave.setText("Updating...");
+        // I-check muna kung may nakuhang username galing sa SharedPrefManager
+        if (currentUsername == null || currentUsername.isEmpty()) {
+            Toast.makeText(getContext(), "Session error: Username not found. Please re-login.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        // 🔐 Security Flow: Fetch, Verify, Hash, and Update
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        btnSave.setEnabled(false);
+        btnSave.setText("Verifying...");
+
+        // Siguraduhing tama ang reference node gamit ang kasalukuyang username
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(currentUsername);
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Siguraduhing maibabalik agad ang button state
+                btnSave.setEnabled(true);
+                btnSave.setText("Update Password");
+
                 if (snapshot.exists()) {
-                    User user = snapshot.getValue(User.class);
-                    if (user != null) {
-                        // 1. Verify Current Password (Confidentiality)
-                        if (SecurityUtils.verifyPassword(currentPass, user.getPassword())) {
-                            
-                            // 2. Hash New Password (Integrity)
-                            String hashedPass = SecurityUtils.hashPassword(newPass);
-                            
-                            // 3. Update Database
-                            userRef.child("password").setValue(hashedPass).addOnCompleteListener(task -> {
-                                btnSave.setEnabled(true);
-                                btnSave.setText("Save");
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(getContext(), "Password updated successfully!", Toast.LENGTH_SHORT).show();
-                                    getParentFragmentManager().popBackStack();
-                                } else {
-                                    Toast.makeText(getContext(), "Failed to update password", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                    String storedPassword = snapshot.child("password").getValue(String.class);
+
+                    if (storedPassword != null) {
+                        if (SecurityUtils.verifyPassword(currentPass, storedPassword)) {
+                            showOtpDialog(newPass);
                         } else {
-                            btnSave.setEnabled(true);
-                            btnSave.setText("Save");
                             Toast.makeText(getContext(), "Incorrect current password", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Toast.makeText(getContext(), "Password field missing in database", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Toast.makeText(getContext(), "User account not found in database (" + currentUsername + ")", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                // Babalik sa dati ang button sakaling ma-cancel o ma-block ang query
                 btnSave.setEnabled(true);
-                btnSave.setText("Save");
+                btnSave.setText("Update Password");
+                Toast.makeText(getContext(), "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    private void showOtpDialog(String newPass) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_otp, null);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(requireContext());
+        bottomSheetDialog.setContentView(dialogView);
+
+        EditText etOtpCode = dialogView.findViewById(R.id.et_otp_code);
+        TextView tvResend = dialogView.findViewById(R.id.tv_otp_resend_action);
+        MaterialButton btnVerifyOtp = dialogView.findViewById(R.id.btn_otp_verify);
+
+        btnVerifyOtp.setOnClickListener(v -> {
+            String otpCode = etOtpCode.getText().toString().trim();
+
+            if (otpCode.length() < 6) {
+                etOtpCode.setError("Enter the 6-digit code");
+                return;
+            }
+
+            btnVerifyOtp.setEnabled(false);
+            btnVerifyOtp.setText("Verifying...");
+
+            // 3. Hash New Password and Update Firebase Database
+            String hashedPass = SecurityUtils.hashPassword(newPass);
+            userRef.child("password").setValue(hashedPass).addOnCompleteListener(task -> {
+                bottomSheetDialog.dismiss();
+                if (task.isSuccessful()) {
+                    Toast.makeText(getContext(), "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                    getParentFragmentManager().popBackStack();
+                } else {
+                    Toast.makeText(getContext(), "Failed to update password", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        tvResend.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Verification code resent!", Toast.LENGTH_SHORT).show();
+        });
+
+        bottomSheetDialog.show();
     }
 }

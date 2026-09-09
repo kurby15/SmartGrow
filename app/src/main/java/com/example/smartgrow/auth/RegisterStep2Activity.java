@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
@@ -29,7 +30,7 @@ public class RegisterStep2Activity extends AppCompatActivity {
 
         userData = (User) getIntent().getSerializableExtra("user_data");
 
-        ImageButton btnBack = findViewById(R.id.btn_register_back);
+        ImageView btnBack = findViewById(R.id.btn_register_back);
         MaterialButton btnNext = findViewById(R.id.btn_register_next);
 
         MaterialCardView card1 = findViewById(R.id.card_choice1);
@@ -92,8 +93,8 @@ public class RegisterStep2Activity extends AppCompatActivity {
 
         TextView targetText = cardTextMap.get(targetCard);
         if (targetText != null) {
-            targetCard.setCardBackgroundColor(Color.parseColor("#0C6211"));
-            targetCard.setStrokeColor(Color.parseColor("#0C6211"));
+            targetCard.setCardBackgroundColor(Color.parseColor("#1e4620"));
+            targetCard.setStrokeColor(Color.parseColor("#1e4620"));
             targetText.setTextColor(Color.parseColor("#FFFFFF"));
 
             selectedCard = targetCard;

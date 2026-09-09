@@ -48,7 +48,7 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
-                android:fontFamily="@font/poppins" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <View
                 android:layout_width="match_parent"
@@ -66,7 +66,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins" />
+                android:fontFamily="@font/inter_extrabold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_edit_input_name"
@@ -87,7 +87,7 @@
                     android:textColorHint="@color/text_secondary"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_medium"
                     android:paddingHorizontal="16dp"
                     android:inputType="textPersonName"
                     android:maxLines="1"
@@ -103,7 +103,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:layout_marginTop="16dp" />
 
             <com.google.android.material.card.MaterialCardView
@@ -125,7 +125,7 @@
                     android:textColorHint="@color/text_secondary"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_medium"
                     android:paddingHorizontal="16dp"
                     android:inputType="text"
                     android:maxLines="1"
@@ -141,7 +141,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:layout_marginTop="16dp" />
 
             <com.google.android.material.card.MaterialCardView
@@ -163,7 +163,7 @@
                     android:textColorHint="@color/text_secondary"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
-                    android:fontFamily="@font/poppins"
+                    android:fontFamily="@font/inter_medium"
                     android:paddingHorizontal="16dp"
                     android:inputType="text"
                     android:maxLines="1"
@@ -176,7 +176,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Date Planted:"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
@@ -208,7 +208,7 @@
                         android:textSize="14sp"
                         android:focusable="false"
                         android:clickable="true"
-                        android:fontFamily="@font/poppins"
+                        android:fontFamily="@font/inter_medium"
                         android:importantForAutofill="no"
                         android:inputType="none" />
                     <ImageView
@@ -232,7 +232,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:layout_marginTop="16dp" />
 
             <com.google.android.material.card.MaterialCardView
@@ -270,7 +270,7 @@
                             android:text="Update photo or take new snap"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
-                            android:fontFamily="@font/poppins"
+                            android:fontFamily="@font/inter_medium"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                     <ImageView
@@ -294,8 +294,8 @@
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"
-                app:backgroundTint="@color/primary_green"
+                android:fontFamily="@font/inter_extrabold"
+                app:backgroundTint="#1e4620"
                 app:cornerRadius="12dp" />
 
         </LinearLayout>

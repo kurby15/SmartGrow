@@ -38,12 +38,7 @@ public class GetStartedActivity extends AppCompatActivity {
         TextView tvTagline = findViewById(R.id.tv_tagline);
         MaterialButton btnGetStarted = findViewById(R.id.btn_get_started);
 
-        ImageView leafTop = findViewById(R.id.leaf_bg_top);
-        ImageView leafBottom = findViewById(R.id.leaf_bg_bottom);
         View viewGlow = findViewById(R.id.view_glow);
-
-        if (leafTop != null) startFloatingAnimation(leafTop, 15f, 4000);
-        if (leafBottom != null) startFloatingAnimation(leafBottom, -15f, 4500);
 
         if (viewGlow != null) {
             AlphaAnimation glowPulse = new AlphaAnimation(0.15f, 0.45f);

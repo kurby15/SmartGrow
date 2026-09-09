@@ -4,48 +4,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="20dp">
+    android:background="@color/app_background"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
+    <!-- Back Button -->
     <ImageView
         android:id="@+id/btn_back_account_security"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
-        android:src="@drawable/ic_back"
         android:padding="4dp"
+        android:src="@drawable/ic_back"
+        app:tint="@color/profile_title_color"
+        app:layout_constraintBottom_toBottomOf="@id/tv_account_security_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_primary"
+        app:layout_constraintTop_toTopOf="@id/tv_account_security_title"
         android:contentDescription="Go back" />
 
+    <!-- Title -->
     <TextView
         android:id="@+id/tv_account_security_title"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Account &amp; Security"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
+        android:textColor="@color/profile_title_color"
+        android:fontFamily="@font/inter_extrabold"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:fontFamily="@font/poppins"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_back_account_security" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Divider -->
     <View
         android:id="@+id/header_divider"
         android:layout_width="0dp"
         android:layout_height="1dp"
+        android:layout_marginTop="12dp"
         android:background="@color/divider"
-        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_account_security_title"/>
 
-    <!-- List container: Naka-match constraint para flexible -->
+    <!-- List container with horizontal margins -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -55,102 +61,126 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header_divider">
 
+        <!-- Edit Profile -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_edit_profile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
             android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp"
-            app:cardElevation="2dp">
+            app:strokeColor="@android:color/transparent">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Edit Profile"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins" />
+                    android:textColor="@color/profile_title_color"
+                    android:fontFamily="@font/inter_extrabold"
+                    android:textSize="13sp"/>
+
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
                     android:src="@drawable/ic_next"
-                    app:tint="@color/text_secondary" />
+                    app:tint="#b7b7a4" />
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Privacy & Data -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_privacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
             android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp"
-            app:cardElevation="2dp">
+            app:strokeColor="@android:color/transparent">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Privacy &amp; Data"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins" />
+                    android:textColor="@color/profile_title_color"
+                    android:fontFamily="@font/inter_extrabold"
+                    android:textSize="13sp" />
+
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
                     android:src="@drawable/ic_next"
-                    app:tint="@color/text_secondary" />
+                    app:tint="#b7b7a4" />
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Change Password -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btn_security_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
             android:layout_marginVertical="6dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_background"
-            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@color/profile_card_bg"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp"
-            app:cardElevation="2dp">
+            app:strokeColor="@android:color/transparent">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
                     android:text="Change Password"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:fontFamily="@font/poppins" />
+                    android:textColor="@color/profile_title_color"
+                    android:fontFamily="@font/inter_extrabold"
+                    android:textSize="13sp"/>
+
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
                     android:src="@drawable/ic_next"
-                    app:tint="@color/text_secondary" />
+                    app:tint="#b7b7a4" />
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 

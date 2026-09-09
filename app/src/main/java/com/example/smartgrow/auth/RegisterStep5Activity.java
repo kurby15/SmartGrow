@@ -88,7 +88,7 @@ public class RegisterStep5Activity extends AppCompatActivity {
         }
 
         btnSignUp = findViewById(R.id.btn_sign_up);
-        ImageButton btnBack = findViewById(R.id.btn_register_back);
+        ImageView btnBack = findViewById(R.id.btn_register_back);
 
         setupLoadingDialog();
 

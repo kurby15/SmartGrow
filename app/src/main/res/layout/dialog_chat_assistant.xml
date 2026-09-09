@@ -5,23 +5,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/transparent">
+    android:background="@color/profile_card_bg">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="wrap_content"
+        android:maxHeight="600dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/card_background"
+        app:cardBackgroundColor="@color/profile_card_bg"
         app:strokeWidth="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
-            <!-- 🛑 Top Header Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_chat_header"
                 android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                     android:id="@+id/view_drag_handle"
                     android:layout_width="40dp"
                     android:layout_height="4dp"
-                    android:background="@color/divider"
+                    android:background="@drawable/bg_drag_handle"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"/>
@@ -44,57 +44,63 @@
                     android:layout_height="44dp"
                     android:layout_marginTop="12dp"
                     app:cardCornerRadius="22dp"
-                    app:cardBackgroundColor="@color/primary_green"
+                    app:cardBackgroundColor="@color/profile_title_color"
                     app:strokeWidth="0dp"
                     app:layout_constraintTop_toBottomOf="@id/view_drag_handle"
                     app:layout_constraintStart_toStartOf="parent">
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chat_bubble_white"
+                        android:layout_width="19dp"
+                        android:layout_height="19dp"
+                        android:src="@drawable/ic_chat"
                         android:layout_gravity="center"
-                        app:tint="@color/white"/>
+                        app:tint="@color/app_background"
+                        android:contentDescription="Chat icon"/>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Eksaktong nakagitna sa pagitan ng card_chat_icon at ib_chat_menu -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginLeft="12dp"
+                    android:gravity="center_horizontal"
                     app:layout_constraintTop_toTopOf="@id/card_chat_icon"
                     app:layout_constraintBottom_toBottomOf="@id/card_chat_icon"
                     app:layout_constraintStart_toEndOf="@id/card_chat_icon"
-                    app:layout_constraintEnd_toStartOf="@id/ib_chat_menu">
+                    app:layout_constraintEnd_toStartOf="@id/ib_chat_menu"
+                    app:layout_constraintHorizontal_bias="0.5">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SmartGrow Assistant"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/profile_title_color"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:fontFamily="@font/poppins"/>
+                        android:fontFamily="@font/inter_extrabold"
+                        android:gravity="center"/>
 
                     <TextView
                         android:id="@+id/tv_assistant_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Online • Plant Smart Care"
+                        android:text="• Your AI plant care assistant"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:fontFamily="@font/poppins"/>
+                        android:textSize="10sp"
+                        android:fontFamily="@font/inter_semibold"
+                        android:gravity="center"/>
                 </LinearLayout>
 
-                <ImageButton
+                <ImageView
                     android:id="@+id/ib_chat_menu"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_more_vert"
-                    app:tint="@color/text_primary"
+                    app:tint="@color/profile_title_color"
                     app:layout_constraintTop_toTopOf="@id/card_chat_icon"
                     app:layout_constraintBottom_toBottomOf="@id/card_chat_icon"
-                    app:layout_constraintEnd_toEndOf="parent"/>
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:contentDescription="Menu"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -107,18 +113,17 @@
 
             <!-- ================= RECYCLERVIEW CHAT AREA ================= -->
 
-            <!-- 📸 IMAGE PREVIEW AREA (Appears when image is selected) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_chat_messages_list"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="250dp"
                 android:clipToPadding="false"
                 android:padding="16dp"
+                android:overScrollMode="never"
                 app:layout_constraintBottom_toTopOf="@id/layout_image_preview_container"
-                app:layout_constraintTop_toBottomOf="@id/header_divider"
-                app:layout_constraintVertical_bias="0.0"
-                tools:layout_editor_absoluteX="0dp" />
+                app:layout_constraintTop_toBottomOf="@id/header_divider" />
 
+            <!-- 📸 IMAGE PREVIEW AREA -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_image_preview_container"
                 android:layout_width="match_parent"
@@ -135,6 +140,7 @@
                     app:cardCornerRadius="12dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider"
+                    app:cardBackgroundColor="@color/profile_card_bg"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent">
@@ -143,61 +149,58 @@
                         android:id="@+id/iv_preview_selected_image"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"/>
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Selected image preview"/>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Remove/Cancel Image Selection Button -->
-                <ImageButton
+                <ImageView
                     android:id="@+id/ib_remove_preview_image"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/remove"
+                    android:src="@drawable/ic_tips_x"
                     android:backgroundTint="@color/text_secondary"
                     app:layout_constraintTop_toTopOf="@id/card_preview_image"
-                    app:layout_constraintEnd_toEndOf="@id/card_preview_image"/>
+                    app:layout_constraintEnd_toEndOf="@id/card_preview_image"
+                    android:contentDescription="Remove image"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- ================= BOTTOM INPUT TYPE BAR WITH ATTACH BUTTON ================= -->
+            <!-- ================= BOTTOM INPUT TYPE BAR ================= -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_input_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:background="@color/card_background"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
                 app:layout_constraintBottom_toBottomOf="parent">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider"
-                    app:layout_constraintTop_toTopOf="parent"/>
-
-                <ImageButton
+                <!-- Attach Button -->
+                <ImageView
                     android:id="@+id/ib_chat_attach"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Attach Media o Image Source"
-                    android:src="@drawable/ic_plus_sign"
+                    android:contentDescription="Attach Media or Image Source"
+                    android:src="@drawable/ic_plus"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/primary_green" />
+                    app:tint="@color/profile_title_color" />
 
+                <!-- Nakagitnang Text Input Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="10dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
                     app:cardCornerRadius="24dp"
-                    app:cardBackgroundColor="@color/background"
+                    app:cardBackgroundColor="@color/app_background"
                     app:strokeWidth="1dp"
                     app:strokeColor="@color/divider"
                     app:cardElevation="0dp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@id/ib_chat_attach"
-                    app:layout_constraintEnd_toStartOf="@id/fab_send_message">
+                    app:layout_constraintEnd_toStartOf="@id/ib_send_message">
 
                     <EditText
                         android:id="@+id/et_chat_input"
@@ -205,26 +208,25 @@
                         android:layout_height="match_parent"
                         android:hint="Ask me anything about plant care..."
                         android:textColorHint="@color/text_secondary"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:fontFamily="@font/poppins"
+                        android:textColor="@color/profile_title_color"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_semibold"
                         android:background="@android:color/transparent"
-                        android:paddingHorizontal="16dp"
+                        android:paddingHorizontal="13dp"
                         android:inputType="textCapSentences"
                         android:maxLines="3"
                         android:importantForAutofill="no"/>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Circle Green Send Button Navigation Arrow -->
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_send_message"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <!-- Send Message Icon -->
+                <ImageButton
+                    android:id="@+id/ib_send_message"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_send"
-                    app:backgroundTint="@color/primary_green"
-                    app:fabSize="mini"
-                    app:tint="@color/white"
-                    app:elevation="2dp"
+                    android:scaleType="centerInside"
+                    app:tint="@color/profile_title_color"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"

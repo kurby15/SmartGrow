@@ -17,6 +17,8 @@ public class AppPreferencesFragment extends Fragment {
 
     private SwitchCompat switchDarkMode, switchNotifications;
 
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,5 +59,29 @@ public class AppPreferencesFragment extends Fragment {
         }
 
         return view;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        View bottomNav = requireActivity().findViewById(R.id.bottom_navigation_bar);
+        View mainHeader = requireActivity().findViewById(R.id.layout_top_header);
+        View chatAssistant = requireActivity().findViewById(R.id.card_nav_chat_assistant);
+
+        if (bottomNav != null) bottomNav.setVisibility(View.GONE);
+        if (mainHeader != null) mainHeader.setVisibility(View.GONE);
+        if (chatAssistant != null) chatAssistant.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        View bottomNav = requireActivity().findViewById(R.id.bottom_navigation_bar);
+        View mainHeader = requireActivity().findViewById(R.id.layout_top_header);
+        View chatAssistant = requireActivity().findViewById(R.id.card_nav_chat_assistant);
+
+        if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
+        if (mainHeader != null) mainHeader.setVisibility(View.VISIBLE);
+        if (chatAssistant != null) chatAssistant.setVisibility(View.VISIBLE);
     }
 }

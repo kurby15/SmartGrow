@@ -34,14 +34,14 @@
         android:layout_alignParentTop="true"
         android:paddingHorizontal="16dp">
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btn_close_scanner"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Close"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:src="@drawable/ic_x"
             app:tint="#FFFFFF" />
 
         <LinearLayout
@@ -52,7 +52,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_help"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
@@ -60,29 +60,30 @@
                 android:background="@drawable/bg_circle_translucent"
                 android:contentDescription="Help"
                 android:padding="6dp"
-                android:src="@android:drawable/ic_menu_help"
+                android:src="@drawable/ic_tips"
                 app:tint="#FFFFFF" />
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_flash"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
                 android:layout_marginEnd="12dp"
                 android:background="@drawable/bg_circle_translucent"
                 android:contentDescription="Flash"
                 android:padding="6dp"
-                android:src="@drawable/flash"
-                app:tint="#A9A7A7" />
+                android:src="@drawable/ic_flash"
+                app:tint="#FFFFFF" />
 
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- 5. Center Prompt Text -->
+    <!-- 5. Center Prompt Text  -->
     <TextView
         android:id="@+id/tv_focus_prompt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:gravity="center"
         android:shadowColor="#80000000"
         android:shadowDx="1"
         android:shadowDy="2"
@@ -90,16 +91,15 @@
         android:text="Place the plant in focus"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:fontFamily="@font/inter_extrabold"/>
 
-    <!-- 6. Interactive Vertical Torch Strength Slider -->
     <RelativeLayout
         android:id="@+id/layout_slider_container"
         android:layout_width="48dp"
         android:layout_height="180dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="4dp"
         android:clipChildren="false">
 
         <!-- Track Line -->
@@ -128,15 +128,15 @@
         android:background="#15FFFFFF"
         android:paddingHorizontal="40dp">
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btn_gallery_shortcut"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Gallery"
             android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_menu_gallery"
+            android:src="@drawable/ic_scan_upload"
             app:tint="#FFFFFF" />
 
         <com.google.android.material.card.MaterialCardView
@@ -144,7 +144,7 @@
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:layout_centerInParent="true"
-            app:cardBackgroundColor="#00C853"
+            app:cardBackgroundColor="#26892B"
             app:cardCornerRadius="36dp"
             app:cardElevation="6dp"
             app:strokeColor="#FFFFFF"

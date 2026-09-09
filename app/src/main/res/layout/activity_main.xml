@@ -4,16 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/app_background">
 
     <!-- TOP HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_top_header"
         android:layout_width="match_parent"
         android:layout_height="75dp"
-        android:background="@color/card_background"
+        android:background="@color/header_background"
         android:paddingHorizontal="16dp"
-        android:paddingTop="30dp"
+        android:paddingTop="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -28,7 +28,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/smartgrow_logo"
-                app:tint="#12A703"/>
+                app:tint="@color/primary_green"/>
 
             <TextView
                 android:id="@+id/tv_header_brand_name"
@@ -38,7 +38,7 @@
                 android:textColor="@color/primary_green"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins"
+                android:fontFamily="@font/inter_extrabold"
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
 
@@ -63,7 +63,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_notification_green" />
+                    android:src="@drawable/ic_notification_green"
+                    app:tint="@color/primary_green"/>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -80,7 +81,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_global_green" />
+                    android:src="@drawable/ic_global_green"
+                    app:tint="@color/primary_green"/>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -97,39 +99,45 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_profile_avatar" />
+                    android:src="@drawable/ic_profile_avatar"
+                    app:tint="@color/primary_green"/>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- FRAGMENT CONTAINER -->
+    <!-- TOP GRAY LINE -->
+    <View
+        android:id="@+id/view_header_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color"
+        app:layout_constraintTop_toBottomOf="@id/layout_top_header"/>
 
-    <!-- SHADOW LINE -->
+    <!-- FRAGMENT CONTAINER -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_top_header"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@id/view_header_shadow" />
 
+    <!-- BOTTOM GRAY LINE -->
     <View
         android:id="@+id/view_nav_shadow"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/divider"
+        android:layout_height="1dp"
+        android:background="@color/divider_color"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"/>
 
-    <!-- BOTTOM NAVIGATION BAR (FIXED COMPATIBILITY) -->
+    <!-- BOTTOM NAVIGATION BAR -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"
         android:layout_width="match_parent"
         android:layout_height="65dp"
-        android:background="@color/card_background"
-        app:elevation="8dp"
+        android:background="@color/header_background"
+        app:elevation="0dp"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/selector_nav_colors"
@@ -140,7 +148,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- CHAT FLOATING ASSISTANT (PERFECTLY CENTERED) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_nav_chat_assistant"
         android:layout_width="64dp"
@@ -150,7 +157,7 @@
         app:cardBackgroundColor="@color/primary_green"
         app:cardElevation="10dp"
         app:strokeWidth="4dp"
-        app:strokeColor="@color/card_background"
+        app:strokeColor="@color/app_background"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -159,10 +166,12 @@
 
         <ImageView
             android:id="@+id/img_nav_chat_icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_chat_bubble_white"
+            android:src="@drawable/ic_chat"
+            app:backgroundTint="@color/primary_green"
+            app:tint="@android:color/white"
             android:contentDescription="SmartGrow AI Assistant" />
     </com.google.android.material.card.MaterialCardView>
 

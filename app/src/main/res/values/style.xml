@@ -9,8 +9,8 @@
     </style>
 
     <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Action">
-        <item name="chipBackgroundColor">#3B3B3D</item>
-        <item name="android:textColor">#CCCCCC</item>
+        <item name="chipBackgroundColor">#E7E7E7</item>
+        <item name="android:textColor">#1E4620</item>
         <item name="chipCornerRadius">6dp</item>
         <item name="chipMinHeight">32dp</item>
         <item name="chipMinTouchTargetSize">0dp</item>

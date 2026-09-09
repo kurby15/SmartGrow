@@ -45,6 +45,7 @@ import com.example.smartgrow.community.CommunityForumFragment;
 import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.profile.ProfileFragment;
+import com.example.smartgrow.plants.SetReminderFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -73,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialCardView cardNavChatAssistant;
     private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile;
+    private View mainHeaderBar;
+
+    private BottomNavigationView bottomNav;
 
     // Loading Indicator for Plant Analysis
     private ProgressDialog loadingDialog;
@@ -87,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap pendingImageBitmap = null;
     private View layoutImagePreviewContainer;
     private ImageView ivPreviewSelectedImage;
-    private ImageButton ibRemovePreviewImage;
+    private ImageView ibRemovePreviewImage;
 
     private String lastAnalyzedPlantProfile = "";
     private long lastRequestTime = 0;
@@ -126,7 +130,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_bar);
+        bottomNav = findViewById(R.id.bottom_navigation_bar);
+        mainHeaderBar = findViewById(R.id.layout_top_header);
         cardNavChatAssistant = findViewById(R.id.card_nav_chat_assistant);
         cardActionNotification = findViewById(R.id.card_action_notification);
         cardActionGlobal = findViewById(R.id.card_action_global);
@@ -157,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+
         setupGlobalHeaderListeners();
 
         if (cardNavChatAssistant != null) {
@@ -164,14 +170,40 @@ public class MainActivity extends AppCompatActivity {
         }
 
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
-            Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            // Show bottom navigation bar and assistant button on ProfileFragment
-            if (current instanceof ArchiveFragment) {
-                hideSystemBars();
-            } else {
-                showSystemBars();
-            }
+            checkCurrentFragmentForVisibility();
         });
+
+
+
+    }
+
+    private void checkCurrentFragmentForVisibility() {
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+
+        if (current == null
+                || current instanceof ArchiveFragment
+                || current instanceof com.example.smartgrow.settings.AppPreferencesFragment
+                || current instanceof com.example.smartgrow.settings.AccountSecurityFragment
+                || current instanceof com.example.smartgrow.settings.SupportInfoFragment
+                || current instanceof com.example.smartgrow.profile.EditProfileFragment
+                || current instanceof com.example.smartgrow.settings.PrivacyDataFragment
+                || current instanceof com.example.smartgrow.settings.ChangePasswordFragment
+                || current instanceof com.example.smartgrow.settings.HelpCenterFaqFragment
+                || current instanceof com.example.smartgrow.settings.ContactUsFragment
+                || current instanceof com.example.smartgrow.settings.PrivacyPolicyFragment
+                || current instanceof com.example.smartgrow.settings.TermOfServiceFragment
+                || current instanceof com.example.smartgrow.settings.AboutSmartGrowFragment
+                || current instanceof com.example.smartgrow.plants.AllPlantsFragment
+                || current instanceof com.example.smartgrow.plants.SetReminderFragment) {
+
+            if (bottomNav != null) bottomNav.setVisibility(View.GONE);
+            if (mainHeaderBar != null) mainHeaderBar.setVisibility(View.GONE);
+            if (cardNavChatAssistant != null) cardNavChatAssistant.setVisibility(View.GONE);
+        } else {
+            if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
+            if (mainHeaderBar != null) mainHeaderBar.setVisibility(View.VISIBLE);
+            if (cardNavChatAssistant != null) cardNavChatAssistant.setVisibility(View.VISIBLE);
+        }
     }
 
     // ==========================================
@@ -904,9 +936,9 @@ public class MainActivity extends AppCompatActivity {
 
         activeRvChatMessages = chatView.findViewById(R.id.rv_chat_messages_list);
         EditText etChatInput = chatView.findViewById(R.id.et_chat_input);
-        FloatingActionButton fabSend = chatView.findViewById(R.id.fab_send_message);
-        ImageButton ibMenu = chatView.findViewById(R.id.ib_chat_menu);
-        ImageButton ibAttach = chatView.findViewById(R.id.ib_chat_attach);
+        ImageButton ibSend = chatView.findViewById(R.id.ib_send_message);
+        ImageView ibMenu = chatView.findViewById(R.id.ib_chat_menu);
+        ImageView ibAttach = chatView.findViewById(R.id.ib_chat_attach);
 
         layoutImagePreviewContainer = chatView.findViewById(R.id.layout_image_preview_container);
         ivPreviewSelectedImage = chatView.findViewById(R.id.iv_preview_selected_image);
@@ -959,17 +991,13 @@ public class MainActivity extends AppCompatActivity {
                         menu.dismiss();
                         showHistoryBottomSheetDialog();
                     });
-                } else {
-                    dropdownView.setOnClickListener(view -> {
-                        menu.dismiss();
-                        showHistoryBottomSheetDialog();
-                    });
                 }
 
-                menu.showAsDropDown(v, -280, 10);
+                menu.showAsDropDown(v, -80, 10);
             });
         }
 
+// 2. Para sa Attach Button (ibAttach)
         if (ibAttach != null) {
             ibAttach.setOnClickListener(v -> {
                 View attachView = LayoutInflater.from(this).inflate(R.layout.layout_attach_dropdown, null);
@@ -1003,8 +1031,8 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        if (fabSend != null && etChatInput != null) {
-            fabSend.setOnClickListener(v -> {
+        if (ibSend != null && etChatInput != null) {
+            ibSend.setOnClickListener(v -> {
                 String userText = etChatInput.getText().toString().trim();
 
                 if (userText.isEmpty() && pendingImageBitmap == null) return;
