@@ -116,7 +116,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_chat_messages_list"
                 android:layout_width="match_parent"
-                android:layout_height="600dp"
+                android:layout_height="450dp"
                 android:clipToPadding="false"
                 android:padding="16dp"
                 android:overScrollMode="never"
