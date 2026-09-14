@@ -709,6 +709,34 @@ public class CameraScannerActivity extends AppCompatActivity {
             historyEntry.put("nameStoryText", nameStoryText);
             historyEntry.put("symbolismText", symbolismText);
 
+            // Parse and store common problems into diary_history
+            JSONArray commonProblemsArray = root.optJSONArray("common_problems");
+            if (commonProblemsArray != null && commonProblemsArray.length() > 0) {
+                historyEntry.put("commonProblemsJson", commonProblemsArray.toString());
+                try {
+                    List<Map<String, Object>> probList = new ArrayList<>();
+                    for (int i = 0; i < commonProblemsArray.length(); i++) {
+                        JSONObject obj = commonProblemsArray.getJSONObject(i);
+                        Map<String, Object> probMap = new HashMap<>();
+                        probMap.put("title", obj.optString("title"));
+                        probMap.put("likelihood_percentage", obj.optInt("likelihood_percentage"));
+                        probMap.put("description", obj.optString("description"));
+                        probMap.put("symptom_analysis", obj.optString("symptom_analysis"));
+                        probMap.put("disease_cause", obj.optString("disease_cause"));
+                        probMap.put("solutions", obj.optString("solutions"));
+                        probMap.put("prevention", obj.optString("prevention"));
+                        probMap.put("image_url", obj.optString("image_url"));
+                        probList.add(probMap);
+                    }
+                    historyEntry.put("common_problems_list", probList);
+                    historyEntry.put("common_problems", probList);
+                    historyEntry.put("commonProblems", probList);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error saving common problems list to history", e);
+                }
+            }
+
+            historyEntry.put("rawAnalysisJson", rawJson);
             historyEntry.put("timestamp", System.currentTimeMillis());
 
             if (bitmap != null) {
@@ -830,8 +858,8 @@ public class CameraScannerActivity extends AppCompatActivity {
                                 decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
                             });
                         } else {
-                            try (InputStream is = getContentResolver().openInputStream(uri)) {
-                                bitmap = BitmapFactory.decodeStream(is);
+                            try (InputStream iStream = getContentResolver().openInputStream(uri)) {
+                                bitmap = BitmapFactory.decodeStream(iStream);
                             }
                         }
                         if (bitmap != null) {

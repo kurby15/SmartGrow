@@ -168,6 +168,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
     private JSONArray commonProblemsArray = null;
     private Bitmap scannedBitmap;
+    private String mRawAnalysisJson = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -366,6 +367,9 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         // 1. Tignan muna kung may ipinasang plant_id (Galing sa My Garden o All Plants)
         String plantId = getIntent().getStringExtra("plant_id");
         if (plantId != null && !plantId.isEmpty()) {
+            if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
+            if (btnInlineSave != null) btnInlineSave.setVisibility(View.GONE);
+
             // I-fetch ang data mula sa Firestore "diary" collection gamit ang ID
             db.collection("diary").document(plantId)
                     .get()
@@ -444,6 +448,31 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             if (base64Image != null && !base64Image.isEmpty()) {
                                 scannedBitmap = decodeBase64ToBitmap(base64Image);
                                 if (ivPlantMain != null) ivPlantMain.setImageBitmap(scannedBitmap);
+                                if (ivHealthPreview != null) ivHealthPreview.setImageBitmap(scannedBitmap);
+                                if (ivPlantMatch1 != null) ivPlantMatch1.setImageBitmap(scannedBitmap);
+                                if (ivPlantMatch2 != null) ivPlantMatch2.setImageBitmap(scannedBitmap);
+                            }
+
+                            String cpJson = documentSnapshot.getString("commonProblemsJson");
+                            if (cpJson != null && !cpJson.isEmpty()) {
+                                try {
+                                    commonProblemsArray = new JSONArray(cpJson);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Error parsing commonProblemsJson", e);
+                                }
+                            } else {
+                                List<Map<String, Object>> cpList = (List<Map<String, Object>>) documentSnapshot.get("common_problems_list");
+                                if (cpList != null) {
+                                    commonProblemsArray = new JSONArray();
+                                    for (Map<String, Object> pMap : cpList) {
+                                        commonProblemsArray.put(new JSONObject(pMap));
+                                    }
+                                }
+                            }
+
+                            mRawAnalysisJson = documentSnapshot.getString("rawAnalysisJson");
+                            if (mRawAnalysisJson != null && !mRawAnalysisJson.trim().isEmpty()) {
+                                populateDataFromJson(sanitizeJsonString(mRawAnalysisJson));
                             }
 
                             updateUI();
@@ -457,12 +486,22 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             return; // Itigil na rito kung galing Firestore
         }
 
-        // 2. Kung walang plant_id, iberipika kung galing sa Camera Scan (Raw JSON / Extras)
+        // 2. Kung walang plant_id, iberipika kung galing sa Camera Scan o History (Raw JSON / Extras)
         healthPercentage = getIntent().getIntExtra("health_percentage", 100);
         matchConfidencePercentage = getIntent().getIntExtra("match_percentage", 95);
 
+        String base64ImageExtra = getIntent().getStringExtra("image_base64");
+        if (base64ImageExtra != null && !base64ImageExtra.isEmpty()) {
+            scannedBitmap = decodeBase64ToBitmap(base64ImageExtra);
+            if (ivPlantMain != null) ivPlantMain.setImageBitmap(scannedBitmap);
+            if (ivHealthPreview != null) ivHealthPreview.setImageBitmap(scannedBitmap);
+            if (ivPlantMatch1 != null) ivPlantMatch1.setImageBitmap(scannedBitmap);
+            if (ivPlantMatch2 != null) ivPlantMatch2.setImageBitmap(scannedBitmap);
+        }
+
         String rawJson = getIntent().getStringExtra("raw_ai_json");
         if (rawJson != null && !rawJson.trim().isEmpty()) {
+            mRawAnalysisJson = rawJson;
             String cleanJson = sanitizeJsonString(rawJson);
             if (cleanJson.startsWith("{")) {
                 populateDataFromJson(cleanJson);
@@ -601,11 +640,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     isArtificial = true;
                 }
 
-                mapLocations.clear();
                 JSONArray locArray = profile.optJSONArray("distribution_coordinates");
                 if (locArray == null) locArray = profile.optJSONArray("locations");
 
                 if (locArray != null && locArray.length() > 0) {
+                    mapLocations.clear();
                     for (int i = 0; i < locArray.length(); i++) {
                         JSONObject locObj = locArray.optJSONObject(i);
                         if (locObj != null) {
@@ -618,13 +657,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                         }
                     }
                 }
-
-                if (mapLocations.isEmpty()) {
-                    mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Origin", distribution, "Native"));
-                }
             }
 
-            commonProblemsArray = root.optJSONArray("common_problems");
+            JSONArray newProblems = root.optJSONArray("common_problems");
+            if (newProblems != null && newProblems.length() > 0) {
+                commonProblemsArray = newProblems;
+            }
 
             JSONObject characteristics = root.optJSONObject("characteristics");
             if (characteristics != null) {
@@ -1107,6 +1145,38 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         if (scannedBitmap != null) {
             diaryEntry.put("imageBase64", encodeBitmapToBase64(scannedBitmap));
+        }
+
+        if (commonProblemsArray != null) {
+            diaryEntry.put("commonProblemsJson", commonProblemsArray.toString());
+            try {
+                List<Map<String, Object>> probList = new ArrayList<>();
+                for (int i = 0; i < commonProblemsArray.length(); i++) {
+                    JSONObject obj = commonProblemsArray.getJSONObject(i);
+                    Map<String, Object> probMap = new HashMap<>();
+                    probMap.put("title", obj.optString("title"));
+                    probMap.put("likelihood_percentage", obj.optInt("likelihood_percentage"));
+                    probMap.put("description", obj.optString("description"));
+                    probMap.put("symptom_analysis", obj.optString("symptom_analysis"));
+                    probMap.put("disease_cause", obj.optString("disease_cause"));
+                    probMap.put("solutions", obj.optString("solutions"));
+                    probMap.put("prevention", obj.optString("prevention"));
+                    probMap.put("image_url", obj.optString("image_url"));
+                    probList.add(probMap);
+                }
+                diaryEntry.put("common_problems_list", probList);
+                diaryEntry.put("common_problems", probList);
+                diaryEntry.put("commonProblems", probList);
+            } catch (Exception e) {
+                Log.e(TAG, "Error saving common problems list", e);
+            }
+        }
+
+        String rawJsonExtra = getIntent().getStringExtra("raw_ai_json");
+        if (rawJsonExtra != null && !rawJsonExtra.isEmpty()) {
+            diaryEntry.put("rawAnalysisJson", rawJsonExtra);
+        } else if (mRawAnalysisJson != null && !mRawAnalysisJson.isEmpty()) {
+            diaryEntry.put("rawAnalysisJson", mRawAnalysisJson);
         }
 
         db.collection("diary")
