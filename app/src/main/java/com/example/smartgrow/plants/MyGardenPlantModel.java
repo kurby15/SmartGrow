@@ -8,13 +8,14 @@ public class MyGardenPlantModel {
 
     private String id;
     private String plantId;
-    private String userId; // 🔴 Added userId field
+    private String userId;
     private String plantName;
     private String scientificName;
     private String healthStatus;
     private int healthPercentage;
     private String imageBase64;
     private String rawAnalysisJson;
+    private boolean isArtificial;
 
     public MyGardenPlantModel() {}
 
@@ -36,7 +37,6 @@ public class MyGardenPlantModel {
         this.plantId = plantId;
     }
 
-    // --- User ID ---
     @PropertyName("userId")
     public String getUserId() {
         return userId;
@@ -105,5 +105,15 @@ public class MyGardenPlantModel {
     @PropertyName("rawAnalysisJson")
     public void setRawAnalysisJson(String rawAnalysisJson) {
         this.rawAnalysisJson = rawAnalysisJson;
+    }
+
+    @PropertyName("isArtificial")
+    public boolean isArtificial() {
+        return isArtificial;
+    }
+
+    @PropertyName("isArtificial")
+    public void setArtificial(boolean artificial) {
+        isArtificial = artificial;
     }
 }

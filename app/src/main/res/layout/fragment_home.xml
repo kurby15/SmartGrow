@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
-                android:text="Good Afternoon, Marleth!"
+                android:text="Welcome back!"
                 android:textSize="21sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary_green"
@@ -75,19 +75,21 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tv_weather_temp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_extrabold"
-                            android:text="24°C"
+                            android:text="28°C"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tv_weather_desc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_medium"
-                            android:text="Partly Cloudy Humidity 62°C"
+                            android:text="Sunny • Humidity 62%"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -96,7 +98,7 @@
                         android:layout_width="1dp"
                         android:layout_height="40dp"
                         android:layout_marginHorizontal="12dp"
-                        android:background="@color/divider" />
+                        android:background="@color/divider_color" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -161,7 +163,7 @@
                                 android:id="@+id/tv_count_total_plants"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="3"
+                                android:text="0"
                                 android:textSize="20sp"
                                 android:fontFamily="@font/inter_extrabold"
                                 android:textColor="@color/text_primary"/>
@@ -217,7 +219,7 @@
                                 android:id="@+id/tv_count_need_water"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="6"
+                                android:text="0"
                                 android:textColor="@color/text_primary"
                                 android:textSize="20sp"
                                 android:fontFamily="@font/inter_extrabold"/>
@@ -272,7 +274,7 @@
                                 android:id="@+id/tv_value_avg_health"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="3%"
+                                android:text="0%"
                                 android:textSize="20sp"
                                 android:fontFamily="@font/inter_extrabold"
                                 android:textColor="@color/text_primary"/>
