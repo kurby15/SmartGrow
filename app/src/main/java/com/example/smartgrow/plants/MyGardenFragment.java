@@ -49,6 +49,9 @@ public class MyGardenFragment extends Fragment {
     private EditText etSearchPlants;
     private LinearLayout layoutViewAll;
 
+    // Stats Summary Elements
+    private TextView tvStatPlantsCount, tvStatScannedCount, tvStatToWaterCount;
+
     // Content Containers & RecyclerViews
     private View layoutMyGardenContent, layoutSnapHistoryContent;
     private RecyclerView rvPlantList, rvSnapHistoryList;
@@ -137,6 +140,10 @@ public class MyGardenFragment extends Fragment {
         indicatorMyGarden = view.findViewById(R.id.indicator_my_garden);
         indicatorSnapHistory = view.findViewById(R.id.indicator_snap_history);
 
+        tvStatPlantsCount = view.findViewById(R.id.tv_stat_plants_count);
+        tvStatScannedCount = view.findViewById(R.id.tv_stat_scanned_count);
+        tvStatToWaterCount = view.findViewById(R.id.tv_stat_to_water_count);
+
         layoutMyGardenContent = view.findViewById(R.id.layout_my_garden_content);
         layoutSnapHistoryContent = view.findViewById(R.id.layout_snap_history_content);
 
@@ -161,6 +168,8 @@ public class MyGardenFragment extends Fragment {
                     .commit();
         });
 
+        // Default "To Water" to 0
+        if (tvStatToWaterCount != null) tvStatToWaterCount.setText("0");
     }
 
     private void setupSearchFilter() {
@@ -414,6 +423,7 @@ public class MyGardenFragment extends Fragment {
             if (gardenAdapter != null) gardenAdapter.notifyDataSetChanged();
             if (snapAdapter != null) snapAdapter.setGardenPlantNames(new ArrayList<>());
             updateEmptyState();
+            updateStatsCounts();
             return;
         }
 
@@ -461,6 +471,7 @@ public class MyGardenFragment extends Fragment {
                         }
 
                         updateEmptyState();
+                        updateStatsCounts();
 
                         if (snapAdapter != null) {
                             snapAdapter.setGardenPlantNames(activeGardenPlantNames);
@@ -476,6 +487,7 @@ public class MyGardenFragment extends Fragment {
             snapList.clear();
             fullSnapList.clear();
             if (snapAdapter != null) snapAdapter.notifyDataSetChanged();
+            updateStatsCounts();
             return;
         }
 
@@ -508,8 +520,28 @@ public class MyGardenFragment extends Fragment {
                                 snapAdapter.notifyDataSetChanged();
                             }
                         }
+                        updateStatsCounts();
                     }
                 });
+    }
+
+    private void updateStatsCounts() {
+        if (tvStatPlantsCount != null) {
+            tvStatPlantsCount.setText(String.valueOf(fullPlantList.size()));
+        }
+        if (tvStatScannedCount != null) {
+            tvStatScannedCount.setText(String.valueOf(fullSnapList.size()));
+        }
+        // "To Water" count logic - based on health percentage < 60 like in HomeFragment
+        int toWaterCount = 0;
+        for (MyGardenPlantModel plant : fullPlantList) {
+            if (plant.getHealthPercentage() < 60) {
+                toWaterCount++;
+            }
+        }
+        if (tvStatToWaterCount != null) {
+            tvStatToWaterCount.setText(String.valueOf(toWaterCount));
+        }
     }
 
     private void saveSnapToGarden(SnapHistoryModel snap) {
@@ -649,12 +681,13 @@ public class MyGardenFragment extends Fragment {
 
         snapList.clear();
         snapList.addAll(fullSnapList);
-        if (snapAdapter != null) snapAdapter.notifyDataSetChanged();
+        if (snapAdapter != null) {
+            snapAdapter.notifyDataSetChanged();
+        }
     }
 
     private void updateTabIcons(boolean isMyGardenActive) {
         if (tabMyGarden != null) {
-            ImageView iconGarden = tabMyGarden.findViewById(android.R.id.icon);
             ImageView imgGarden = (ImageView) tabMyGarden.getChildAt(0);
             if (imgGarden != null) {
                 imgGarden.setColorFilter(isMyGardenActive ? Color.parseColor("#FFFFFF") : Color.parseColor("#2E4336"));
