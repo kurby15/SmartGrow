@@ -46,6 +46,7 @@ import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.profile.ProfileFragment;
 import com.example.smartgrow.plants.SetReminderFragment;
+import com.example.smartgrow.plants.PlantReminderBottomSheet;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -138,9 +139,20 @@ public class MainActivity extends AppCompatActivity {
         cardActionProfile = findViewById(R.id.card_action_profile);
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new HomeFragment())
-                    .commit();
+            if (getIntent() != null && getIntent().hasExtra("plantId")) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new SetReminderFragment())
+                        .commit();
+                String pId = getIntent().getStringExtra("plantId");
+                if (pId != null && !pId.isEmpty()) {
+                    PlantReminderBottomSheet bottomSheet = PlantReminderBottomSheet.newInstance(pId);
+                    bottomSheet.show(getSupportFragmentManager(), "PlantReminderBottomSheet");
+                }
+            } else {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new HomeFragment())
+                        .commit();
+            }
         }
 
         if (bottomNav != null) {
@@ -162,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-
         setupGlobalHeaderListeners();
 
         if (cardNavChatAssistant != null) {
@@ -172,9 +183,6 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             checkCurrentFragmentForVisibility();
         });
-
-
-
     }
 
     private void checkCurrentFragmentForVisibility() {
@@ -997,7 +1005,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-// 2. Para sa Attach Button (ibAttach)
         if (ibAttach != null) {
             ibAttach.setOnClickListener(v -> {
                 View attachView = LayoutInflater.from(this).inflate(R.layout.layout_attach_dropdown, null);

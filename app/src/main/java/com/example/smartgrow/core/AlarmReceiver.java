@@ -1,5 +1,6 @@
 package com.example.smartgrow.core;
 
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,7 +8,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
@@ -37,7 +37,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             if (documentSnapshot.exists()) {
                 String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
                 String lastDoneDate = null;
-                
+
                 if ("Water".equals(taskType)) {
                     lastDoneDate = documentSnapshot.getString("lastWateredDate");
                 } else if ("Fertilize".equals(taskType)) {
@@ -49,15 +49,18 @@ public class AlarmReceiver extends BroadcastReceiver {
                 // If already done today, don't show "DUE" or "OVERDUE" notifications
                 if (todayDate.equals(lastDoneDate) && ("DUE".equals(notificationType) || "OVERDUE".equals(notificationType))) {
                     Log.d(TAG, "Task " + taskType + " for " + plantName + " already done today. Skipping notification.");
-                    
+
                     // Still reschedule for next cycle if this is the DUE trigger
                     if ("DUE".equals(notificationType) && frequency != null && !"None".equalsIgnoreCase(frequency)) {
                         NotificationHelper.scheduleReminder(context, plantId, plantName, taskType, timeStr, frequency, true);
                     }
                     return;
                 }
-                
+
                 // Proceed with showing notification
+                showNotification(context, plantId, plantName, taskType, timeStr, frequency, notificationType);
+            } else {
+                // CHANGED: Added an 'else' block so notifications still show up even if the diary document doesn't exist yet
                 showNotification(context, plantId, plantName, taskType, timeStr, frequency, notificationType);
             }
         }).addOnFailureListener(e -> {
@@ -67,31 +70,44 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void showNotification(Context context, String plantId, String plantName, String taskType, String timeStr, String frequency, String notificationType) {
-        Log.d(TAG, "Notification firing for: " + plantName + " - " + taskType + " (" + notificationType + ")");
+        Log.d(TAG, "Care reminder notification triggered: ID=" + plantId + ", taskType=" + taskType + " (" + notificationType + ")");
 
         if (plantName == null) plantName = "your plant";
 
-        String title = "SmartGrow Care Reminder 🌿";
+        // Ensure channel is created immediately before showing notification
+        NotificationHelper.createNotificationChannel(context);
+
+        String title = "AirSense Care Reminder";
         String message;
 
+        String actionStr = "check";
+        if ("Water".equalsIgnoreCase(taskType)) {
+            actionStr = "water";
+        } else if ("Fertilize".equalsIgnoreCase(taskType)) {
+            actionStr = "fertilize";
+        } else if ("Sunlight".equalsIgnoreCase(taskType)) {
+            actionStr = "check sunlight for";
+        }
+
         if ("BEFORE".equals(notificationType)) {
-            message = "Reminder: It will be time to " + (taskType != null ? taskType.toLowerCase() : "care for") + " your " + plantName + " in 2 hours! ✨";
+            message = "Reminder: It will be time to " + actionStr + " your " + plantName + " soon.";
         } else if ("OVERDUE".equals(notificationType)) {
-            message = "Action Needed: You haven't " + (taskType != null ? taskType.toLowerCase() + "ed" : "checked") + " your " + plantName + " yet today. Please do it now! ⚠️";
+            message = "Action Needed: Time to " + actionStr + " your " + plantName + " and complete your scheduled care activity.";
         } else {
-            message = "Time to " + (taskType != null ? taskType.toLowerCase() : "care for") + " your " + plantName + "! 💧";
+            message = "Time to " + actionStr + " your " + plantName + ".";
         }
 
         Intent notifyIntent = new Intent(context, MainActivity.class);
         notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        
+        notifyIntent.putExtra("plantId", plantId);
+
         // Consistent request code with NotificationHelper
         int requestCode = (plantId + taskType + notificationType).hashCode();
-        
+
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 
-                requestCode, 
-                notifyIntent, 
+                context,
+                requestCode,
+                notifyIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
@@ -104,11 +120,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        try {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
             notificationManager.notify(requestCode, builder.build());
-        } catch (SecurityException e) {
-            Log.e(TAG, "Notification permission missing", e);
         }
 
         // Reschedule for next cycle when the DUE alarm fires

@@ -20,7 +20,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.example.smartgrow.R;
@@ -52,12 +51,10 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
     // Permission launcher for Android 13+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    saveScheduleAndNotify();
-                } else {
-                    // If user denies, we still save but remind them
-                    Toast.makeText(getContext(), "Notification permission is required for active reminders.", Toast.LENGTH_LONG).show();
-                    saveScheduleAndNotify();
+                // CHANGED: Removed the condition that bypassed saving if denied; now it saves the schedule regardless so user configuration isn't lost.
+                saveScheduleAndNotify();
+                if (!isGranted) {
+                    Toast.makeText(getContext(), "Notification permission denied. You can enable it in settings to receive reminders.", Toast.LENGTH_LONG).show();
                 }
             });
 
@@ -137,8 +134,10 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         db.collection("diary").document(plantId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (isAdded() && documentSnapshot.exists()) {
-                        plantName = documentSnapshot.getString("plantName");
-                        if (plantName == null) plantName = "your plant";
+                        String fetchedPlantName = documentSnapshot.getString("plantName");
+                        if (fetchedPlantName != null) {
+                            plantName = fetchedPlantName;
+                        }
 
                         // Load and display existing reminders
                         Map<String, Object> reminders = (Map<String, Object>) documentSnapshot.get("reminders");
@@ -169,7 +168,7 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                showPermissionRationale();
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             } else {
                 saveScheduleAndNotify();
             }
@@ -183,22 +182,6 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                 actvFertilizer.getText().toString().trim().isEmpty() ||
                 actvSunlight.getText().toString().trim().isEmpty() ||
                 etTime.getText().toString().trim().isEmpty();
-    }
-
-    private void showPermissionRationale() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Allow Smart Grow to send you notifications")
-                .setMessage("Smart Grow needs your permission to send you reminders for watering, fertilizing, and sunlight exposure to keep your plants healthy. ✨")
-                .setPositiveButton("Allow", (dialog, which) -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                    }
-                })
-                .setNegativeButton("Not Now", (dialog, which) -> {
-                    Toast.makeText(getContext(), "Reminders saved, but you won't receive notifications.", Toast.LENGTH_SHORT).show();
-                    saveScheduleAndNotify();
-                })
-                .show();
     }
 
     private void saveScheduleAndNotify() {

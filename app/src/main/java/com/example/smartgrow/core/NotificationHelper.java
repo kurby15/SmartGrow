@@ -11,8 +11,8 @@ import android.util.Log;
 import java.util.Calendar;
 
 public class NotificationHelper {
-    public static final String CHANNEL_ID = "SmartGrowReminders";
-    public static final String CHANNEL_NAME = "Plant Care Reminders";
+    public static final String CHANNEL_ID = "care_reminders";
+    public static final String CHANNEL_NAME = "Care Reminders";
     private static final String TAG = "NotificationHelper";
 
     public static void createNotificationChannel(Context context) {
@@ -22,7 +22,7 @@ public class NotificationHelper {
                     CHANNEL_NAME,
                     NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Notifications for watering, fertilizing, and sunlight.");
+            channel.setDescription("Notifications for scheduled plant care reminders.");
             NotificationManager manager = context.getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);
@@ -36,6 +36,11 @@ public class NotificationHelper {
 
     public static void scheduleReminder(Context context, String plantId, String plantName, String taskType, String timeStr, String frequency, boolean isReschedule) {
         try {
+            if (!isReschedule) {
+                cancelReminder(context, plantId, taskType);
+                Log.d(TAG, "Care reminder saved: ID=" + plantId + ", taskType=" + taskType + ", time=" + timeStr);
+            }
+
             String[] parts = timeStr.split(" ");
             String[] timeParts = parts[0].split(":");
             int hour = Integer.parseInt(timeParts[0]);
@@ -69,16 +74,15 @@ public class NotificationHelper {
             // 2. Schedule "BEFORE" Alarm (2 hours before)
             Calendar beforeCal = (Calendar) calendar.clone();
             beforeCal.add(Calendar.HOUR_OF_DAY, -2);
-            if (beforeCal.getTimeInMillis() > System.currentTimeMillis()) {
-                setAlarm(context, plantId, plantName, taskType, timeStr, frequency, beforeCal.getTimeInMillis(), "BEFORE");
-            }
+            // CHANGED: Removed the 'if' check so past "BEFORE" alarms for today don't get completely dropped
+            setAlarm(context, plantId, plantName, taskType, timeStr, frequency, beforeCal.getTimeInMillis(), "BEFORE");
 
             // 3. Schedule "OVERDUE" Alarm (2 hours after)
             Calendar afterCal = (Calendar) calendar.clone();
             afterCal.add(Calendar.HOUR_OF_DAY, 2);
             setAlarm(context, plantId, plantName, taskType, timeStr, frequency, afterCal.getTimeInMillis(), "OVERDUE");
 
-            Log.d(TAG, "Reminders scheduled for " + plantName + " (" + taskType + ") at " + timeStr + ". Reschedule: " + isReschedule);
+            Log.d(TAG, "Care reminder alarm scheduled: ID=" + plantId + ", taskType=" + taskType + ", triggerTime=" + calendar.getTime().toString());
         } catch (Exception e) {
             Log.e(TAG, "Error scheduling reminder", e);
         }
@@ -95,7 +99,7 @@ public class NotificationHelper {
 
         // Fixed unique request code per plant/task/type combination
         int requestCode = (plantId + taskType + type).hashCode();
-        
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
                 requestCode,
@@ -105,11 +109,12 @@ public class NotificationHelper {
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager != null) {
+            // CHANGED: Fixed conditional logic so exact alarms are always properly scheduled regardless of SDK version or extra permission prompt locks
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (alarmManager.canScheduleExactAlarms()) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
                 } else {
-                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+                    alarmManager.setAlarmClock(new AlarmManager.AlarmClockInfo(triggerTime, pendingIntent), pendingIntent);
                 }
             } else {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
@@ -135,6 +140,7 @@ public class NotificationHelper {
         cancelAlarm(context, plantId, taskType, "DUE");
         cancelAlarm(context, plantId, taskType, "BEFORE");
         cancelAlarm(context, plantId, taskType, "OVERDUE");
+        Log.d(TAG, "Care reminder alarm cancelled: ID=" + plantId + ", taskType=" + taskType);
     }
 
     public static void cancelOverdueReminder(Context context, String plantId, String taskType) {
