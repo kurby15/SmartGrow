@@ -77,7 +77,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         // Ensure channel is created immediately before showing notification
         NotificationHelper.createNotificationChannel(context);
 
-        String title = "AirSense Care Reminder";
+        String title = "SmartGrow Care Reminder";
         String message;
 
         String actionStr = "check";
