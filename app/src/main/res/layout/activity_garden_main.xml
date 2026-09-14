@@ -327,7 +327,7 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_plant_list"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp"
+                        android:layout_height="270dp"
                         android:nestedScrollingEnabled="true"
                         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                         app:spanCount="2"
@@ -409,15 +409,7 @@
 
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-
-
         </LinearLayout>
 
-
-
     </LinearLayout>
-
-
-
 </androidx.core.widget.NestedScrollView>
-
