@@ -13,6 +13,7 @@ import java.util.Calendar;
 public class NotificationHelper {
     public static final String CHANNEL_ID = "SmartGrowReminders";
     public static final String CHANNEL_NAME = "Plant Care Reminders";
+    private static final String TAG = "NotificationHelper";
 
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -30,6 +31,10 @@ public class NotificationHelper {
     }
 
     public static void scheduleReminder(Context context, String plantId, String plantName, String taskType, String timeStr, String frequency) {
+        scheduleReminder(context, plantId, plantName, taskType, timeStr, frequency, false);
+    }
+
+    public static void scheduleReminder(Context context, String plantId, String plantName, String taskType, String timeStr, String frequency, boolean isReschedule) {
         try {
             String[] parts = timeStr.split(" ");
             String[] timeParts = parts[0].split(":");
@@ -46,62 +51,103 @@ public class NotificationHelper {
             calendar.set(Calendar.SECOND, 0);
             calendar.set(Calendar.MILLISECOND, 0);
 
-            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-            }
-
-            Intent intent = new Intent(context, AlarmReceiver.class);
-            intent.putExtra("plantId", plantId);
-            intent.putExtra("plantName", plantName);
-            intent.putExtra("taskType", taskType);
-            intent.putExtra("timeStr", timeStr);
-            intent.putExtra("frequency", frequency);
-            
-            int requestCode = (plantId + taskType).hashCode();
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                    context, 
-                    requestCode, 
-                    intent, 
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
-
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            if (alarmManager != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
-                        alarmManager.setExactAndAllowWhileIdle(
-                                AlarmManager.RTC_WAKEUP,
-                                calendar.getTimeInMillis(),
-                                pendingIntent
-                        );
-                    } else {
-                        alarmManager.setAndAllowWhileIdle(
-                                AlarmManager.RTC_WAKEUP,
-                                calendar.getTimeInMillis(),
-                                pendingIntent
-                        );
-                    }
-                } else {
-                    alarmManager.setExactAndAllowWhileIdle(
-                            AlarmManager.RTC_WAKEUP,
-                            calendar.getTimeInMillis(),
-                            pendingIntent
-                    );
+            if (isReschedule) {
+                int daysToAdd = getDaysFromFrequency(frequency);
+                calendar.add(Calendar.DAY_OF_YEAR, daysToAdd);
+            } else {
+                // If the scheduled time for TODAY has already passed, schedule for tomorrow
+                if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                    calendar.add(Calendar.DAY_OF_MONTH, 1);
                 }
-                Log.d("NotificationHelper", "Alarm scheduled for " + plantName + " - " + taskType + " at " + calendar.getTime().toString());
             }
+
+            long triggerTime = calendar.getTimeInMillis();
+
+            // 1. Schedule "DUE" Alarm (Exactly at preferred time)
+            setAlarm(context, plantId, plantName, taskType, timeStr, frequency, triggerTime, "DUE");
+
+            // 2. Schedule "BEFORE" Alarm (2 hours before)
+            Calendar beforeCal = (Calendar) calendar.clone();
+            beforeCal.add(Calendar.HOUR_OF_DAY, -2);
+            if (beforeCal.getTimeInMillis() > System.currentTimeMillis()) {
+                setAlarm(context, plantId, plantName, taskType, timeStr, frequency, beforeCal.getTimeInMillis(), "BEFORE");
+            }
+
+            // 3. Schedule "OVERDUE" Alarm (2 hours after)
+            Calendar afterCal = (Calendar) calendar.clone();
+            afterCal.add(Calendar.HOUR_OF_DAY, 2);
+            setAlarm(context, plantId, plantName, taskType, timeStr, frequency, afterCal.getTimeInMillis(), "OVERDUE");
+
+            Log.d(TAG, "Reminders scheduled for " + plantName + " (" + taskType + ") at " + timeStr + ". Reschedule: " + isReschedule);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error scheduling reminder", e);
+        }
+    }
+
+    private static void setAlarm(Context context, String plantId, String plantName, String taskType, String timeStr, String frequency, long triggerTime, String type) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra("plantId", plantId);
+        intent.putExtra("plantName", plantName);
+        intent.putExtra("taskType", taskType);
+        intent.putExtra("timeStr", timeStr);
+        intent.putExtra("frequency", frequency);
+        intent.putExtra("notificationType", type);
+
+        // Fixed unique request code per plant/task/type combination
+        int requestCode = (plantId + taskType + type).hashCode();
+        
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+            }
+        }
+    }
+
+    private static int getDaysFromFrequency(String frequency) {
+        if (frequency == null) return 1;
+        switch (frequency) {
+            case "Every Day": return 1;
+            case "Every 2 Days": return 2;
+            case "Every 3 Days": return 3;
+            case "Weekly":
+            case "Every Week": return 7;
+            case "Every 2 Weeks": return 14;
+            case "Monthly": return 30;
+            default: return 1;
         }
     }
 
     public static void cancelReminder(Context context, String plantId, String taskType) {
+        cancelAlarm(context, plantId, taskType, "DUE");
+        cancelAlarm(context, plantId, taskType, "BEFORE");
+        cancelAlarm(context, plantId, taskType, "OVERDUE");
+    }
+
+    public static void cancelOverdueReminder(Context context, String plantId, String taskType) {
+        cancelAlarm(context, plantId, taskType, "OVERDUE");
+    }
+
+    private static void cancelAlarm(Context context, String plantId, String taskType, String type) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        int requestCode = (plantId + taskType).hashCode();
+        int requestCode = (plantId + taskType + type).hashCode();
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context, 
-                requestCode, 
-                intent, 
+                context,
+                requestCode,
+                intent,
                 PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
         );
         if (pendingIntent != null) {

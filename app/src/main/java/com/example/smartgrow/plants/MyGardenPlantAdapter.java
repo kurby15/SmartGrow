@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,16 +29,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smartgrow.R;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdapter.PlantViewHolder> {
 
     private final List<MyGardenPlantModel> plantList;
     private OnPlantClickListener listener;
 
-    // 🔴 Updated Interface to include "Rename" / "Name My Plant" and "Remove"
     public interface OnPlantClickListener {
         void onAddReminderClick(MyGardenPlantModel plant);
         void onPlantClick(MyGardenPlantModel plant);
@@ -61,10 +64,8 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
     public void onBindViewHolder(@NonNull PlantViewHolder holder, int position) {
         MyGardenPlantModel plant = plantList.get(position);
 
-        // Common Name / Plant Name
         holder.tvCommonName.setText(plant.getPlantName() != null ? plant.getPlantName() : "Unknown Plant");
 
-        // Scientific Name (fallback if null)
         if (plant.getScientificName() != null && !plant.getScientificName().isEmpty()) {
             holder.tvScientificName.setText(plant.getScientificName());
             holder.tvScientificName.setVisibility(View.VISIBLE);
@@ -72,11 +73,32 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
             holder.tvScientificName.setVisibility(View.GONE);
         }
 
-        // Health Status & Percentage
-        holder.tvHealthStatus.setText(plant.getHealthStatus() != null ? plant.getHealthStatus() : "N/A");
-        holder.tvHealthPercentage.setText(plant.getHealthPercentage() + "%");
+        // Logic for "Needs Water" status display on card
+        String healthText = plant.getHealthStatus() != null ? plant.getHealthStatus() : "N/A";
+        boolean needsWater = checkIfNeedsWater(plant);
+        
+        if (needsWater) {
+            holder.tvHealthStatus.setText("💧 Need Water");
+            holder.tvHealthStatus.setTextColor(Color.parseColor("#3498DB")); // Blue
+            holder.tvHealthPercentage.setVisibility(View.GONE);
+        } else {
+            holder.tvHealthStatus.setText(healthText);
+            holder.tvHealthPercentage.setText(plant.getHealthPercentage() + "%");
+            holder.tvHealthPercentage.setVisibility(View.VISIBLE);
+            
+            // Dynamic Color for Health Status
+            if (plant.getHealthPercentage() >= 80) {
+                holder.tvHealthStatus.setTextColor(Color.parseColor("#2ECC71")); // Green
+                holder.tvHealthPercentage.setTextColor(Color.parseColor("#2ECC71"));
+            } else if (plant.getHealthPercentage() >= 50) {
+                holder.tvHealthStatus.setTextColor(Color.parseColor("#F39C12")); // Orange
+                holder.tvHealthPercentage.setTextColor(Color.parseColor("#F39C12"));
+            } else {
+                holder.tvHealthStatus.setTextColor(Color.parseColor("#E74C3C")); // Red
+                holder.tvHealthPercentage.setTextColor(Color.parseColor("#E74C3C"));
+            }
+        }
 
-        // Load Image from Base64 String or Fallback
         if (plant.getImageBase64() != null && !plant.getImageBase64().isEmpty()) {
             Bitmap decodedBitmap = decodeBase64ToBitmap(plant.getImageBase64());
             if (decodedBitmap != null) {
@@ -88,25 +110,11 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
             holder.ivPlantImage.setImageResource(R.drawable.ic_launcher_background);
         }
 
-        // Dynamic Color for Health Status
-        if (plant.getHealthPercentage() >= 80) {
-            holder.tvHealthStatus.setTextColor(Color.parseColor("#2ECC71")); // Green
-            holder.tvHealthPercentage.setTextColor(Color.parseColor("#2ECC71"));
-        } else if (plant.getHealthPercentage() >= 50) {
-            holder.tvHealthStatus.setTextColor(Color.parseColor("#F39C12")); // Orange
-            holder.tvHealthPercentage.setTextColor(Color.parseColor("#F39C12"));
-        } else {
-            holder.tvHealthStatus.setTextColor(Color.parseColor("#E74C3C")); // Red
-            holder.tvHealthPercentage.setTextColor(Color.parseColor("#E74C3C"));
-        }
-
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPlantClick(plantList.get(position));
             }
         });
-
-
 
         holder.btnAddReminder.setOnClickListener(v -> {
             if (listener != null) {
@@ -114,9 +122,80 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
             }
         });
 
-        // More Options Click (Card Level Popup Menu)
         if (holder.ibMoreOptions != null) {
             holder.ibMoreOptions.setOnClickListener(v -> showPopupMenu(v, plant));
+        }
+    }
+
+    private boolean checkIfNeedsWater(MyGardenPlantModel p) {
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
+        if (isWateredToday) return false;
+
+        Map<String, Object> reminders = p.getReminders();
+        if (reminders != null) {
+            String waterFreq = (String) reminders.get("wateringSchedule");
+            String prefTime = (String) reminders.get("preferredTime");
+
+            if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
+                if (isTaskDue(waterFreq, p.getLastWateredDate())) {
+                    return isTimeReached(prefTime);
+                }
+            } else if (p.getHealthPercentage() < 60) {
+                return true;
+            }
+        } else if (p.getHealthPercentage() < 60) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isTimeReached(String prefTime) {
+        if (prefTime == null) return true;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
+            Date timeDate = sdf.parse(prefTime);
+            if (timeDate == null) return true;
+
+            Calendar schedCal = Calendar.getInstance();
+            Calendar timeCal = Calendar.getInstance();
+            timeCal.setTime(timeDate);
+
+            schedCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
+            schedCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
+            schedCal.set(Calendar.SECOND, 0);
+            schedCal.set(Calendar.MILLISECOND, 0);
+
+            Calendar currentCal = Calendar.getInstance();
+            return !currentCal.before(schedCal);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private boolean isTaskDue(String frequency, String lastDate) {
+        if (frequency == null || "None".equalsIgnoreCase(frequency)) return false;
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        if (todayDate.equals(lastDate)) return true;
+        if (lastDate == null || lastDate.isEmpty()) return true;
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date last = sdf.parse(lastDate);
+            Date today = sdf.parse(todayDate);
+
+            long diffInMillis = Math.abs(today.getTime() - last.getTime());
+            long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+
+            if ("Every Day".equalsIgnoreCase(frequency)) return diffInDays >= 1;
+            if ("Every 2 Days".equalsIgnoreCase(frequency)) return diffInDays >= 2;
+            if ("Every 3 Days".equalsIgnoreCase(frequency)) return diffInDays >= 3;
+            if ("Weekly".equalsIgnoreCase(frequency) || "Every Week".equalsIgnoreCase(frequency)) return diffInDays >= 7;
+            if ("Every 2 Weeks".equalsIgnoreCase(frequency)) return diffInDays >= 14;
+            if ("Monthly".equalsIgnoreCase(frequency)) return diffInDays >= 30;
+            return false;
+        } catch (Exception e) {
+            return true;
         }
     }
 
@@ -125,9 +204,6 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
         return plantList.size();
     }
 
-    /**
-     * Helper method to convert Base64 string from Firestore into an Android Bitmap
-     */
     private Bitmap decodeBase64ToBitmap(String base64Str) {
         try {
             byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
@@ -138,32 +214,25 @@ public class MyGardenPlantAdapter extends RecyclerView.Adapter<MyGardenPlantAdap
         }
     }
 
-    /**
-     * Card Popup Menu ("Move", "Name My Plant", "Add Notes", "Remove")
-     */
     private void showPopupMenu(View view, MyGardenPlantModel plant) {
         PopupMenu popup = new PopupMenu(view.getContext(), view);
         popup.inflate(R.menu.plant_more_options_menu);
 
         popup.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
-            String plantName = plant.getPlantName() != null ? plant.getPlantName() : "Plant";
-
             if (itemId == R.id.action_name_plant) {
                 if (listener != null) {
                     listener.onRenamePlantClick(plant);
                 }
                 return true;
-            }else if (itemId == R.id.action_remove) {
+            } else if (itemId == R.id.action_remove) {
                 if (listener != null) {
                     listener.onRemovePlantClick(plant);
                 }
                 return true;
             }
-
             return false;
         });
-
         popup.show();
     }
 

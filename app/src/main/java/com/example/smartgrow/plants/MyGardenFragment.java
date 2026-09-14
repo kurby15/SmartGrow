@@ -3,6 +3,7 @@ package com.example.smartgrow.plants;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -34,9 +35,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MyGardenFragment extends Fragment {
@@ -81,6 +86,10 @@ public class MyGardenFragment extends Fragment {
 
     private boolean isDiaryLoaded = false;
 
+    // Handler for real-time midnight and preferred time reset
+    private final Handler clockHandler = new Handler();
+    private Runnable clockRunnable;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -119,6 +128,20 @@ public class MyGardenFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        startRealTimeRefresh();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (clockRunnable != null) {
+            clockHandler.removeCallbacks(clockRunnable);
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         // Detach real-time listeners to avoid memory leaks
@@ -128,6 +151,18 @@ public class MyGardenFragment extends Fragment {
         if (snapHistoryListener != null) {
             snapHistoryListener.remove();
         }
+    }
+
+    private void startRealTimeRefresh() {
+        clockRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateStatsCounts();
+                // Check every minute to handle midnight transition and preferred times
+                clockHandler.postDelayed(this, 60000);
+            }
+        };
+        clockHandler.post(clockRunnable);
     }
 
     private void initViews(View view) {
@@ -474,10 +509,15 @@ public class MyGardenFragment extends Fragment {
                         updateStatsCounts();
 
                         if (snapAdapter != null) {
-                            snapAdapter.setGardenPlantNames(activeGardenPlantNames);
+                            snapAdapter.setGardenPlantNames(activeGardenPatientNames(activeGardenPlantNames));
                         }
                     }
                 });
+    }
+
+    // Fix activeGardenPlantNames pass
+    private List<String> activeGardenPatientNames(List<String> names) {
+        return names;
     }
 
     // Real-time Firestore Snapshot Listener for "diary_history" Collection
@@ -526,21 +566,98 @@ public class MyGardenFragment extends Fragment {
     }
 
     private void updateStatsCounts() {
+        if (!isAdded()) return;
+
         if (tvStatPlantsCount != null) {
             tvStatPlantsCount.setText(String.valueOf(fullPlantList.size()));
         }
         if (tvStatScannedCount != null) {
             tvStatScannedCount.setText(String.valueOf(fullSnapList.size()));
         }
-        // "To Water" count logic - based on health percentage < 60 like in HomeFragment
+        
+        // "To Water" count logic - synchronized with HomeFragment logic
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         int toWaterCount = 0;
-        for (MyGardenPlantModel plant : fullPlantList) {
-            if (plant.getHealthPercentage() < 60) {
+        for (MyGardenPlantModel p : fullPlantList) {
+            boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
+            if (isWateredToday) continue;
+
+            Map<String, Object> reminders = p.getReminders();
+            if (reminders != null) {
+                String waterFreq = (String) reminders.get("wateringSchedule");
+                String prefTime = (String) reminders.get("preferredTime");
+
+                if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
+                    if (isTaskDue(waterFreq, p.getLastWateredDate())) {
+                        // Count as "Need Water" if it's due AND current time is at or past preferred time
+                        if (isTimeReached(prefTime)) {
+                            toWaterCount++;
+                        }
+                    }
+                } else if (p.getHealthPercentage() < 60) {
+                    // No watering schedule but low health and not watered today
+                    toWaterCount++;
+                }
+            } else if (p.getHealthPercentage() < 60) {
+                // No reminders set but low health and not watered today
                 toWaterCount++;
             }
         }
         if (tvStatToWaterCount != null) {
             tvStatToWaterCount.setText(String.valueOf(toWaterCount));
+        }
+    }
+
+    private boolean isTimeReached(String prefTime) {
+        if (prefTime == null) return true;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
+            Date timeDate = sdf.parse(prefTime);
+            if (timeDate == null) return true;
+
+            Calendar schedCal = Calendar.getInstance();
+            Calendar timeCal = Calendar.getInstance();
+            timeCal.setTime(timeDate);
+
+            schedCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
+            schedCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
+            schedCal.set(Calendar.SECOND, 0);
+            schedCal.set(Calendar.MILLISECOND, 0);
+
+            Calendar currentCal = Calendar.getInstance();
+            // True if current time is at or after scheduled time
+            return !currentCal.before(schedCal);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private boolean isTaskDue(String frequency, String lastDate) {
+        if (frequency == null || "None".equalsIgnoreCase(frequency)) return false;
+        
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        if (todayDate.equals(lastDate)) return true; // Keep in list if done today
+        
+        if (lastDate == null || lastDate.isEmpty()) return true; // First time
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date last = sdf.parse(lastDate);
+            Date today = sdf.parse(todayDate);
+
+            long diffInMillis = Math.abs(today.getTime() - last.getTime());
+            long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+
+            if ("Every Day".equalsIgnoreCase(frequency)) return diffInDays >= 1;
+            if ("Every 2 Days".equalsIgnoreCase(frequency)) return diffInDays >= 2;
+            if ("Every 3 Days".equalsIgnoreCase(frequency)) return diffInDays >= 3;
+            if ("Weekly".equalsIgnoreCase(frequency) || "Every Week".equalsIgnoreCase(frequency)) return diffInDays >= 7;
+            if ("Every 2 Weeks".equalsIgnoreCase(frequency)) return diffInDays >= 14;
+            if ("Monthly".equalsIgnoreCase(frequency)) return diffInDays >= 30;
+            
+            return false;
+        } catch (Exception e) {
+            return true;
         }
     }
 

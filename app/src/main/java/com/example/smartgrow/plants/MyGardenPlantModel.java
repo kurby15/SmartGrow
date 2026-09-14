@@ -2,6 +2,7 @@ package com.example.smartgrow.plants;
 
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
+import java.util.Map;
 
 @IgnoreExtraProperties
 public class MyGardenPlantModel {
@@ -16,6 +17,13 @@ public class MyGardenPlantModel {
     private String imageBase64;
     private String rawAnalysisJson;
     private boolean isArtificial;
+    
+    private Map<String, Object> reminders;
+    
+    // Tracking last care actions
+    private String lastWateredDate;
+    private String lastFertilizedDate;
+    private String lastCheckedDate;
 
     public MyGardenPlantModel() {}
 
@@ -115,5 +123,37 @@ public class MyGardenPlantModel {
     @PropertyName("isArtificial")
     public void setArtificial(boolean artificial) {
         isArtificial = artificial;
+    }
+
+    public Map<String, Object> getReminders() {
+        return reminders;
+    }
+
+    public void setReminders(Map<String, Object> reminders) {
+        this.reminders = reminders;
+    }
+
+    public String getLastWateredDate() {
+        return lastWateredDate;
+    }
+
+    public void setLastWateredDate(String lastWateredDate) {
+        this.lastWateredDate = lastWateredDate;
+    }
+
+    public String getLastFertilizedDate() {
+        return lastFertilizedDate;
+    }
+
+    public void setLastFertilizedDate(String lastFertilizedDate) {
+        this.lastFertilizedDate = lastFertilizedDate;
+    }
+
+    public String getLastCheckedDate() {
+        return lastCheckedDate;
+    }
+
+    public void setLastCheckedDate(String lastCheckedDate) {
+        this.lastCheckedDate = lastCheckedDate;
     }
 }

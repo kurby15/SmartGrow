@@ -1,6 +1,9 @@
 package com.example.smartgrow.plants;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,14 +18,14 @@ import java.util.List;
 public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdapter.ViewHolder> {
 
     private Context context;
-    private List<PlantModel> plantList;
+    private List<MyGardenPlantModel> plantList;
     private OnPlantSelectedListener listener;
 
     public interface OnPlantSelectedListener {
-        void onPlantSelected(PlantModel plant);
+        void onPlantSelected(MyGardenPlantModel plant);
     }
 
-    public ReminderPlantAdapter(Context context, List<PlantModel> plantList, OnPlantSelectedListener listener) {
+    public ReminderPlantAdapter(Context context, List<MyGardenPlantModel> plantList, OnPlantSelectedListener listener) {
         this.context = context;
         this.plantList = plantList;
         this.listener = listener;
@@ -37,12 +40,20 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        PlantModel plant = plantList.get(position);
+        MyGardenPlantModel plant = plantList.get(position);
         holder.tvPlantName.setText(plant.getPlantName());
         holder.tvScientificName.setText(plant.getScientificName());
 
-        if (plant.getPlantBitmap() != null) {
-            holder.ivPlantThumb.setImageBitmap(plant.getPlantBitmap());
+        if (plant.getImageBase64() != null && !plant.getImageBase64().isEmpty()) {
+            try {
+                byte[] decodedString = Base64.decode(plant.getImageBase64(), Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                holder.ivPlantThumb.setImageBitmap(decodedByte);
+            } catch (Exception e) {
+                holder.ivPlantThumb.setImageResource(R.drawable.img_9);
+            }
+        } else {
+            holder.ivPlantThumb.setImageResource(R.drawable.img_9);
         }
 
         holder.btnSelect.setOnClickListener(v -> {

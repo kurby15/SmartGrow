@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
-import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
@@ -42,11 +41,21 @@ public class TodaysCareAdapter extends RecyclerView.Adapter<TodaysCareAdapter.Ta
         CareTaskModel task = taskList.get(position);
         holder.tvTaskTitle.setText(task.getTitle());
         holder.tvTaskDue.setText(task.getDueText());
-        holder.btnTaskAction.setText(task.getActionText());
+        
+        if (task.isDone()) {
+            holder.btnTaskAction.setText("Done for Today");
+            holder.btnTaskAction.setEnabled(false);
+            holder.btnTaskAction.setAlpha(0.6f);
+        } else {
+            holder.btnTaskAction.setText(task.getActionText());
+            holder.btnTaskAction.setEnabled(true);
+            holder.btnTaskAction.setAlpha(1.0f);
+        }
+
         holder.ivTaskImage.setImageResource(task.getImageResId());
 
         holder.btnTaskAction.setOnClickListener(v -> {
-            if (actionListener != null) {
+            if (actionListener != null && !task.isDone()) {
                 actionListener.onActionClick(task);
             }
         });

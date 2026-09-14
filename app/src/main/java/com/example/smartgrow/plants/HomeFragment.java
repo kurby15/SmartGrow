@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
+import com.example.smartgrow.core.NotificationHelper;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.profile.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,8 +34,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
 
@@ -51,8 +54,8 @@ public class HomeFragment extends Fragment {
     private TextView tvTotalPlants, tvAvgHealth, tvNeedWater, tvPestAlerts;
 
     private TodaysCareAdapter todaysCareAdapter;
-    private List<MyGardenPlantModel> plantList = new ArrayList<>();
-    private List<CareTaskModel> careTaskList = new ArrayList<>();
+    private final List<MyGardenPlantModel> plantList = new ArrayList<>();
+    private final List<CareTaskModel> careTaskList = new ArrayList<>();
 
     private DatabaseReference userRef;
     private FirebaseFirestore db;
@@ -97,6 +100,10 @@ public class HomeFragment extends Fragment {
         tvUserGreeting = view.findViewById(R.id.tv_user_greeting);
         rvTodaysCare = view.findViewById(R.id.rv_todays_care);
         
+        // Map to existing weather description field in layout to avoid missing ID compilation errors
+        tvDashboardWeatherMock = view.findViewById(R.id.tv_weather_desc);
+        tvDashboardLiveDateTime = null; // No corresponding field in fragment_home.xml, kept safe as null
+        
         tvTotalPlants = view.findViewById(R.id.tv_count_total_plants);
         tvAvgHealth = view.findViewById(R.id.tv_value_avg_health);
         tvNeedWater = view.findViewById(R.id.tv_count_need_water);
@@ -113,9 +120,7 @@ public class HomeFragment extends Fragment {
             rvTodaysCare.setHasFixedSize(true);
         }
 
-        todaysCareAdapter = new TodaysCareAdapter(careTaskList, task -> {
-            Toast.makeText(getContext(), "Task: " + task.getTitle(), Toast.LENGTH_SHORT).show();
-        });
+        todaysCareAdapter = new TodaysCareAdapter(careTaskList, this::markTaskAsDone);
         rvTodaysCare.setAdapter(todaysCareAdapter);
 
         ImageView btnOpenReminders = view.findViewById(R.id.btn_open_reminders);
@@ -127,6 +132,32 @@ public class HomeFragment extends Fragment {
                         .addToBackStack(null)
                         .commit();
             });
+        }
+    }
+
+    private void markTaskAsDone(CareTaskModel task) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+        String todayDate = sdf.format(new Date());
+        String fieldToUpdate = "";
+        
+        if ("Water".equals(task.getTaskType())) {
+            fieldToUpdate = "lastWateredDate";
+        } else if ("Check".equals(task.getTaskType())) {
+            fieldToUpdate = "lastCheckedDate";
+        } else if ("Fertilize".equals(task.getTaskType())) {
+            fieldToUpdate = "lastFertilizedDate";
+        }
+
+        if (!fieldToUpdate.isEmpty() && task.getId() != null) {
+            db.collection("diary").document(task.getId())
+                    .update(fieldToUpdate, todayDate)
+                    .addOnSuccessListener(aVoid -> {
+                        NotificationHelper.cancelOverdueReminder(requireContext(), task.getId(), task.getTaskType());
+                        Toast.makeText(getContext(), task.getTaskType() + " marked as done!", Toast.LENGTH_SHORT).show();
+                        updateDashboardStats(); // Immediate refresh
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -177,6 +208,10 @@ public class HomeFragment extends Fragment {
     private void updateDashboardStats() {
         if (!isAdded()) return;
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+        String todayDate = sdf.format(new Date());
+
         if (tvTotalPlants != null) tvTotalPlants.setText(String.valueOf(plantList.size()));
         if (tvPestAlerts != null) tvPestAlerts.setText("0");
 
@@ -187,18 +222,60 @@ public class HomeFragment extends Fragment {
         for (MyGardenPlantModel p : plantList) {
             totalHealth += p.getHealthPercentage();
             
-            // Logic: Health < 60 means needs water
-            if (p.getHealthPercentage() < 60) {
-                needWaterCount++;
-                careTaskList.add(new CareTaskModel("Water " + p.getPlantName(), "💧 Due in 2 hours", "Water Now", R.drawable.ic_reminder));
-            } else if (p.getHealthPercentage() < 85) {
-                careTaskList.add(new CareTaskModel("Check " + p.getPlantName(), "🔍 Due today", "Inspect", R.drawable.ic_reminder));
+            boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
+            Map<String, Object> reminders = p.getReminders();
+            
+            if (reminders != null) {
+                String waterFreq = (String) reminders.get("wateringSchedule");
+                String fertFreq = (String) reminders.get("fertilizerSchedule");
+                String sunFreq = (String) reminders.get("sunlightSchedule");
+                String prefTime = (String) reminders.get("preferredTime");
+                if (prefTime == null) prefTime = "12:00 PM";
+
+                // Handle Watering Task
+                if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
+                    if (isTaskDue(waterFreq, p.getLastWateredDate())) {
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "💧 Scheduled at " + prefTime, "Water Now", R.drawable.ic_reminder, "Water");
+                        task.setDone(isWateredToday);
+                        careTaskList.add(task);
+                        
+                        if (!isWateredToday && isTimeReached(prefTime)) {
+                            needWaterCount++;
+                        }
+                    }
+                } else if (!isWateredToday && p.getHealthPercentage() < 60) {
+                    needWaterCount++;
+                }
+
+                // Handle Fertilizer Task
+                if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
+                    if (isTaskDue(fertFreq, p.getLastFertilizedDate())) {
+                        boolean isDone = todayDate.equals(p.getLastFertilizedDate());
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "🌿 Feeding due today", "Feed Now", R.drawable.ic_reminder, "Fertilize");
+                        task.setDone(isDone);
+                        careTaskList.add(task);
+                    }
+                }
+
+                // Handle Sunlight/Check Task
+                if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
+                    if (isTaskDue(sunFreq, p.getLastCheckedDate())) {
+                        boolean isDone = todayDate.equals(p.getLastCheckedDate());
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Check " + p.getPlantName(), "☀️ Sunlight check today", "Inspect", R.drawable.ic_reminder, "Check");
+                        task.setDone(isDone);
+                        careTaskList.add(task);
+                    }
+                }
             } else {
-                careTaskList.add(new CareTaskModel("Care for " + p.getPlantName(), "🌱 Healthy condition", "Mark Done", R.drawable.ic_reminder));
+                if (!isWateredToday && p.getHealthPercentage() < 60) {
+                    needWaterCount++;
+                }
             }
         }
 
-        todaysCareAdapter.notifyDataSetChanged();
+        if (todaysCareAdapter != null) {
+            todaysCareAdapter.notifyDataSetChanged();
+        }
 
         if (!plantList.isEmpty()) {
             int avgHealth = totalHealth / plantList.size();
@@ -210,11 +287,73 @@ public class HomeFragment extends Fragment {
         if (tvNeedWater != null) tvNeedWater.setText(String.valueOf(needWaterCount));
     }
 
+    private boolean isTimeReached(String prefTime) {
+        if (prefTime == null) return true;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
+            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+            Date timeDate = sdf.parse(prefTime);
+            if (timeDate == null) return true;
+
+            TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
+            Calendar schedCal = Calendar.getInstance(phTimeZone);
+            Calendar timeCal = Calendar.getInstance(phTimeZone);
+            timeCal.setTime(timeDate);
+
+            schedCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
+            schedCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
+            schedCal.set(Calendar.SECOND, 0);
+            schedCal.set(Calendar.MILLISECOND, 0);
+
+            Calendar currentCal = Calendar.getInstance(phTimeZone);
+            return !currentCal.before(schedCal);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private boolean isTaskDue(String frequency, String lastDate) {
+        if (frequency == null || "None".equalsIgnoreCase(frequency)) return false;
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+        String todayDate = sdf.format(new Date());
+        
+        if (todayDate.equals(lastDate)) return true; 
+        if (lastDate == null || lastDate.isEmpty()) return true;
+
+        try {
+            Date last = sdf.parse(lastDate);
+            Date today = sdf.parse(todayDate);
+            if (last == null || today == null) return true;
+
+            long diffInMillis = Math.abs(today.getTime() - last.getTime());
+            long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+
+            if ("Every Day".equalsIgnoreCase(frequency)) return diffInDays >= 1;
+            if ("Every 2 Days".equalsIgnoreCase(frequency)) return diffInDays >= 2;
+            if ("Every 3 Days".equalsIgnoreCase(frequency)) return diffInDays >= 3;
+            if ("Weekly".equalsIgnoreCase(frequency) || "Every Week".equalsIgnoreCase(frequency)) return diffInDays >= 7;
+            if ("Every 2 Weeks".equalsIgnoreCase(frequency)) return diffInDays >= 14;
+            if ("Monthly".equalsIgnoreCase(frequency)) return diffInDays >= 30;
+            
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     private void startRealTimeClock() {
         clockRunnable = new Runnable() {
             @Override
             public void run() {
                 updateLiveDateTimeAndGreeting();
+                // Check once a minute for midnight reset and preferred time triggers
+                TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
+                Calendar cal = Calendar.getInstance(phTimeZone);
+                if (cal.get(Calendar.SECOND) == 0) {
+                    updateDashboardStats();
+                }
                 clockHandler.postDelayed(this, 1000);
             }
         };
@@ -227,7 +366,8 @@ public class HomeFragment extends Fragment {
         Calendar calendar = Calendar.getInstance(phTimeZone);
         SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEEE, hh:mm a", new Locale("en", "PH"));
         dateTimeFormat.setTimeZone(phTimeZone);
-        
+        if (tvDashboardLiveDateTime != null) tvDashboardLiveDateTime.setText(dateTimeFormat.format(calendar.getTime()));
+
         int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
         String greeting = (hourOfDay < 12) ? "Good Morning" : (hourOfDay < 17) ? "Good Afternoon" : "Good Evening";
         if (tvUserGreeting != null) {
@@ -257,6 +397,7 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         clockHandler.post(clockRunnable);
+        updateDashboardStats();
     }
 
     @Override

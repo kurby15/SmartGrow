@@ -3,47 +3,59 @@ package com.example.smartgrow.core;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
-import com.example.smartgrow.plants.PlantModel;
-import com.example.smartgrow.plants.ReminderModel;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.smartgrow.plants.MyGardenPlantModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.Map;
 
 public class BootReceiver extends BroadcastReceiver {
+    private static final String TAG = "BootReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            SharedPrefManager prefManager = SharedPrefManager.getInstance(context);
-            String username = prefManager.getUsername();
+            Log.d(TAG, "System Boot Completed. Rescheduling reminders...");
+            
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-            if (!username.equals("unknown")) {
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(username).child("plants");
-                ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot plantSnap : snapshot.getChildren()) {
-                            PlantModel plant = plantSnap.getValue(PlantModel.class);
-                            if (plant != null && plant.getReminders() != null) {
-                                ReminderModel rem = plant.getReminders();
-                                String time = rem.getPreferredTime();
-                                if (time != null && !time.isEmpty()) {
-                                    if (!"None".equals(rem.getWateringSchedule())) 
-                                        NotificationHelper.scheduleReminder(context, plant.getId(), plant.getName(), "Water", time, rem.getWateringSchedule());
-                                    if (!"None".equals(rem.getSunlightSchedule())) 
-                                        NotificationHelper.scheduleReminder(context, plant.getId(), plant.getName(), "Sunlight", time, rem.getSunlightSchedule());
-                                    if (!"None".equals(rem.getFertilizerSchedule())) 
-                                        NotificationHelper.scheduleReminder(context, plant.getId(), plant.getName(), "Fertilize", time, rem.getFertilizerSchedule());
+            if (currentUser != null) {
+                db.collection("diary")
+                        .whereEqualTo("userId", currentUser.getUid())
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                                MyGardenPlantModel plant = doc.toObject(MyGardenPlantModel.class);
+                                if (plant != null && plant.getReminders() != null) {
+                                    Map<String, Object> reminders = plant.getReminders();
+                                    String time = (String) reminders.get("preferredTime");
+                                    
+                                    if (time != null && !time.isEmpty()) {
+                                        String waterFreq = (String) reminders.get("wateringSchedule");
+                                        String fertFreq = (String) reminders.get("fertilizerSchedule");
+                                        String sunFreq = (String) reminders.get("sunlightSchedule");
+
+                                        if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
+                                            NotificationHelper.scheduleReminder(context, plant.getId(), plant.getPlantName(), "Water", time, waterFreq);
+                                        }
+                                        if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
+                                            NotificationHelper.scheduleReminder(context, plant.getId(), plant.getPlantName(), "Fertilize", time, fertFreq);
+                                        }
+                                        if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
+                                            NotificationHelper.scheduleReminder(context, plant.getId(), plant.getPlantName(), "Sunlight", time, sunFreq);
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+                        })
+                        .addOnFailureListener(e -> Log.e(TAG, "Error rescheduling reminders on boot", e));
             }
         }
     }
