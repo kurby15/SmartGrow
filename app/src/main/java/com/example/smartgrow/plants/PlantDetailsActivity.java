@@ -109,8 +109,8 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String plantName = "Unknown Plant";
     private String scientificName = "N/A";
     private String healthStatus = "Healthy";
-    private int healthPercentage = 100;
-    private int matchConfidencePercentage = 95;
+    int healthPercentage = 100;
+    int matchConfidencePercentage = 95;
     private String careDifficultyText = "Easy";
     private int careDifficultyPercentage = 50;
 
@@ -359,6 +359,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         dialog.show();
     }
 
+    @SuppressWarnings("unchecked")
     private void parseIntentData() {
         if (getIntent() == null) return;
 
@@ -409,6 +410,34 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
                             Boolean artificial = documentSnapshot.getBoolean("isArtificial");
                             if (artificial != null) isArtificial = artificial;
+
+                            // Kunin ang map locations mula sa distribution_coordinates list sa Firestore
+                            mapLocations.clear();
+                            List<Map<String, Object>> coordsList = (List<Map<String, Object>>) documentSnapshot.get("distribution_coordinates");
+                            if (coordsList != null) {
+                                for (Map<String, Object> cMap : coordsList) {
+                                    try {
+                                        double lat = 0;
+                                        if (cMap.get("latitude") instanceof Number) {
+                                            lat = ((Number) cMap.get("latitude")).doubleValue();
+                                        }
+                                        double lng = 0;
+                                        if (cMap.get("longitude") instanceof Number) {
+                                            lng = ((Number) cMap.get("longitude")).doubleValue();
+                                        }
+                                        String title = (String) cMap.get("title");
+                                        String snippet = (String) cMap.get("snippet");
+                                        String dType = (String) cMap.get("distribution_type");
+                                        mapLocations.add(new MapLocation(lat, lng, title, snippet, dType));
+                                    } catch (Exception e) {
+                                        Log.w(TAG, "Error parsing coordinate from list", e);
+                                    }
+                                }
+                            }
+
+                            if (mapLocations.isEmpty()) {
+                                mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Origin", distribution, "Native"));
+                            }
 
                             // Kunin ang Base64 image kung meron
                             String base64Image = documentSnapshot.getString("imageBase64");
@@ -516,7 +545,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         try {
             JSONObject root = new JSONObject(jsonString);
 
-            if (root.optBoolean("is_plant", true) == false) {
+            if (!root.optBoolean("is_plant", true)) {
                 Toast.makeText(this, "The uploaded image is not recognized as a plant.", Toast.LENGTH_LONG).show();
                 plantName = "Not a Plant";
                 updateUI();
@@ -1041,6 +1070,19 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("plantType", plantType);
         diaryEntry.put("lifespan", lifespan);
         diaryEntry.put("isArtificial", isArtificial);
+
+        // Save multiple pin points coordinates to Firestore diary entry
+        List<Map<String, Object>> distCoords = new ArrayList<>();
+        for (MapLocation loc : mapLocations) {
+            Map<String, Object> locMap = new HashMap<>();
+            locMap.put("latitude", loc.lat);
+            locMap.put("longitude", loc.lng);
+            locMap.put("title", loc.title);
+            locMap.put("snippet", loc.snippet);
+            locMap.put("distribution_type", loc.distributionType);
+            distCoords.add(locMap);
+        }
+        diaryEntry.put("distribution_coordinates", distCoords);
 
         diaryEntry.put("ultimateHeight", ultimateHeight);
         diaryEntry.put("ultimateSpread", ultimateSpread);

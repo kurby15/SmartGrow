@@ -668,6 +668,28 @@ public class CameraScannerActivity extends AppCompatActivity {
             historyEntry.put("lifespan", lifespan);
             historyEntry.put("isArtificial", isArtificial);
 
+            // Distribution Coordinates for Map
+            List<Map<String, Object>> distCoords = new ArrayList<>();
+            if (profile != null) {
+                JSONArray locArray = profile.optJSONArray("distribution_coordinates");
+                if (locArray == null) locArray = profile.optJSONArray("locations");
+                if (locArray != null) {
+                    for (int i = 0; i < locArray.length(); i++) {
+                        JSONObject locObj = locArray.optJSONObject(i);
+                        if (locObj != null) {
+                            Map<String, Object> locMap = new HashMap<>();
+                            locMap.put("latitude", locObj.optDouble("latitude", locObj.optDouble("lat", 0)));
+                            locMap.put("longitude", locObj.optDouble("longitude", locObj.optDouble("lng", 0)));
+                            locMap.put("title", locObj.optString("title", ""));
+                            locMap.put("snippet", locObj.optString("snippet", ""));
+                            locMap.put("distribution_type", locObj.optString("distribution_type", "Native"));
+                            distCoords.add(locMap);
+                        }
+                    }
+                }
+            }
+            historyEntry.put("distribution_coordinates", distCoords);
+
             historyEntry.put("ultimateHeight", ultimateHeight);
             historyEntry.put("ultimateSpread", ultimateSpread);
             historyEntry.put("leafType", leafType);

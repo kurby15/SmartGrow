@@ -3,6 +3,7 @@ package com.example.smartgrow.history;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
 import java.util.List;
+import java.util.Map;
 
 @IgnoreExtraProperties
 public class SnapHistoryModel {
@@ -26,6 +27,9 @@ public class SnapHistoryModel {
     private String plantType;
     private String lifespan;
     private boolean isArtificial;
+    
+    @PropertyName("distribution_coordinates")
+    private List<Map<String, Object>> distributionCoordinates;
 
     private String ultimateHeight;
     private String ultimateSpread;
@@ -114,6 +118,11 @@ public class SnapHistoryModel {
     public boolean isArtificial() { return isArtificial; }
     @PropertyName("isArtificial")
     public void setArtificial(boolean artificial) { isArtificial = artificial; }
+
+    @PropertyName("distribution_coordinates")
+    public List<Map<String, Object>> getDistributionCoordinates() { return distributionCoordinates; }
+    @PropertyName("distribution_coordinates")
+    public void setDistributionCoordinates(List<Map<String, Object>> distributionCoordinates) { this.distributionCoordinates = distributionCoordinates; }
 
     public String getUltimateHeight() { return ultimateHeight; }
     public void setUltimateHeight(String ultimateHeight) { this.ultimateHeight = ultimateHeight; }

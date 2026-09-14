@@ -170,124 +170,141 @@ public class PlantAnalyzer {
                         .append("4. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
                         .append("5. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
             } else {
-                basePromptBuilder.append("You are an expert botanical computer vision engine and global ecology system.\n\n")
+                basePromptBuilder.append("You are an expert botanical computer vision engine.\n\n")
                         .append("TASK INSTRUCTIONS:\n")
                         .append("1. First, check if the image contains a plant (real or artificial/fake/plastic).\n")
                         .append("   - If NO plant or botanical element is present, return JSON: {\"is_plant\": false}\n\n")
                         .append("2. ARTIFICIAL PLANT INSPECTION:\n")
                         .append("   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n")
-                        .append("   - Look for plastic gloss, injection molding seams, unnatural leaf patterns, synthetic stems, or fabric textures.\n")
-                        .append("   - Set \"is_artificial\" to true if artificial, otherwise false.\n")
-                        .append("   - In \"artificial_details\", list specific reasons why it is identified as artificial. If real, leave this array empty.\n\n")
-                        .append("3. GLOBAL BOTANICAL DISTRIBUTION & HABITAT MANDATE:\n")
-                        .append("   - Identify species taxonomy (scientific name) to determine its exact WORLDWIDE distribution.\n")
-                        .append("   - You MUST supply 4 to 20 representative coordinate pins in \"distribution_coordinates\" covering ALL countries and continents where this species naturally occurs OR has been introduced/naturalized.\n")
-                        .append("   - In \"habitat\", synthesize the natural environment and ecological niches corresponding to ALL countries where the plant is pinned.\n")
-                        .append("   - Provide full distribution_text summarizing all global range countries where pins are set.\n")
-                        .append("   - Distinguish distribution types strictly as: 'Native', 'Introduced', 'Naturalized', 'Invasive', or 'Cultivated'.\n\n")
-                        .append("4. COMMON PROBLEMS SCHEMA MANDATE:\n")
-                        .append("   - Provide 2 to 4 common health problems or diseases for this specific plant species.\n")
-                        .append("   - Each item in \"common_problems\" MUST contain detailed fields: title, description, symptom_analysis, disease_cause, solutions, and prevention.\n\n")
-                        .append("5. CARE & HOW-TOS MANDATE:\n")
-                        .append("   - Detail the essential care conditions (sunlight, soil, temperature, humidity, hardiness_zones).\n")
-                        .append("   - Detail specific how-to guides for pruning, propagation, and repotting in the \"how_tos\" object.\n\n")
-                        .append("6. Return ONLY pure JSON matching EXACTLY this structure:\n")
+                        .append("   - Set \"is_artificial\" to true if artificial, otherwise false.\n\n")
+                        .append("3. HEALTH & PEST ASSESSMENT:\n")
+                        .append("   - Assess the plant's health status and identify any problems or diseases.\n")
+                        .append("   - Identify any pests that have damaged or could damage the uploaded plant.\n")
+                        .append("   - Check specifically for signs of pest damage like chew marks (ngatngat), spots, or actual insects.\n")
+                        .append("   - Provide details on what pests were detected (if any) and list pests that commonly attack this specific plant species.\n")
+                        .append("   - Provide specific steps to avoid pests, including recommendations for organic or chemical sprays (e.g., Neem oil).\n\n")
+                        .append("4. CARE GUIDE MANDATE AND GEOGRAPHICAL DISTRIBUTION MAP PINPOINTS:\n")
+                        .append("   - Detail the essential care conditions (sunlight, watering, temperature).\n")
+                        .append("   - Identify multiple realistic locations across the globe or regions where this plant can be found, and map them to their distribution type (Native, Cultivated, Introduced, Invasive) so they can be accurately pinned on the habitat map.\n\n")
+                        .append("5. Return ONLY pure JSON matching EXACTLY this structure:\n")
                         .append("{\n")
                         .append("  \"is_plant\": true,\n")
                         .append("  \"is_artificial\": false,\n")
-                        .append("  \"artificial_details\": [],\n")
                         .append("  \"plant_profile\": {\n")
-                        .append("    \"name\": \"Common Name (Scientific Name)\",\n")
+                        .append("    \"name\": \"Common Name\",\n")
                         .append("    \"scientific_name\": \"Scientific Name\",\n")
                         .append("    \"philippine_name\": \"Local Philippine Name or N/A\",\n")
-                        .append("    \"aliases\": \"Provide 3 to 5 real alternative common names specifically for THIS exact species separated by commas. Do not invent unrelated plant names.\",\n")
-                        .append("    \"origin\": \"Native origin region/countries\",\n")
-                        .append("    \"distribution_text\": \"Complete worldwide geographic distribution listing all country locations pinned on map.\",\n")
-                        .append("    \"habitat\": \"Detailed habitat summary encompassing environmental conditions across all countries where it is pinned.\",\n")
-                        .append("    \"distribution_confidence\": \"High\",\n")
+                        .append("    \"aliases\": \"Alternative names or N/A\",\n")
+                        .append("    \"confidence\": 95,\n")
+                        .append("    \"match_percentage\": 95,\n")
+                        .append("    \"distribution_text\": \"Geographical distribution information\",\n")
+                        .append("    \"origin\": \"Origin country or region\",\n")
+                        .append("    \"habitat\": \"Natural habitat description\",\n")
+                        .append("    \"type\": \"Plant type (e.g. Shrub, Tree, Herb)\",\n")
+                        .append("    \"plant_type\": \"Plant type description\",\n")
+                        .append("    \"pet_toxicity\": \"Toxic/Non-toxic to pets description\",\n")
+                        .append("    \"weed_potential\": \"Low/Medium/High weed potential\",\n")
+                        .append("    \"lifespan\": \"Perennial/Annual/etc.\",\n")
+                        .append("    \"care_difficulty\": \"Easy/Moderate/Hard\",\n")
+                        .append("    \"difficulty_level\": \"Easy/Moderate/Hard\",\n")
+                        .append("    \"care_difficulty_percentage\": 40,\n")
+                        .append("    \"difficulty_percentage\": 40,\n")
                         .append("    \"distribution_coordinates\": [\n")
                         .append("      {\n")
-                        .append("        \"latitude\": -14.2350,\n")
-                        .append("        \"longitude\": -51.9253,\n")
-                        .append("        \"title\": \"Brazil\",\n")
-                        .append("        \"region\": \"South America\",\n")
-                        .append("        \"country\": \"Brazil\",\n")
-                        .append("        \"distribution_type\": \"Native\",\n")
-                        .append("        \"is_native\": true,\n")
-                        .append("        \"confidence\": \"High\",\n")
-                        .append("        \"snippet\": \"Native tropical rainforest habitat.\",\n")
-                        .append("        \"description\": \"Part of native range in South America.\"\n")
+                        .append("        \"latitude\": 14.5995,\n")
+                        .append("        \"longitude\": 120.9842,\n")
+                        .append("        \"title\": \"Region/City Name\",\n")
+                        .append("        \"snippet\": \"Short status info text\",\n")
+                        .append("        \"distribution_type\": \"Native\"\n")
+                        .append("      },\n")
+                        .append("      {\n")
+                        .append("        \"latitude\": 35.6762,\n")
+                        .append("        \"longitude\": 139.6503,\n")
+                        .append("        \"title\": \"Region/City Name\",\n")
+                        .append("        \"snippet\": \"Short status info text\",\n")
+                        .append("        \"distribution_type\": \"Cultivated\"\n")
+                        .append("      },\n")
+                        .append("      {\n")
+                        .append("        \"latitude\": -33.8688,\n")
+                        .append("        \"longitude\": 151.2093,\n")
+                        .append("        \"title\": \"Region/City Name\",\n")
+                        .append("        \"snippet\": \"Short status info text\",\n")
+                        .append("        \"distribution_type\": \"Introduced\"\n")
+                        .append("      },\n")
+                        .append("      {\n")
+                        .append("        \"latitude\": 25.7617,\n")
+                        .append("        \"longitude\": -80.1918,\n")
+                        .append("        \"title\": \"Region/City Name\",\n")
+                        .append("        \"snippet\": \"Short status info text\",\n")
+                        .append("        \"distribution_type\": \"Invasive\"\n")
                         .append("      }\n")
-                        .append("    ],\n")
-                        .append("    \"type\": \"Plant Type (e.g. Indoor Herb, Shrub, Succulent)\",\n")
-                        .append("    \"pet_toxicity\": \"Non-toxic to pets / Toxic to pets\",\n")
-                        .append("    \"weed_potential\": \"Low weed potential / Invasive weed\",\n")
-                        .append("    \"lifespan\": \"Perennial / Annual\",\n")
-                        .append("    \"care_difficulty\": \"Easy / Moderate / Hard\"\n")
+                        .append("    ]\n")
                         .append("  },\n")
+                        .append("  \"health_assessment\": {\n")
+                        .append("    \"status\": \"Healthy / Diseased / etc.\",\n")
+                        .append("    \"confidence\": \"95%\"\n")
+                        .append("  },\n")
+                        .append("  \"health_scanner\": {\n")
+                        .append("    \"status\": \"Healthy / Diseased / etc.\",\n")
+                        .append("    \"health_score\": 95,\n")
+                        .append("    \"confidence\": 95\n")
+                        .append("  },\n")
+                        .append("  \"care_guide\": {\n")
+                        .append("    \"watering\": \"Watering instructions\",\n")
+                        .append("    \"sunlight\": \"Sunlight needs\",\n")
+                        .append("    \"temperature\": \"Ideal temperature range\"\n")
+                        .append("  },\n")
+                        .append("  \"problems_detected\": [\n")
+                        .append("    \"Problem 1\",\n")
+                        .append("    \"Problem 2\"\n")
+                        .append("  ],\n")
                         .append("  \"common_problems\": [\n")
                         .append("    {\n")
-                        .append("      \"title\": \"Aged yellow and dry\",\n")
-                        .append("      \"description\": \"Natural aging can cause leaves to turn yellow and dry out.\",\n")
-                        .append("      \"symptom_analysis\": \"When plants have progressed through their natural developmental stages, leaves will start to yellow, droop, and turn papery brown.\",\n")
-                        .append("      \"disease_cause\": \"At the end of its life, genetic coding within the plant increases the production of ethylene, leading to natural cell breakdown.\",\n")
-                        .append("      \"solutions\": \"If yellowing is a natural progression due to age, nothing can be done to stop it. Prune dead leaves to keep the plant clean.\",\n")
-                        .append("      \"prevention\": \"To prolong leaf life, ensure proper water, adequate sunlight, and balanced fertilization.\",\n")
-                        .append("      \"image_url\": \"\"\n")
+                        .append("      \"title\": \"Problem Name\",\n")
+                        .append("      \"likelihood_percentage\": 20,\n")
+                        .append("      \"description\": \"Description of the issue\",\n")
+                        .append("      \"symptom_analysis\": \"What symptoms to look for\",\n")
+                        .append("      \"disease_cause\": \"What causes this disease\",\n")
+                        .append("      \"solutions\": \"How to treat it\",\n")
+                        .append("      \"prevention\": \"How to prevent it\"\n")
                         .append("    }\n")
                         .append("  ],\n")
-                        .append("  \"health_scanner\": {\n")
-                        .append("    \"status\": \"Healthy / Artificial / Diseased / Indeterminate\",\n")
-                        .append("    \"confidence\": \"85%\",\n")
-                        .append("    \"health_score\": 85,\n")
-                        .append("    \"tissue_damage\": \"Description of damage or N/A\"\n")
-                        .append("  },\n")
-                        .append("  \"hydration_scanner\": {\n")
-                        .append("    \"turgor_pressure\": \"High/Optimal/Wilting/N/A\",\n")
-                        .append("    \"moisture_estimate\": \"Dry/Moist/Saturated/N/A\"\n")
+                        .append("  \"characteristics\": {\n")
+                        .append("    \"ultimate_height\": \"e.g. 1-2 meters\",\n")
+                        .append("    \"ultimate_spread\": \"e.g. 0.5-1 meter\",\n")
+                        .append("    \"leaf_type\": \"e.g. Broadleaf\",\n")
+                        .append("    \"planting_time\": \"e.g. Spring\",\n")
+                        .append("    \"leaf_colors\": [\"#4CAF50\"],\n")
+                        .append("    \"leaf_color_hex\": \"#4CAF50\"\n")
                         .append("  },\n")
                         .append("  \"ecosystem\": {\n")
-                        .append("    \"humidity_preference\": \"High (60-80%) / Medium (40-60%) / Low\",\n")
-                        .append("    \"temp_range\": \"18-30°C\",\n")
-                        .append("    \"soil\": \"Well-draining, nutrient-rich potting mix with perlite\",\n")
-                        .append("    \"soil_type\": \"Well-draining potting mix\",\n")
-                        .append("    \"hardiness_zones\": \"9-11\",\n")
-                        .append("    \"sunlight\": \"Bright indirect light\"\n")
+                        .append("    \"temp_range\": \"e.g. 20-30°C\",\n")
+                        .append("    \"hardiness_zones\": \"e.g. 9-11\",\n")
+                        .append("    \"sunlight\": \"Full sun to partial shade\",\n")
+                        .append("    \"soil\": \"Well-draining loam\"\n")
                         .append("  },\n")
                         .append("  \"how_tos\": {\n")
-                        .append("    \"pruning\": \"Trim yellowed or damaged leaves near the base using sterilized shears during spring/summer.\",\n")
-                        .append("    \"propagation\": \"Take 4-6 inch stem cuttings below a node, root in water or moist soil for 2-3 weeks.\",\n")
-                        .append("    \"repotting\": \"Repot every 1-2 years in spring into a container 2 inches larger with drainage holes.\"\n")
-                        .append("  },\n")
-                        .append("  \"characteristics\": {\n")
-                        .append("    \"ultimate_height\": \"e.g., 30 cm to 1 m\",\n")
-                        .append("    \"ultimate_spread\": \"e.g., 20 cm to 50 cm\",\n")
-                        .append("    \"leaf_color_hex\": \"#2E7D32\",\n")
-                        .append("    \"leaf_type\": \"Evergreen\",\n")
-                        .append("    \"planting_time\": \"Spring\"\n")
-                        .append("  },\n")
-                        .append("  \"care_profile\": {\n")
-                        .append("    \"difficulty\": \"Easy\",\n")
-                        .append("    \"watering_frequency\": \"Water when top inch is dry\",\n")
-                        .append("    \"propagation_method\": \"Stem cuttings\"\n")
+                        .append("    \"pruning\": \"Pruning instructions\",\n")
+                        .append("    \"propagation\": \"Propagation instructions\",\n")
+                        .append("    \"repotting\": \"Repotting instructions\"\n")
                         .append("  },\n")
                         .append("  \"extra_details\": {\n")
-                        .append("    \"uses\": \"Decorative / Ornamental\",\n")
-                        .append("    \"uses_disclaimer\": \"\",\n")
-                        .append("    \"adaptation_strategies\": \"Drought tolerant\",\n")
-                        .append("    \"ecological_application\": \"Air purifier\",\n")
-                        .append("    \"history_and_legends\": \"Historical context\",\n")
-                        .append("    \"name_story\": \"Etymology\",\n")
-                        .append("    \"symbolism\": \"Symbolic meaning\"\n")
+                        .append("    \"uses\": \"Common uses\",\n")
+                        .append("    \"adaptation_strategies\": \"How it adapts\",\n")
+                        .append("    \"ecological_application\": \"Ecological role\",\n")
+                        .append("    \"history_and_legends\": \"Historical background\",\n")
+                        .append("    \"name_story\": \"Origin of its name\",\n")
+                        .append("    \"symbolism\": \"What it symbolizes\"\n")
                         .append("  },\n")
-                        .append("  \"symptoms_checklist\": [],\n")
-                        .append("  \"intervention_strategy\": {\n")
-                        .append("    \"immediate_action\": \"No watering required if artificial.\",\n")
-                        .append("    \"long_term_care\": \"Dust periodically.\"\n")
+                        .append("  \"pest_info\": {\n")
+                        .append("    \"possible_pest_detected\": \"Describe any pests detected or damage like chew marks (ngatngat) observed. If none, say 'No pests currently visible'.\",\n")
+                        .append("    \"common_pest\": \"List pests that commonly attack this species\",\n")
+                        .append("    \"how_to_avoid_pest\": \"Prevention steps and spray recommendations (e.g. Neem oil) to avoid/prevent pests\"\n")
                         .append("  },\n")
-                        .append("  \"smart_grow_lesson\": \"Short educational note\"\n")
+                        .append("  \"recommendations\": \"Immediate and long-term care actions\",\n")
+                        .append("  \"smartqrow_lesson\": \"Short educational note\"\n")
                         .append("}\n\n")
-                        .append("OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON object.");
+                        .append("OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON block.");
 
                 JSONObject generationConfig = new JSONObject();
                 generationConfig.put("responseMimeType", "application/json");
@@ -540,121 +557,87 @@ public class PlantAnalyzer {
             }
 
             boolean isArtificial = root.optBoolean("is_artificial", false);
-            JSONArray artificialDetails = root.optJSONArray("artificial_details");
             String localPhName = profile.optString("philippine_name", "N/A");
-            String origin = profile.optString("origin", "N/A");
-            String distributionText = profile.optString("distribution_text", "N/A");
-            String habitatText = profile.optString("habitat", "N/A");
+            String scientificName = profile.optString("scientific_name", "Not specified");
 
-            JSONObject health = root.optJSONObject("health_scanner");
-            JSONObject hydration = root.optJSONObject("hydration_scanner");
-            JSONObject ecosystem = root.optJSONObject("ecosystem");
-            JSONObject howTos = root.optJSONObject("how_tos");
-            JSONArray symptoms = root.optJSONArray("symptoms_checklist");
-            JSONObject intervention = root.optJSONObject("intervention_strategy");
-
-            String commonName = nameString;
-            String scientificName = "Not specified";
-            if (nameString.contains("(") && nameString.contains(")")) {
-                int openParen = nameString.indexOf("(");
-                int closeParen = nameString.indexOf(")");
-                if (openParen < closeParen) {
-                    commonName = nameString.substring(0, openParen).trim();
-                    scientificName = nameString.substring(openParen + 1, closeParen).trim();
-                }
-            }
+            JSONObject health = root.optJSONObject("health_assessment");
+            JSONObject care = root.optJSONObject("care_guide");
+            JSONArray problems = root.optJSONArray("problems_detected");
+            JSONObject pestInfo = root.optJSONObject("pest_info");
+            String recommendations = root.optString("recommendations", "N/A");
+            String lesson = root.optString("smartqrow_lesson", "");
 
             StringBuilder sb = new StringBuilder();
 
             if (isArtificial) {
-                sb.append("⚠️ Artificial / Fake Plant Detected\n");
-                sb.append("This image appears to be an artificial or faux ").append(commonName).append(".\n");
-
-                if (artificialDetails != null && artificialDetails.length() > 0) {
-                    sb.append("Noticeable details:\n");
-                    for (int i = 0; i < artificialDetails.length(); i++) {
-                        String detail = artificialDetails.optString(i, "");
-                        if (!detail.trim().isEmpty()) {
-                            sb.append("• ").append(detail).append("\n");
-                        }
-                    }
-                }
-                sb.append("\nHere is general care info for the real species:\n\n");
+                sb.append("⚠️ Artificial / Fake Plant Detected\n\n");
             }
 
+            // 🌿 Plant Profile Section
             sb.append("🌿 Plant Profile\n");
-            sb.append("• Name: ").append(commonName).append("\n");
-            sb.append("• Scientific Name: ").append(scientificName).append("\n");
-
+            sb.append("• Name: ").append(nameString).append("\n");
+            sb.append("• Sci Name: ").append(scientificName).append("\n");
             if (!"N/A".equalsIgnoreCase(localPhName) && !localPhName.trim().isEmpty()) {
                 sb.append("• Local Name: ").append(localPhName).append("\n");
             }
-
-            if (profile.has("type")) {
-                sb.append("• Type: ").append(profile.optString("type", "N/A")).append("\n");
-            }
-            if (ecosystem != null && ecosystem.has("soil_type")) {
-                sb.append("• Adaptability: ").append(ecosystem.optString("soil_type", "N/A")).append(" Adapted\n");
-            }
-            if (!"N/A".equalsIgnoreCase(origin) && !origin.trim().isEmpty()) {
-                sb.append("• Native Origin: ").append(origin).append("\n");
-            }
-            if (!"N/A".equalsIgnoreCase(distributionText) && !distributionText.trim().isEmpty()) {
-                sb.append("• Geographic Distribution: ").append(distributionText).append("\n");
-            }
-            if (!"N/A".equalsIgnoreCase(habitatText) && !habitatText.trim().isEmpty()) {
-                sb.append("• Global Habitat: ").append(habitatText).append("\n");
-            }
             sb.append("\n");
 
+            // 🩺 Health Assessment Section
             if (health != null) {
                 sb.append("🩺 Health Assessment\n");
-                sb.append("• Condition: ").append(isArtificial ? "Artificial / Plastic Plant" : health.optString("status", "N/A")).append("\n");
+                String status = isArtificial ? "Artificial / Plastic Plant" : health.optString("status", "N/A");
+                sb.append("• Condition: ").append(status).append("\n");
                 sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
-            if (hydration != null || ecosystem != null) {
+            // 💧 Care Guide Section
+            if (care != null) {
                 sb.append("💧 Care Guide\n");
-                if (hydration != null && !isArtificial) {
-                    sb.append("• Watering: ").append(hydration.optString("turgor_pressure", "N/A"))
-                            .append(" indications / ").append(hydration.optString("moisture_estimate", "N/A")).append(" soil target\n");
+                if (!isArtificial) {
+                    sb.append("• Watering: ").append(care.optString("watering", "N/A")).append("\n");
                 }
-                if (ecosystem != null) {
-                    sb.append("• Soil: ").append(ecosystem.optString("soil_type", "N/A")).append("\n");
-                    sb.append("• Temperature: ").append(ecosystem.optString("temp_range", "N/A")).append(" °C\n");
-                    sb.append("• Humidity: ").append(ecosystem.optString("humidity_preference", "N/A")).append("\n");
-                }
+                sb.append("• Sunlight: ").append(care.optString("sunlight", "N/A")).append("\n");
+                sb.append("• Temperature: ").append(care.optString("temperature", "N/A")).append("\n\n");
             }
 
-            if (!isArtificial && symptoms != null && symptoms.length() > 0) {
-                boolean hasRealSymptoms = false;
-                StringBuilder symptomsBuilder = new StringBuilder();
-                for (int i = 0; i < symptoms.length(); i++) {
-                    String symptom = symptoms.optString(i, "");
-                    if (!symptom.trim().isEmpty() && !"N/A".equalsIgnoreCase(symptom)) {
-                        symptomsBuilder.append("• ").append(symptom).append("\n");
-                        hasRealSymptoms = true;
+            // ⚠️ Problems Detected Section
+            sb.append("⚠️ Problems Detected\n");
+            boolean hasProblems = false;
+            if (!isArtificial && problems != null && problems.length() > 0) {
+                for (int i = 0; i < problems.length(); i++) {
+                    String prob = problems.optString(i);
+                    if (!prob.isEmpty()) {
+                        sb.append("• ").append(prob).append("\n");
+                        hasProblems = true;
                     }
                 }
-                if (hasRealSymptoms) {
-                    sb.append("\n⚠️ Problems Detected\n").append(symptomsBuilder);
-                }
+            }
+            if (!hasProblems) {
+                sb.append("• None detected\n");
+            }
+            sb.append("\n");
+
+            // 🐛 Pest Information Sections
+            if (pestInfo != null) {
+                // Common Pest line (Possible pest detected / Common pest)
+                sb.append("🐛 Common Pest\n");
+                String detected = pestInfo.optString("possible_pest_detected", "None detected");
+                String common = pestInfo.optString("common_pest", "N/A");
+                sb.append("• ").append(detected).append(" / ").append(common).append("\n\n");
+                
+                // 🛡️ How to Avoid Pest section
+                sb.append("🛡️ How to Avoid Pest\n");
+                sb.append("• ").append(pestInfo.optString("how_to_avoid_pest", "N/A")).append("\n\n");
             }
 
-            if (intervention != null) {
-                sb.append("\n✅ Recommendations\n");
-                if (isArtificial) {
-                    sb.append("• Immediate: Keep free of dust with a damp cloth.\n");
-                    sb.append("• Long-term: Keep away from direct high heat to prevent plastic degradation.\n\n");
-                } else {
-                    sb.append("• Immediate: ").append(intervention.optString("immediate_action", "N/A")).append("\n");
-                    sb.append("• Long-term: ").append(intervention.optString("long_term_care", "N/A")).append("\n\n");
-                }
-            }
+            // ✅ Recommendations Section
+            sb.append("✅ Recommendations\n");
+            sb.append("• ").append(recommendations).append("\n\n");
 
-            String lesson = root.optString("smart_grow_lesson", "");
+            // 💡 SmartGrow Lesson Section
             if (!lesson.trim().isEmpty()) {
-                sb.append("💡 SmartGrow Lesson: ").append(lesson);
+                sb.append("💡 SmartGrow Lesson\n");
+                sb.append("• ").append(lesson).append("\n");
             }
 
             return sb.toString();
@@ -664,9 +647,7 @@ public class PlantAnalyzer {
             if (jsonRawString.contains("does not appear to contain a plant") || jsonRawString.contains("\"is_plant\": false")) {
                 return REJECT_MESSAGE;
             }
-            return jsonRawString.replaceAll("[\\{\\}\"\\[\\]]", "")
-                    .replaceAll("(?m)^[ \t]*[a-zA-Z_]+:\\s*", "• ")
-                    .trim();
+            return jsonRawString.replaceAll("[\\{\\}\"\\[\\]]", "").trim();
         }
     }
 
