@@ -134,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNav = findViewById(R.id.bottom_navigation_bar);
         mainHeaderBar = findViewById(R.id.layout_top_header);
         cardNavChatAssistant = findViewById(R.id.card_nav_chat_assistant);
-        cardActionNotification = findViewById(R.id.card_action_notification);
         cardActionGlobal = findViewById(R.id.card_action_global);
         cardActionProfile = findViewById(R.id.card_action_profile);
 

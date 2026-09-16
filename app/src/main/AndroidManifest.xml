@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- 📷 Camera Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false" />
-
-    <!-- 🖼️ Photo & Gallery Permissions (API 32 and lower vs API 33+) -->
+        android:required="false" /> <!-- 🖼️ Photo & Gallery Permissions (API 32 and lower vs API 33+) -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <!-- Android 14 (API 34) Partial Photo Picker Access -->
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-
-    <!-- 🌐 Network and Internet Permissions (Required for Google Maps & API calls) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!-- Android 14 (API 34) Partial Photo Picker Access -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" /> <!-- 🌐 Network and Internet Permissions (Required for Google Maps & API calls) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <!-- 📍 Location Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- 📍 Location Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- 🔔 Notification and Alarm Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- 🔔 Notification and Alarm Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
@@ -36,7 +27,6 @@
     <application
         android:name=".core.SmartGrowApp"
         android:allowBackup="true"
-        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -44,104 +34,81 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartGrow"
-        tools:targetApi="36"
-        tools:replace="android:allowBackup,android:fullBackupContent,android:dataExtractionRules">
-
+        android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup,android:fullBackupContent,android:dataExtractionRules"
+        tools:targetApi="36">
+        <activity
+            android:name=".plants.PlantDiaryActivity"
+            android:exported="false" />
         <!-- 🗝️ Google Maps API Key Injected from local.properties via Gradle -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${mapsApiKey}" />
-
-        <!-- 🚀 1. Splash / Launcher Activity -->
+            android:value="${mapsApiKey}" /> <!-- 🚀 1. Splash / Launcher Activity -->
         <activity
             android:name=".auth.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- 🏁 2. Onboarding / Authentication Entry -->
+        </activity> <!-- 🏁 2. Onboarding / Authentication Entry -->
         <activity
             android:name=".auth.GetStartedActivity"
             android:exported="false" />
-
         <activity
             android:name=".auth.LoginActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
-        <!-- 📝 3. Registration Flow Steps -->
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" /> <!-- 📝 3. Registration Flow Steps -->
         <activity
             android:name=".auth.RegisterStep1Activity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.RegisterStep2Activity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.RegisterStep3Activity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.RegisterStep4Activity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.RegisterStep5Activity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
-        <!-- 🔐 4. Password Recovery / OTP -->
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" /> <!-- 🔐 4. Password Recovery / OTP -->
         <activity
             android:name=".auth.ForgotPasswordActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.VerifyOTPActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".auth.ResetPasswordActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
-        <!-- 🏠 5. Main Screen / Dashboard -->
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" /> <!-- 🏠 5. Main Screen / Dashboard -->
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
-        <!-- 📷 6. Full-Screen AI Camera Scanner -->
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" /> <!-- 📷 6. Full-Screen AI Camera Scanner -->
         <activity
             android:name=".camera.CameraScannerActivity"
-            android:exported="false" />
-
-        <!-- 🪴 7. Plant Details & Common Problem Activities -->
-
+            android:exported="false" /> <!-- 🪴 7. Plant Details & Common Problem Activities -->
         <activity
             android:name=".plants.PlantDetailsActivity"
             android:exported="false" />
-
         <activity
             android:name=".plants.ProblemDetailsActivity"
-            android:exported="false" />
-
-        <!-- 🔔 Alarm & Boot Receivers -->
+            android:exported="false" /> <!-- 🔔 Alarm & Boot Receivers -->
         <receiver
             android:name=".core.AlarmReceiver"
             android:enabled="true"
-            android:exported="false" />
-
-        <!-- Added permission protection to exported Boot Receiver -->
+            android:exported="false" /> <!-- Added permission protection to exported Boot Receiver -->
         <receiver
             android:name=".core.BootReceiver"
             android:enabled="true"
@@ -150,9 +117,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>
-
-        <!-- 📂 FileProvider for Camera/Photos -->
+        </receiver> <!-- 📂 FileProvider for Camera/Photos -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -163,13 +128,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"
                 tools:replace="android:resource" />
-        </provider>
-
-        <!-- Preloaded Fonts Configuration -->
+        </provider> <!-- Preloaded Fonts Configuration -->
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
     </application>
 
 </manifest>

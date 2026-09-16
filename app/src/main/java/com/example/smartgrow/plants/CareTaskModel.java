@@ -1,5 +1,7 @@
 package com.example.smartgrow.plants;
 
+import android.graphics.Bitmap;
+
 public class CareTaskModel {
     private String id; // Plant ID
     private String title;
@@ -8,6 +10,8 @@ public class CareTaskModel {
     private int imageResId;
     private boolean isDone;
     private String taskType; // "Water", "Check", "Fertilize"
+    private Bitmap plantImageBitmap;
+
 
     public CareTaskModel(String id, String title, String dueText, String actionText, int imageResId, String taskType) {
         this.id = id;
@@ -17,6 +21,19 @@ public class CareTaskModel {
         this.imageResId = imageResId;
         this.taskType = taskType;
         this.isDone = false;
+        this.plantImageBitmap = null;
+    }
+
+
+    public CareTaskModel(String id, String title, String dueText, String actionText, Bitmap plantImageBitmap, String taskType) {
+        this.id = id;
+        this.title = title;
+        this.dueText = dueText;
+        this.actionText = actionText;
+        this.plantImageBitmap = plantImageBitmap;
+        this.taskType = taskType;
+        this.isDone = false;
+        this.imageResId = 0;
     }
 
     public String getId() {
@@ -37,6 +54,14 @@ public class CareTaskModel {
 
     public int getImageResId() {
         return imageResId;
+    }
+
+    public Bitmap getPlantImageBitmap() {
+        return plantImageBitmap;
+    }
+
+    public void setPlantImageBitmap(Bitmap plantImageBitmap) {
+        this.plantImageBitmap = plantImageBitmap;
     }
 
     public boolean isDone() {

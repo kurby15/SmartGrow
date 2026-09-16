@@ -20,9 +20,11 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
     private Context context;
     private List<MyGardenPlantModel> plantList;
     private OnPlantSelectedListener listener;
+    private int selectedPosition = RecyclerView.NO_POSITION;
 
     public interface OnPlantSelectedListener {
         void onPlantSelected(MyGardenPlantModel plant);
+        void onRemoveReminder(MyGardenPlantModel plant);
     }
 
     public ReminderPlantAdapter(Context context, List<MyGardenPlantModel> plantList, OnPlantSelectedListener listener) {
@@ -56,10 +58,39 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
             holder.ivPlantThumb.setImageResource(R.drawable.img_9);
         }
 
-        holder.btnSelect.setOnClickListener(v -> {
+        if (selectedPosition == holder.getAdapterPosition()) {
+            holder.itemView.setBackgroundResource(R.drawable.bg_selected_card);
+        } else {
+            holder.itemView.setBackgroundResource(R.drawable.bg_default_card);
+        }
+
+        holder.itemView.setOnClickListener(v -> {
+            int previousSelected = selectedPosition;
+            selectedPosition = holder.getAdapterPosition();
+            notifyItemChanged(previousSelected);
+            notifyItemChanged(selectedPosition);
+
             if (listener != null) {
                 listener.onPlantSelected(plant);
             }
+        });
+
+        holder.ibMore.setOnClickListener(v -> {
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(context, v);
+
+            popup.getMenuInflater().inflate(R.menu.reminder_options_menu, popup.getMenu());
+
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_remove) {
+                    if (listener != null) {
+                        listener.onRemoveReminder(plant);
+                    }
+                    return true;
+                }
+                return false;
+            });
+
+            popup.show();
         });
     }
 
@@ -71,14 +102,14 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivPlantThumb;
         TextView tvPlantName, tvScientificName;
-        MaterialButton btnSelect;
+        ImageView ibMore;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivPlantThumb = itemView.findViewById(R.id.iv_plant_thumb);
             tvPlantName = itemView.findViewById(R.id.tv_plant_name);
             tvScientificName = itemView.findViewById(R.id.tv_scientific_name);
-            btnSelect = itemView.findViewById(R.id.btn_select_plant);
+            ibMore = itemView.findViewById(R.id.ib_more_reminder);
         }
     }
 }

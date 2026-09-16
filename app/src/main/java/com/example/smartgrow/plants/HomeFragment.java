@@ -1,7 +1,10 @@
 package com.example.smartgrow.plants;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -221,10 +224,21 @@ public class HomeFragment extends Fragment {
 
         for (MyGardenPlantModel p : plantList) {
             totalHealth += p.getHealthPercentage();
-            
+
             boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
             Map<String, Object> reminders = p.getReminders();
-            
+
+            Bitmap plantBitmap = null;
+            try {
+                String base64Str = p.getImageBase64();
+                if (base64Str != null && !base64Str.isEmpty()) {
+                    byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
+                    plantBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             if (reminders != null) {
                 String waterFreq = (String) reminders.get("wateringSchedule");
                 String fertFreq = (String) reminders.get("fertilizerSchedule");
@@ -232,13 +246,12 @@ public class HomeFragment extends Fragment {
                 String prefTime = (String) reminders.get("preferredTime");
                 if (prefTime == null) prefTime = "12:00 PM";
 
-                // Handle Watering Task
                 if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
                     if (isTaskDue(waterFreq, p.getLastWateredDate())) {
-                        CareTaskModel task = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "💧 Scheduled at " + prefTime, "Water Now", R.drawable.ic_reminder, "Water");
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "💧 Scheduled at " + prefTime, "Water Now", plantBitmap, "Water");
                         task.setDone(isWateredToday);
                         careTaskList.add(task);
-                        
+
                         if (!isWateredToday && isTimeReached(prefTime)) {
                             needWaterCount++;
                         }
@@ -251,7 +264,7 @@ public class HomeFragment extends Fragment {
                 if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
                     if (isTaskDue(fertFreq, p.getLastFertilizedDate())) {
                         boolean isDone = todayDate.equals(p.getLastFertilizedDate());
-                        CareTaskModel task = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "🌿 Feeding due today", "Feed Now", R.drawable.ic_reminder, "Fertilize");
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "🌿 Feeding due today", "Feed Now", plantBitmap, "Fertilize");
                         task.setDone(isDone);
                         careTaskList.add(task);
                     }
@@ -261,7 +274,7 @@ public class HomeFragment extends Fragment {
                 if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
                     if (isTaskDue(sunFreq, p.getLastCheckedDate())) {
                         boolean isDone = todayDate.equals(p.getLastCheckedDate());
-                        CareTaskModel task = new CareTaskModel(p.getId(), "Check " + p.getPlantName(), "☀️ Sunlight check today", "Inspect", R.drawable.ic_reminder, "Check");
+                        CareTaskModel task = new CareTaskModel(p.getId(), "Check " + p.getPlantName(), "☀️ Sunlight check today", "Inspect", plantBitmap, "Check");
                         task.setDone(isDone);
                         careTaskList.add(task);
                     }
@@ -271,6 +284,7 @@ public class HomeFragment extends Fragment {
                     needWaterCount++;
                 }
             }
+
         }
 
         if (todaysCareAdapter != null) {
@@ -364,9 +378,13 @@ public class HomeFragment extends Fragment {
         if (!isAdded()) return;
         TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
         Calendar calendar = Calendar.getInstance(phTimeZone);
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEEE, hh:mm a", new Locale("en", "PH"));
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEEE, MMMM d • h:mm a", new Locale("en", "PH"));
         dateTimeFormat.setTimeZone(phTimeZone);
-        if (tvDashboardLiveDateTime != null) tvDashboardLiveDateTime.setText(dateTimeFormat.format(calendar.getTime()));
+
+        TextView tvDayTime = getView() != null ? getView().findViewById(R.id.tv_day_time) : null;
+        if (tvDayTime != null) {
+            tvDayTime.setText(dateTimeFormat.format(calendar.getTime()));
+        }
 
         int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
         String greeting = (hourOfDay < 12) ? "Good Morning" : (hourOfDay < 17) ? "Good Afternoon" : "Good Evening";
@@ -378,12 +396,47 @@ public class HomeFragment extends Fragment {
 
     private void updateMockWeatherEngine() {
         if (!isAdded()) return;
-        String[] weathers = {"Sunny", "Cloudy", "Partly Cloudy", "Light Rain"};
-        String[] icons = {"☀️", "☁️", "⛅", "🌦️"};
+
+        // 5 Weather Options: Sunny, Cloudy, Partly Cloudy, Light Rain, at Thunderstorm
+        String[] conditions = {"Sunny", "Cloudy", "Partly Cloudy", "Light Rain", "Thunderstorm"};
+        int[] icons = {
+                R.drawable.ic_sunny,
+                R.drawable.ic_cloudy,
+                R.drawable.ic_partly_cloudy,
+                R.drawable.ic_light_rain,
+                R.drawable.ic_thunderstorm
+        };
+
         Random r = new Random();
-        int idx = r.nextInt(weathers.length);
-        if (tvDashboardWeatherMock != null) {
-            tvDashboardWeatherMock.setText(icons[idx] + " " + weathers[idx] + ", " + (28 + r.nextInt(5)) + "°C");
+        int idx = r.nextInt(conditions.length);
+        String selectedCondition = conditions[idx];
+        int temp = 27 + r.nextInt(6); // 27°C - 32°C
+        int humidity = 50 + r.nextInt(25); // 50% - 74%
+
+        View view = getView();
+        if (view != null) {
+            TextView tvTemp = view.findViewById(R.id.tv_weather_temp);
+            TextView tvDesc = view.findViewById(R.id.tv_weather_desc);
+            TextView tvAdvice = view.findViewById(R.id.tv_watering_advice);
+            ImageView ivIcon = view.findViewById(R.id.iv_weather_icon);
+
+            if (tvTemp != null) tvTemp.setText(temp + "°C");
+            if (tvDesc != null) tvDesc.setText(selectedCondition + " • Humidity " + humidity + "%");
+            if (ivIcon != null) ivIcon.setImageResource(icons[idx]);
+
+            if (tvAdvice != null) {
+                if (selectedCondition.equals("Light Rain") || selectedCondition.equals("Thunderstorm")) {
+                    tvAdvice.setText("Not ideal for watering (Rain expected)");
+                } else if (selectedCondition.equals("Cloudy")) {
+                    tvAdvice.setText("Good weather for watering (Low evaporation)");
+                } else if (selectedCondition.equals("Partly Cloudy")) {
+                    tvAdvice.setText("Great conditions for general plant care");
+                } else if (selectedCondition.equals("Sunny") && temp > 30) {
+                    tvAdvice.setText("Water early morning or evening");
+                } else {
+                    tvAdvice.setText("Better weather for watering");
+                }
+            }
         }
     }
 

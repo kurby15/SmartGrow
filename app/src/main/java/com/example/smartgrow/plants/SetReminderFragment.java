@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +32,8 @@ public class SetReminderFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
+    private MyGardenPlantModel selectedPlant = null;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -46,13 +49,42 @@ public class SetReminderFragment extends Fragment {
         plantList = new ArrayList<>();
         rvReminderPlants.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Using MyGardenPlantModel to match the 'diary' collection structure
-        reminderPlantAdapter = new ReminderPlantAdapter(getContext(), plantList, plant -> {
-            PlantReminderBottomSheet bottomSheet = PlantReminderBottomSheet.newInstance(plant.getId());
-            bottomSheet.show(getParentFragmentManager(), "PlantReminderBottomSheet");
+        reminderPlantAdapter = new ReminderPlantAdapter(getContext(), plantList, new ReminderPlantAdapter.OnPlantSelectedListener() {
+            @Override
+            public void onPlantSelected(MyGardenPlantModel plant) {
+                selectedPlant = plant;
+            }
+
+            @Override
+            public void onRemoveReminder(MyGardenPlantModel plant) {
+                if (plant.getId() != null) {
+
+                    db.collection("diary").document(plant.getId())
+                            .update("reminders", null)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), "Reminder removed for " + plant.getPlantName(), Toast.LENGTH_SHORT).show();
+                                fetchUserPlantsFromDiary();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed to remove reminder", Toast.LENGTH_SHORT).show();
+                            });
+                }
+            }
         });
 
         rvReminderPlants.setAdapter(reminderPlantAdapter);
+
+        Button btnSetReminder = view.findViewById(R.id.btn_set_reminder);
+        if (btnSetReminder != null) {
+            btnSetReminder.setOnClickListener(v -> {
+                if (selectedPlant != null) {
+                    PlantReminderBottomSheet bottomSheet = PlantReminderBottomSheet.newInstance(selectedPlant.getId());
+                    bottomSheet.show(getParentFragmentManager(), "PlantReminderBottomSheet");
+                } else {
+                    Toast.makeText(getContext(), "Please select a plant first", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
         fetchUserPlantsFromDiary();
 
         if (btnBack != null) {

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- TOP IMAGE COLLAGE GRID CONTAINER -->
+    <RelativeLayout
+        android:id="@+id/layout_top_images"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <!-- Main Left Image -->
+            <ImageView
+                android:id="@+id/iv_plant_main"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.3"
+                android:contentDescription="Main plant image"
+                android:scaleType="centerCrop"
+                tools:src="@android:color/darker_gray" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="match_parent"
+                android:background="@color/background" />
+
+            <!-- Right Image Grid Stack -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/iv_plant_match_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="Plant match sample 1"
+                    android:scaleType="centerCrop"
+                    tools:src="@android:color/darker_gray" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/background" />
+
+                <ImageView
+                    android:id="@+id/iv_plant_match_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:contentDescription="Plant match sample 2"
+                    android:scaleType="centerCrop"
+                    tools:src="@android:color/darker_gray" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Back Arrow Button -->
+        <ImageView
+            android:id="@+id/ib_back"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_match"
+            android:contentDescription="Navigate back"
+            android:padding="8dp"
+            android:src="@drawable/ic_back2"
+            app:tint="#FFFFFF" />
+
+        <!-- Match Confidence Badge -->
+        <TextView
+            android:id="@+id/tv_match_confidence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_match"
+            android:fontFamily="@font/inter_extrabold"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            tools:text="98% Match Confidence" />
+
+    </RelativeLayout>
+
+    <!-- PLANT INFO HEADER DETAILS -->
+    <LinearLayout
+        android:id="@+id/layout_header_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/layout_top_images">
+
+        <!-- Plant Title & Health Score Badge (Row) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Plant Title -->
+            <TextView
+                android:id="@+id/tv_plant_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/inter_extrabold"
+                android:textColor="@color/primary_green"
+                android:textSize="20sp"
+                tools:text="Goosegrass" />
+
+            <!-- Health Score Badge -->
+            <TextView
+                android:id="@+id/tv_health_score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_match"
+                android:fontFamily="@font/inter_extrabold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                tools:text="Health: 95%" />
+        </LinearLayout>
+
+        <!-- Scientific Name & Speaker Icon -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_scientific_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_light_italic"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="Eleusine indica" />
+
+            <ImageView
+                android:id="@+id/ib_speaker"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="1dp"
+                android:contentDescription="Pronunciation audio"
+                android:src="@drawable/ic_speaker"
+                app:tint="#81C784" />
+        </LinearLayout>
+
+        <!-- Health State -->
+        <TextView
+            android:id="@+id/tv_health_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/inter_medium"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="Status: Healthy" />
+
+        <!-- Also known as -->
+        <TextView
+            android:id="@+id/tv_also_known"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/inter_medium"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass" />
+    </LinearLayout>
+
+    <!-- CUSTOM TABS (Plant Info, Schedule, History) -->
+    <LinearLayout
+        android:id="@+id/layout_custom_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        app:layout_constraintTop_toBottomOf="@id/layout_header_details">
+
+        <!-- Plant Info Tab (Active by default) -->
+        <TextView
+            android:id="@+id/btn_tab_plant_info"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_pill_active"
+            android:fontFamily="@font/inter_extrabold"
+            android:gravity="center"
+            android:text="Plant Info"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <!-- Schedule Tab (Inactive by default) -->
+        <TextView
+            android:id="@+id/btn_tab_schedule"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_inactive_pill"
+            android:fontFamily="@font/inter_extrabold"
+            android:gravity="center"
+            android:text="Schedule"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
+
+        <!-- History Tab (Inactive by default) -->
+        <TextView
+            android:id="@+id/btn_tab_history"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_inactive_pill"
+            android:fontFamily="@font/inter_extrabold"
+            android:gravity="center"
+            android:text="History"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- VIEW PAGER PARA SA MGA TABS -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_diagnose"
+        app:layout_constraintTop_toBottomOf="@id/layout_custom_tabs" />
+
+    <!-- FLOATING DIAGNOSE BUTTON SA IBABA -->
+    <TextView
+        android:id="@+id/btn_diagnose"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="12dp"
+        android:background="@drawable/bg_pill_active"
+        android:fontFamily="@font/inter_extrabold"
+        android:gravity="center"
+        android:text="Diagnose"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -46,7 +46,7 @@ public class AllPlantsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_all_plants, container, false); // Palitan ng layout xml mo kung iba ang pangalan
+        View view = inflater.inflate(R.layout.fragment_all_plants, container, false);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -89,7 +89,7 @@ public class AllPlantsFragment extends Fragment {
             @Override
             public void onPlantClick(MyGardenPlantModel plant) {
                 if (plant != null && plant.getId() != null) {
-                    Intent intent = new Intent(getContext(), PlantDetailsActivity.class);
+                    Intent intent = new Intent(getContext(), PlantDiaryActivity.class);
                     intent.putExtra("plant_id", plant.getId());
                     startActivity(intent);
                 }

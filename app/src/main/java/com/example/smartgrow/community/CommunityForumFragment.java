@@ -158,9 +158,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             });
         }
 
-        if (imgUserAvatar != null) {
-            imgUserAvatar.setOnClickListener(v -> onUserClick(currentUid));
-        }
+
 
         View btnCamera = view.findViewById(R.id.btn_camera_icon);
         if (btnCamera != null) {

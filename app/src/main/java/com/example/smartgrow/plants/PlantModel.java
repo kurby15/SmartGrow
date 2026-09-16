@@ -15,7 +15,6 @@ public class PlantModel {
     public PlantModel() {
     }
 
-    // Constructor na ginagamit sa pag-save ng tanim
     public PlantModel(String name, String scientificName, String dateAdded, String healthStatus, String medicinal, int healthPercentage) {
         this.name = name;
         this.scientificName = scientificName;

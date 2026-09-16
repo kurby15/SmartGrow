@@ -74,8 +74,8 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         View.OnClickListener userClickListener = v -> {
             if (listener != null) listener.onUserClick(post.getUserId());
         };
-        holder.tvUsername.setOnClickListener(userClickListener);
-        holder.ivUserAvatar.setOnClickListener(userClickListener);
+
+
 
         if (post.getPostImageUri() != null && !post.getPostImageUri().isEmpty()) {
             holder.cardPostImage.setVisibility(View.VISIBLE);
@@ -90,7 +90,6 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
 
 
 
-        // Direktang i-check sa Firestore subcollection kung naka-like ang current user para sigurado
         com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("posts").document(post.getPostId())
                 .collection("likes").document(currentUserId)

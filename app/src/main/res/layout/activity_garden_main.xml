@@ -14,8 +14,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="20dp"
-        android:paddingHorizontal="20dp"
-        android:paddingBottom="24dp"
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="28dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -35,10 +35,13 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="2dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
+            app:cardElevation="2dp"
             app:strokeWidth="0dp"
-            app:cardBackgroundColor="@color/card_background">
+            app:cardBackgroundColor="@color/card_background"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -155,128 +158,243 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="visible">
 
-            <!-- Stat Summary Widget -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Stat Summary Container -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="84dp"
-                android:layout_marginBottom="18dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="0dp"
-                app:cardBackgroundColor="@color/card_background">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp">
 
+                <!-- Top Row: 2 Cards (Plants, Scanned) -->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_height="72dp"
+                    android:orientation="horizontal"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginHorizontal="2dp"
+                    android:baselineAligned="false"
+                    android:weightSum="2">
 
-                    <!-- Stat 1: Plants -->
-                    <LinearLayout
+                    <!-- Stat Card 1: Plants -->
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:paddingHorizontal="8dp"
-                        android:gravity="center"
-                        android:orientation="vertical">
+                        android:layout_marginEnd="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:strokeWidth="0dp"
+                        app:cardBackgroundColor="@color/card_background">
 
-                        <TextView
-                            android:id="@+id/tv_stat_plants_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0"
-                            android:textColor="@color/text_primary"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/inter_extrabold"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="8dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Plants"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
-                            android:fontFamily="@font/inter_medium"/>
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/tv_stat_plants_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_extrabold"/>
 
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="60dp"
-                        android:background="@color/divider_color" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Plants"
+                                android:textColor="@color/label_plants"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_medium"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Stat 2: Scanned -->
-                    <LinearLayout
+                    <!-- Stat Card 2: Scanned -->
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:paddingHorizontal="8dp"
-                        android:gravity="center"
-                        android:orientation="vertical">
+                        android:layout_marginStart="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:strokeWidth="0dp"
+                        app:cardBackgroundColor="@color/card_background">
 
-                        <TextView
-                            android:id="@+id/tv_stat_scanned_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0"
-                            android:textColor="@color/text_primary"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/inter_extrabold"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="8dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Scanned"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
-                            android:fontFamily="@font/inter_medium"/>
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/tv_stat_scanned_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_extrabold"/>
 
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="60dp"
-                        android:background="@color/divider_color" />
-
-                    <!-- Stat 3: To Water -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:paddingHorizontal="8dp"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tv_stat_to_water_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0"
-                            android:textColor="@color/text_primary"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/inter_extrabold"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="To Water"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
-                            android:fontFamily="@font/inter_medium"/>
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Scanned"
+                                android:textColor="@color/label_scanned"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_medium"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
+                <!-- Bottom Row: 3 Items inside ONE Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:layout_marginHorizontal="2dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="@color/card_background">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:weightSum="3"
+                        android:gravity="center_vertical">
+
+                        <!-- Item 1: To Water -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:layout_height="72dp"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="8dp">
+
+                            <TextView
+                                android:id="@+id/tv_stat_to_water_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_extrabold"
+                                android:text="0"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_medium"
+                                android:maxLines="1"
+                                android:text="To Water"
+                                android:textColor="@color/label_to_water"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Divider 1 -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="32dp"
+                            android:background="@color/divider_color" />
+
+                        <!-- Item 2: To Fertilize -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="72dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="4dp">
+
+                            <TextView
+                                android:id="@+id/tv_stat_to_fertilize_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_extrabold"
+                                android:text="0"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="To Fertilize"
+                                android:textColor="@color/label_to_fertilize"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:maxLines="1"
+                                android:fontFamily="@font/inter_medium"/>
+                        </LinearLayout>
+
+                        <!-- Divider 2 -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="32dp"
+                            android:background="@color/divider_color" />
+
+                        <!-- Item 3: Sunlight -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="72dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="4dp">
+
+                            <TextView
+                                android:id="@+id/tv_stat_to_sunlight_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/inter_extrabold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sunlight"
+                                android:textColor="@color/label_sunlight"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:maxLines="1"
+                                android:fontFamily="@font/inter_medium"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+            <!-- My Plants Section Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
+                android:layout_marginHorizontal="2dp"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="3dp"
                 app:strokeWidth="0dp"
-                app:cardBackgroundColor="@color/card_background">
+                app:cardBackgroundColor="@color/card_background"
+                android:clipChildren="false"
+                android:clipToPadding="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -326,7 +444,7 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Plant Cards Grid na may eksaktong nakatakdang sukat para sa 4 items -->
+                    <!-- Plant Cards Grid -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_plant_list"
                         android:layout_width="match_parent"
@@ -354,62 +472,36 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
 
         <!-- CONTENT SECTION 2: SNAP HISTORY -->
-
         <LinearLayout
-
             android:id="@+id/layout_snap_history_content"
-
             android:layout_width="match_parent"
-
             android:layout_height="wrap_content"
-
             android:orientation="vertical"
-
             android:visibility="gone">
 
-
-
             <EditText
-
                 android:id="@+id/et_search_history"
-
                 android:layout_width="0dp"
-
                 android:layout_height="0dp"
-
                 android:visibility="gone" />
-
-
 
             <com.google.android.material.card.MaterialCardView
-
                 android:id="@+id/card_expiration_banner"
-
                 android:layout_width="0dp"
-
                 android:layout_height="0dp"
-
                 android:visibility="gone" />
 
-
-
             <androidx.recyclerview.widget.RecyclerView
-
                 android:id="@+id/rv_snap_history_list"
-
                 android:layout_width="match_parent"
-
                 android:layout_height="wrap_content"
-
                 android:nestedScrollingEnabled="false"
-
                 android:clipToPadding="false"
-
                 android:paddingBottom="16dp"
-
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         </LinearLayout>

@@ -31,14 +31,15 @@
             android:id="@+id/tv_plant_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="8dp"
             android:text="Plant Name"
             android:textColor="@color/text_primary"
             android:fontFamily="@font/inter_extrabold"
-            android:textSize="16sp"
+            android:textSize="11sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/btn_select_plant"
+            app:layout_constraintEnd_toStartOf="@id/ib_more_reminder"
             app:layout_constraintStart_toEndOf="@id/iv_plant_thumb"
             app:layout_constraintTop_toTopOf="@id/iv_plant_thumb" />
 
@@ -52,25 +53,26 @@
             android:text="Scientific name"
             android:textColor="@color/primary_green"
             android:fontFamily="@font/inter_extrabold"
-            android:textSize="12sp"
+            android:textSize="10sp"
             android:textStyle="italic"
-            app:layout_constraintEnd_toStartOf="@id/btn_select_plant"
+            app:layout_constraintEnd_toStartOf="@id/ib_more_reminder"
             app:layout_constraintStart_toEndOf="@id/iv_plant_thumb"
             app:layout_constraintTop_toBottomOf="@id/tv_plant_name" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_select_plant"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:backgroundTint="@color/primary_green"
-            android:text="Select"
-            android:textColor="@color/app_background"
-            android:textSize="12sp"
-            app:cornerRadius="18dp"
-            android:fontFamily="@font/inter_extrabold"
-            app:layout_constraintBottom_toBottomOf="parent"
+        <!-- 3-Dots Menu Button (ID is strictly kept as btn_select_plant) -->
+        <ImageView
+            android:id="@+id/ib_more_reminder"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="-9dp"
+            android:padding="7dp"
+            android:src="@drawable/ic_more"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/text_secondary"
+            android:contentDescription="Options"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

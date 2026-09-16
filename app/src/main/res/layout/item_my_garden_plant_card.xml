@@ -108,7 +108,6 @@
                 android:layout_centerVertical="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp">
 
 
@@ -119,7 +118,7 @@
                     android:includeFontPadding="false"
                     android:text="Healthy"
                     android:textColor="@color/primary_green"
-                    android:textSize="10sp"
+                    android:textSize="9sp"
                     android:fontFamily="@font/inter_extrabold"/>
 
                 <TextView
@@ -130,7 +129,7 @@
                     android:includeFontPadding="false"
                     android:text="90%"
                     android:textColor="@color/primary_green"
-                    android:textSize="10sp"
+                    android:textSize="9sp"
                     android:fontFamily="@font/inter_extrabold"/>
 
             </LinearLayout>

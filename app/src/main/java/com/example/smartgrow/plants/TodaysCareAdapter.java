@@ -41,7 +41,7 @@ public class TodaysCareAdapter extends RecyclerView.Adapter<TodaysCareAdapter.Ta
         CareTaskModel task = taskList.get(position);
         holder.tvTaskTitle.setText(task.getTitle());
         holder.tvTaskDue.setText(task.getDueText());
-        
+
         if (task.isDone()) {
             holder.btnTaskAction.setText("Done for Today");
             holder.btnTaskAction.setEnabled(false);
@@ -52,7 +52,15 @@ public class TodaysCareAdapter extends RecyclerView.Adapter<TodaysCareAdapter.Ta
             holder.btnTaskAction.setAlpha(1.0f);
         }
 
-        holder.ivTaskImage.setImageResource(task.getImageResId());
+        if (task.getPlantImageBitmap() != null) {
+            holder.ivTaskImage.setVisibility(View.VISIBLE);
+            holder.ivTaskImage.setImageBitmap(task.getPlantImageBitmap());
+        } else if (task.getImageResId() != 0) {
+            holder.ivTaskImage.setVisibility(View.VISIBLE);
+            holder.ivTaskImage.setImageResource(task.getImageResId());
+        } else {
+            holder.ivTaskImage.setVisibility(View.GONE);
+        }
 
         holder.btnTaskAction.setOnClickListener(v -> {
             if (actionListener != null && !task.isDone()) {

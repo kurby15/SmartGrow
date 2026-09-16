@@ -364,13 +364,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private void parseIntentData() {
         if (getIntent() == null) return;
 
-        // 1. Tignan muna kung may ipinasang plant_id (Galing sa My Garden o All Plants)
         String plantId = getIntent().getStringExtra("plant_id");
         if (plantId != null && !plantId.isEmpty()) {
             if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
             if (btnInlineSave != null) btnInlineSave.setVisibility(View.GONE);
 
-            // I-fetch ang data mula sa Firestore "diary" collection gamit ang ID
             db.collection("diary").document(plantId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
@@ -379,7 +377,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             scientificName = documentSnapshot.getString("scientificName");
                             healthStatus = documentSnapshot.getString("healthStatus");
 
-                            // Kunin ang iba pang fields para sa kumpletong details
                             distribution = documentSnapshot.getString("distribution");
                             habitat = documentSnapshot.getString("habitat");
                             petToxicity = documentSnapshot.getString("petToxicity");
@@ -415,7 +412,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             Boolean artificial = documentSnapshot.getBoolean("isArtificial");
                             if (artificial != null) isArtificial = artificial;
 
-                            // Kunin ang map locations mula sa distribution_coordinates list sa Firestore
                             mapLocations.clear();
                             List<Map<String, Object>> coordsList = (List<Map<String, Object>>) documentSnapshot.get("distribution_coordinates");
                             if (coordsList != null) {
@@ -443,7 +439,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                                 mapLocations.add(new MapLocation(mapLat, mapLng, plantName + " Origin", distribution, "Native"));
                             }
 
-                            // Kunin ang Base64 image kung meron
                             String base64Image = documentSnapshot.getString("imageBase64");
                             if (base64Image != null && !base64Image.isEmpty()) {
                                 scannedBitmap = decodeBase64ToBitmap(base64Image);
@@ -483,10 +478,9 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Error loading details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-            return; // Itigil na rito kung galing Firestore
+            return;
         }
 
-        // 2. Kung walang plant_id, iberipika kung galing sa Camera Scan o History (Raw JSON / Extras)
         healthPercentage = getIntent().getIntExtra("health_percentage", 100);
         matchConfidencePercentage = getIntent().getIntExtra("match_percentage", 95);
 

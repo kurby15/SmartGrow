@@ -15,4 +15,10 @@
     <color name="profile_title_color">#C8D6AF</color>
     <color name="profile_subtitle_color">#A8B892</color>
     <color name="profile_card_bg">#232A25</color>
+    <color name="bg_selected_card">#2C2C2C</color>
+    <color name="label_plants">#81C784</color>
+    <color name="label_scanned">#64B5F6</color>
+    <color name="label_to_water">#4FC3F7</color>
+    <color name="label_to_fertilize">#FFB74D</color>
+    <color name="label_sunlight">#FFCC80</color>
 </resources>
