@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
@@ -36,7 +37,21 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
         holder.tvTime.setText(schedule.getTaskTime());
         holder.tvNote.setText(schedule.getTaskNote());
 
-        // Pwede mo ring baguhin ang icon o kulay depende sa task
+        // Dynamic icon and color based on task type
+        String title = schedule.getTaskTitle().toLowerCase();
+        if (title.contains("water")) {
+            holder.ivIcon.setImageResource(R.drawable.ic_water);
+            holder.ivIcon.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_green));
+        } else if (title.contains("fertilize")) {
+            holder.ivIcon.setImageResource(R.drawable.ic_soil);
+            holder.ivIcon.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_green));
+        } else if (title.contains("sunlight")) {
+            holder.ivIcon.setImageResource(R.drawable.ic_sunlight);
+            holder.ivIcon.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_green));
+        } else {
+            holder.ivIcon.setImageResource(R.drawable.ic_reminder);
+            holder.ivIcon.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
+        }
     }
 
     @Override

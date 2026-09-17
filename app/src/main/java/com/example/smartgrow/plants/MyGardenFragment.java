@@ -55,7 +55,7 @@ public class MyGardenFragment extends Fragment {
     private LinearLayout layoutViewAll;
 
     // Stats Summary Elements
-    private TextView tvStatPlantsCount, tvStatScannedCount, tvStatToWaterCount;
+    private TextView tvStatPlantsCount, tvStatScannedCount, tvStatToWaterCount, tvStatToFertilizeCount, tvStatToSunlightCount;
 
     // Content Containers & RecyclerViews
     private View layoutMyGardenContent, layoutSnapHistoryContent;
@@ -178,6 +178,8 @@ public class MyGardenFragment extends Fragment {
         tvStatPlantsCount = view.findViewById(R.id.tv_stat_plants_count);
         tvStatScannedCount = view.findViewById(R.id.tv_stat_scanned_count);
         tvStatToWaterCount = view.findViewById(R.id.tv_stat_to_water_count);
+        tvStatToFertilizeCount = view.findViewById(R.id.tv_stat_to_fertilize_count);
+        tvStatToSunlightCount = view.findViewById(R.id.tv_stat_to_sunlight_count);
 
         layoutMyGardenContent = view.findViewById(R.id.layout_my_garden_content);
         layoutSnapHistoryContent = view.findViewById(R.id.layout_snap_history_content);
@@ -203,8 +205,10 @@ public class MyGardenFragment extends Fragment {
                     .commit();
         });
 
-        // Default "To Water" to 0
+        // Default stats to 0
         if (tvStatToWaterCount != null) tvStatToWaterCount.setText("0");
+        if (tvStatToFertilizeCount != null) tvStatToFertilizeCount.setText("0");
+        if (tvStatToSunlightCount != null) tvStatToSunlightCount.setText("0");
     }
 
     private void setupSearchFilter() {
@@ -230,7 +234,6 @@ public class MyGardenFragment extends Fragment {
         boolean isScanHistoryVisible = (layoutSnapHistoryContent != null && layoutSnapHistoryContent.getVisibility() == View.VISIBLE);
 
         if (!isScanHistoryVisible) {
-            // Filter My Garden Tab lang
             plantList.clear();
             if (lowerCaseQuery.isEmpty()) {
                 plantList.addAll(fullPlantList);
@@ -247,7 +250,6 @@ public class MyGardenFragment extends Fragment {
                 gardenAdapter.notifyDataSetChanged();
             }
         } else {
-            // Filter Scan History Tab lang
             snapList.clear();
             if (lowerCaseQuery.isEmpty()) {
                 snapList.addAll(fullSnapList);
@@ -267,7 +269,6 @@ public class MyGardenFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // --- 1. My Garden Adapter ---
         gardenAdapter = new MyGardenPlantAdapter(plantList, new MyGardenPlantAdapter.OnPlantClickListener() {
             @Override
             public void onAddReminderClick(MyGardenPlantModel plant) {
@@ -300,7 +301,6 @@ public class MyGardenFragment extends Fragment {
             @Override
             public void onRemovePlantClick(MyGardenPlantModel plant) {
                 if (plant != null && plant.getId() != null) {
-                    // Optimistic local update
                     plantList.remove(plant);
                     fullPlantList.remove(plant);
                     if (gardenAdapter != null) {
@@ -316,7 +316,6 @@ public class MyGardenFragment extends Fragment {
             rvPlantList.setAdapter(gardenAdapter);
         }
 
-        // --- 2. Snap History Adapter ---
         snapAdapter = new SnapHistoryAdapter(snapList, new SnapHistoryAdapter.OnSnapClickListener() {
             @Override
             public void onSnapClick(SnapHistoryModel snap) {
@@ -354,7 +353,6 @@ public class MyGardenFragment extends Fragment {
             @Override
             public void onDeleteSnapClick(SnapHistoryModel snap) {
                 if (snap != null && snap.getId() != null) {
-                    // Optimistic local update
                     snapList.remove(snap);
                     fullSnapList.remove(snap);
                     if (snapAdapter != null) {
@@ -372,7 +370,6 @@ public class MyGardenFragment extends Fragment {
     }
 
     private void updateEmptyState() {
-
         if (!isDiaryLoaded) {
             if (rvPlantList != null) rvPlantList.setVisibility(View.GONE);
             if (layoutEmptyPlants != null) layoutEmptyPlants.setVisibility(View.GONE);
@@ -452,7 +449,7 @@ public class MyGardenFragment extends Fragment {
     private void listenToDiaryData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
-            isDiaryLoaded = true; // Mark as loaded even if empty
+            isDiaryLoaded = true;
             plantList.clear();
             fullPlantList.clear();
             if (gardenAdapter != null) gardenAdapter.notifyDataSetChanged();
@@ -465,7 +462,7 @@ public class MyGardenFragment extends Fragment {
         diaryListener = db.collection("diary")
                 .whereEqualTo("userId", currentUser.getUid())
                 .addSnapshotListener((value, error) -> {
-                    isDiaryLoaded = true; // Nakuha na ang unang sagot mula sa Firestore
+                    isDiaryLoaded = true;
 
                     if (error != null) {
                         Log.e("FirestoreError", "Error listening to diary data", error);
@@ -515,12 +512,10 @@ public class MyGardenFragment extends Fragment {
                 });
     }
 
-    // Fix activeGardenPlantNames pass
     private List<String> activeGardenPatientNames(List<String> names) {
         return names;
     }
 
-    // Real-time Firestore Snapshot Listener for "diary_history" Collection
     private void listenToSnapHistoryData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -574,38 +569,60 @@ public class MyGardenFragment extends Fragment {
         if (tvStatScannedCount != null) {
             tvStatScannedCount.setText(String.valueOf(fullSnapList.size()));
         }
-        
-        // "To Water" count logic - synchronized with HomeFragment logic
+
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         int toWaterCount = 0;
+        int toFertilizeCount = 0;
+        int toSunlightCount = 0;
+
         for (MyGardenPlantModel p : fullPlantList) {
-            boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
-            if (isWateredToday) continue;
-
             Map<String, Object> reminders = p.getReminders();
-            if (reminders != null) {
-                String waterFreq = (String) reminders.get("wateringSchedule");
-                String prefTime = (String) reminders.get("preferredTime");
+            String prefTime = (reminders != null) ? (String) reminders.get("preferredTime") : "12:00 PM";
+            if (prefTime == null) prefTime = "12:00 PM";
 
-                if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
-                    if (isTaskDue(waterFreq, p.getLastWateredDate())) {
-                        // Count as "Need Water" if it's due AND current time is at or past preferred time
-                        if (isTimeReached(prefTime)) {
+            // Water logic
+            boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
+            if (!isWateredToday) {
+                if (reminders != null) {
+                    String waterFreq = (String) reminders.get("wateringSchedule");
+                    if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
+                        if (isTaskDue(waterFreq, p.getLastWateredDate()) && isTimeReached(prefTime)) {
                             toWaterCount++;
                         }
+                    } else if (p.getHealthPercentage() < 60) {
+                        toWaterCount++;
                     }
                 } else if (p.getHealthPercentage() < 60) {
-                    // No watering schedule but low health and not watered today
                     toWaterCount++;
                 }
-            } else if (p.getHealthPercentage() < 60) {
-                // No reminders set but low health and not watered today
-                toWaterCount++;
+            }
+
+            // Fertilize logic
+            boolean isFertilizedToday = todayDate.equals(p.getLastFertilizedDate());
+            if (!isFertilizedToday && reminders != null) {
+                String fertFreq = (String) reminders.get("fertilizerSchedule");
+                if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
+                    if (isTaskDue(fertFreq, p.getLastFertilizedDate()) && isTimeReached(prefTime)) {
+                        toFertilizeCount++;
+                    }
+                }
+            }
+
+            // Sunlight logic
+            boolean isCheckedToday = todayDate.equals(p.getLastCheckedDate());
+            if (!isCheckedToday && reminders != null) {
+                String sunFreq = (String) reminders.get("sunlightSchedule");
+                if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
+                    if (isTaskDue(sunFreq, p.getLastCheckedDate()) && isTimeReached(prefTime)) {
+                        toSunlightCount++;
+                    }
+                }
             }
         }
-        if (tvStatToWaterCount != null) {
-            tvStatToWaterCount.setText(String.valueOf(toWaterCount));
-        }
+
+        if (tvStatToWaterCount != null) tvStatToWaterCount.setText(String.valueOf(toWaterCount));
+        if (tvStatToFertilizeCount != null) tvStatToFertilizeCount.setText(String.valueOf(toFertilizeCount));
+        if (tvStatToSunlightCount != null) tvStatToSunlightCount.setText(String.valueOf(toSunlightCount));
     }
 
     private boolean isTimeReached(String prefTime) {
@@ -625,7 +642,6 @@ public class MyGardenFragment extends Fragment {
             schedCal.set(Calendar.MILLISECOND, 0);
 
             Calendar currentCal = Calendar.getInstance();
-            // True if current time is at or after scheduled time
             return !currentCal.before(schedCal);
         } catch (Exception e) {
             return true;
@@ -634,11 +650,13 @@ public class MyGardenFragment extends Fragment {
 
     private boolean isTaskDue(String frequency, String lastDate) {
         if (frequency == null || "None".equalsIgnoreCase(frequency)) return false;
-        
+
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        if (todayDate.equals(lastDate)) return true; // Keep in list if done today
-        
-        if (lastDate == null || lastDate.isEmpty()) return true; // First time
+
+        // FIXED: Return false if it was completed today
+        if (todayDate.equals(lastDate)) return false;
+
+        if (lastDate == null || lastDate.isEmpty()) return true; // First time, due immediately
 
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -654,7 +672,7 @@ public class MyGardenFragment extends Fragment {
             if ("Weekly".equalsIgnoreCase(frequency) || "Every Week".equalsIgnoreCase(frequency)) return diffInDays >= 7;
             if ("Every 2 Weeks".equalsIgnoreCase(frequency)) return diffInDays >= 14;
             if ("Monthly".equalsIgnoreCase(frequency)) return diffInDays >= 30;
-            
+
             return false;
         } catch (Exception e) {
             return true;
@@ -789,11 +807,9 @@ public class MyGardenFragment extends Fragment {
 
         updateTabIcons(false);
 
-        // Itago ang My Garden contents
         if (layoutMyGardenContent != null) layoutMyGardenContent.setVisibility(View.GONE);
         if (layoutEmptyPlants != null) layoutEmptyPlants.setVisibility(View.GONE);
 
-        // Ipakita ang Scan History contents at i-load ang data
         if (layoutSnapHistoryContent != null) layoutSnapHistoryContent.setVisibility(View.VISIBLE);
 
         snapList.clear();
