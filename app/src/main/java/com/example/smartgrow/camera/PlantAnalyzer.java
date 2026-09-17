@@ -48,6 +48,17 @@ public class PlantAnalyzer {
     private final OkHttpClient client;
     private final Handler mainHandler;
 
+    private static final String APP_DETAILS_CONTEXT =
+            "SmartGrow App Features Overview:\n\n" +
+            "1. Scan/Camera: Identifies plant species and diagnoses diseases from photos using AI.\n\n" +
+            "2. AI Chatbot: Your personal botanical assistant for care advice and app guidance.\n\n" +
+            "3. Home Dashboard: Shows weather, garden summary, and quick care actions.\n\n" +
+            "4. My Garden: A digital repository to save and track all your plants' health and progress.\n\n" +
+            "5. Reminders: Set schedules for watering, fertilizing, or repotting with custom notifications.\n\n" +
+            "6. Community Forum: Connect with other gardeners, share tips, and post your plant journey.\n\n" +
+            "7. History: Access all your past plant scans and chat sessions anytime.\n\n" +
+            "8. Profile & Settings: Manage account info, security, and app preferences.";
+
     public interface PlantCallback {
         void onSuccess(String result);
         void onError(String error);
@@ -119,25 +130,25 @@ public class PlantAnalyzer {
         JSONObject systemMsg = new JSONObject();
         systemMsg.put("role", "system");
 
+        String baseSystemPrompt = "You are SmartGrow Assistant, powered by DeepSeek. You help users with plant care and navigating the SmartGrow app.\n\n" +
+                APP_DETAILS_CONTEXT + "\n\n" +
+                "Answer questions related to plants, gardening, and how to use the SmartGrow app features listed above.\n" +
+                "IMPORTANT: Do not use asterisks (*) for formatting. Use plain text and double newlines for spacing.\n";
+
         if (contextHistory != null && !contextHistory.trim().isEmpty()) {
-            systemMsg.put("content", "You are SmartGrow Assistant, powered by DeepSeek.\n\n" +
+            systemMsg.put("content", baseSystemPrompt +
                     "Below is the conversation history and plant details from previous chats:\n" +
                     "--- PREVIOUS CONVERSATION & PLANT CONTEXT ---\n" +
                     contextHistory + "\n" +
                     "---------------------------------------------\n\n" +
-                    "Your job now is to answer follow-up questions while maintaining memory of what was discussed previously.\n" +
-                    "Answer ONLY questions related to plants, plant health, diseases, pests, watering, fertilizer, soil, sunlight, pruning, propagation, repotting, or general care.\n\n" +
-                    "If the user asks a completely unrelated question, reply only with:\n" +
-                    "\"Sorry, I can only answer questions related to plants or the plant you previously uploaded.\"");
+                    "Answer ONLY questions related to plants (health, pests, care) or the SmartGrow app.\n" +
+                    "If the user asks something completely unrelated, politely decline.");
         } else {
-            systemMsg.put("content", "You are SmartGrow Assistant, an AI assistant for the SmartGrow application powered by DeepSeek.\n\n" +
-                    "Your ONLY purpose is to help users with plants.\n\n" +
-                    "If the user's question is NOT related to plants, gardening, farming, or plant care, reply only with:\n" +
-                    "\"Sorry, I can only answer questions related to plants and plant care. Please ask me something about plants.\"");
+            systemMsg.put("content", baseSystemPrompt +
+                    "If the user's question is NOT related to plants or the SmartGrow app, politely state you can only assist with plant-related topics.");
         }
         messages.put(systemMsg);
 
-        // Include the latest user question
         JSONObject userMsg = new JSONObject();
         userMsg.put("role", "user");
         userMsg.put("content", question);
@@ -168,7 +179,8 @@ public class PlantAnalyzer {
                         .append("2. If NO plant is found, state politely that no plant was detected.\n")
                         .append("3. Identify the plant and directly, naturally answer the user's question based on what you observe.\n")
                         .append("4. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
-                        .append("5. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
+                        .append("5. Do NOT use asterisks (*) for bold or lists. Use double newlines for spacing.\n")
+                        .append("6. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
             } else {
                 basePromptBuilder.append("You are an expert botanical computer vision engine.\n\n")
                         .append("TASK INSTRUCTIONS:\n")
@@ -328,9 +340,10 @@ public class PlantAnalyzer {
             partsArray.put(imagePart);
 
         } else {
-            String systemInstructions = "You are SmartGrow Assistant, backed up by Gemini. Your ONLY purpose is to help users with plants. " +
-                    "If the user's question is NOT related to plants, gardening, farming, or care, reply with: " +
-                    "\"Sorry, I can only answer questions related to plants and plant care.\" ";
+            String systemInstructions = "You are SmartGrow Assistant, backed up by Gemini. You help users with plant care and the SmartGrow app.\n\n" +
+                    APP_DETAILS_CONTEXT + "\n\n" +
+                    "Answer questions about plants or the SmartGrow app features listed above.\n" +
+                    "IMPORTANT: Do NOT use asterisks (*) in your response. Use double newlines for clarity.";
 
             if (contextHistory != null && !contextHistory.trim().isEmpty()) {
                 systemInstructions += "\n\nPrevious conversation & historical plant profile context:\n" + contextHistory;
@@ -575,84 +588,81 @@ public class PlantAnalyzer {
             StringBuilder sb = new StringBuilder();
 
             if (isArtificial) {
-                sb.append("⚠️ Artificial / Fake Plant Detected\n\n");
+                sb.append("Artificial / Fake Plant Detected\n\n");
             }
 
-            // 🌿 Plant Profile Section
-            sb.append("🌿 Plant Profile\n");
-            sb.append("• Name: ").append(nameString).append("\n");
-            sb.append("• Sci Name: ").append(scientificName).append("\n");
+            // Plant Profile Section
+            sb.append("🌿 Plant Profile\n\n");
+            sb.append("  Name: ").append(nameString).append("\n\n");
+            sb.append("  Sci Name: ").append(scientificName).append("\n\n");
             if (!"N/A".equalsIgnoreCase(localPhName) && !localPhName.trim().isEmpty()) {
-                sb.append("• Local Name: ").append(localPhName).append("\n");
+                sb.append("  Local Name: ").append(localPhName).append("\n\n");
             }
-            sb.append("\n");
 
-            // 🩺 Health Assessment Section
+            // Health Assessment Section
             if (health != null) {
-                sb.append("🩺 Health Assessment\n");
+                sb.append("🩺 Health Assessment\n\n");
                 String status = isArtificial ? "Artificial / Plastic Plant" : health.optString("status", "N/A");
-                sb.append("• Condition: ").append(status).append("\n");
-                sb.append("• Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
+                sb.append("  Condition: ").append(status).append("\n\n");
+                sb.append("  Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
-            // 💧 Care Guide Section
+            // Care Guide Section
             if (care != null) {
-                sb.append("💧 Care Guide\n");
+                sb.append("💧 Care Guide\n\n");
                 if (!isArtificial) {
-                    sb.append("• Watering: ").append(care.optString("watering", "N/A")).append("\n");
+                    sb.append("  Watering: ").append(care.optString("watering", "N/A")).append("\n\n");
                 }
-                sb.append("• Sunlight: ").append(care.optString("sunlight", "N/A")).append("\n");
-                sb.append("• Temperature: ").append(care.optString("temperature", "N/A")).append("\n\n");
+                sb.append("  Sunlight: ").append(care.optString("sunlight", "N/A")).append("\n\n");
+                sb.append("  Temperature: ").append(care.optString("temperature", "N/A")).append("\n\n");
             }
 
-            // ⚠️ Problems Detected Section
-            sb.append("⚠️ Problems Detected\n");
+            // Problems Detected Section
+            sb.append("⚠️ Problems Detected\n\n");
             boolean hasProblems = false;
             if (!isArtificial && problems != null && problems.length() > 0) {
                 for (int i = 0; i < problems.length(); i++) {
                     String prob = problems.optString(i);
                     if (!prob.isEmpty()) {
-                        sb.append("• ").append(prob).append("\n");
+                        sb.append("  ").append(prob).append("\n\n");
                         hasProblems = true;
                     }
                 }
             }
             if (!hasProblems) {
-                sb.append("• None detected\n");
+                sb.append("  None detected\n\n");
             }
-            sb.append("\n");
 
-            // 🐛 Pest Information Sections
+            // Pest Information Sections
             if (pestInfo != null) {
                 // Common Pests Section
-                sb.append("🐛 Common Pests\n");
+                sb.append("🐛 Common Pests\n\n");
                 String detected = pestInfo.optString("possible_pest_detected", "None detected");
                 JSONArray commonPests = pestInfo.optJSONArray("common_pests");
                 
-                sb.append("• Detected: ").append(detected).append("\n");
+                sb.append("  Detected: ").append(detected).append("\n\n");
                 if (commonPests != null && commonPests.length() > 0) {
                     for (int i = 0; i < commonPests.length(); i++) {
                         JSONObject pest = commonPests.optJSONObject(i);
                         if (pest != null) {
-                            sb.append("• ").append(pest.optString("name", "N/A")).append("\n");
+                            sb.append("  ").append(pest.optString("name", "N/A")).append("\n\n");
                         }
                     }
                 }
-                sb.append("\n");
                 
-                // 🛡️ How to Avoid Pest section
-                sb.append("🛡️ How to Avoid Pest\n");
-                sb.append("• ").append(pestInfo.optString("how_to_avoid_pest", "N/A")).append("\n\n");
+                // How to Avoid Pest section
+                sb.append("🛡️ How to Avoid Pest\n\n");
+                sb.append("  ").append(pestInfo.optString("how_to_avoid_pest", "N/A")).append("\n\n");
             }
 
-            // ✅ Recommendations Section
-            sb.append("✅ Recommendations\n");
-            sb.append("• ").append(recommendations).append("\n\n");
+            // Recommendations Section
+            sb.append("✅ Recommendations\n\n");
+            sb.append("  ").append(recommendations).append("\n\n");
 
-            // 💡 SmartGrow Lesson Section
+            // SmartGrow Lesson Section
             if (!lesson.trim().isEmpty()) {
-                sb.append("💡 SmartGrow Lesson\n");
-                sb.append("• ").append(lesson).append("\n");
+                sb.append("💡 SmartGrow Lesson\n\n");
+                sb.append("  ").append(lesson).append("\n\n");
             }
 
             return sb.toString();

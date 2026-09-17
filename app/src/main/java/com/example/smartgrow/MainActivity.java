@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +52,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
@@ -72,6 +72,8 @@ import java.util.Map;
 import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
 
     private MaterialCardView cardNavChatAssistant;
     private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile;
@@ -213,10 +215,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // ==========================================
-    // CAMERA / GALLERY LAUNCHERS & CHAT INTEGRATION
-    // ==========================================
-
     private void setupLaunchers() {
         cameraScannerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -347,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
         if (currentSessionId == null) {
-            String title = !messageText.isEmpty() ? messageText : "Scanned Plant Image";
+            String title = (messageText != null && !messageText.isEmpty()) ? messageText : "Scanned Plant Image";
             saveSessionToHistory(title);
         }
 
@@ -362,6 +360,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         appendMessageToFirestore(userMsg);
+
+        String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
+        if (imageBitmap == null && isAppRelatedQuestion(lowerMsg)) {
+            respondToAppQuestion(lowerMsg);
+            return;
+        }
 
         activeChatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
         if (activeChatAdapter != null) {
@@ -409,6 +413,7 @@ public class MainActivity extends AppCompatActivity {
                         suggestions.add("What are its watering needs?");
                         suggestions.add("How much sunlight does it need?");
                         suggestions.add("Common diseases and treatments?");
+                        suggestions.add("Walk through into SmartGrow");
 
                         ChatMessageModel aiMsg = new ChatMessageModel(cleanedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
                         aiMsg.setFollowUpSuggestions(suggestions);
@@ -430,18 +435,21 @@ public class MainActivity extends AppCompatActivity {
                 public void onError(String error) {
                     runOnUiThread(() -> {
                         removeLoadingIndicator();
+                        Log.e(TAG, "Plant analysis error: " + error);
 
-                        String errorMessageText;
+                        String errorMessageText = "I encountered an issue processing your request. Please check your connection or ask 'Walk through into SmartGrow' for guidance.";
                         if (error != null && (error.toLowerCase().contains("plant") || error.toLowerCase().contains("not_detected"))) {
-                            errorMessageText = "We couldn't detect a plant in the provided image. Please make sure the photo is clear, well-lit, and focused on a plant before trying again.";
-                        } else {
-                            errorMessageText = "We encountered an issue analyzing the photo. Please ensure the image clearly shows a plant and try again.";
+                            errorMessageText = "We couldn't detect a plant in the provided image. Please make sure the photo is clear and focused on the plant.";
                         }
 
                         ChatMessageModel errorMsg = new ChatMessageModel(
                                 errorMessageText,
                                 getCurrentPhTime(),
                                 ChatMessageModel.TYPE_AI);
+                        
+                        ArrayList<String> suggestions = new ArrayList<>();
+                        suggestions.add("Walk through into SmartGrow");
+                        errorMsg.setFollowUpSuggestions(suggestions);
 
                         activeChatList.add(errorMsg);
                         if (activeChatAdapter != null) {
@@ -477,6 +485,7 @@ public class MainActivity extends AppCompatActivity {
                             cleanedReply = "I can only assist with plant-related topics and care advice. Please ask a question about plant care, identification, or gardening tips!";
                             suggestions.add("Give me care tips for a Monstera.");
                             suggestions.add("How often should I water succulents?");
+                            suggestions.add("Walk through into SmartGrow");
                         } else if (!cleanedReply.contains("does not appear to contain a plant") && !cleanedReply.startsWith("Please upload")) {
                             String plantName = "it";
                             try {
@@ -517,6 +526,7 @@ public class MainActivity extends AppCompatActivity {
                                 suggestions.add("Can I propagate this plant?");
                                 suggestions.add("What is the general care checklist?");
                             }
+                            suggestions.add("Walk through into SmartGrow");
                         }
 
                         ChatMessageModel msg = new ChatMessageModel(cleanedReply, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
@@ -538,11 +548,17 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         removeLoadingIndicator();
                         if (activeChatList == null || activeChatAdapter == null) return;
+                        Log.e(TAG, "Chat AI error: " + error);
 
                         ChatMessageModel errorMsg = new ChatMessageModel(
-                                "I'm sorry, I couldn't process your request right now. Please rephrase your question or try again shortly.",
+                                "I encountered an issue processing your request. Please try again or ask 'Walk through into SmartGrow' for app details.",
                                 getCurrentPhTime(),
                                 ChatMessageModel.TYPE_AI);
+
+                        ArrayList<String> suggestions = new ArrayList<>();
+                        suggestions.add("Walk through into SmartGrow");
+                        suggestions.add("How do I scan a plant?");
+                        errorMsg.setFollowUpSuggestions(suggestions);
 
                         activeChatList.add(errorMsg);
                         activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
@@ -569,6 +585,119 @@ public class MainActivity extends AppCompatActivity {
                 analyzer.askFollowUpQuestion(messageText, fullContext, aiCallback);
             }
         }
+    }
+
+    private boolean isAppRelatedQuestion(String msg) {
+        if (msg == null) return false;
+        String m = msg.toLowerCase().trim();
+        return m.contains("how the app works") ||
+                m.contains("walk through") ||
+                m.contains("app details") || 
+                m.contains("what can this app do") ||
+                m.contains("about smartgrow") ||
+                m.contains("features") ||
+                m.startsWith("how to scan") ||
+                m.startsWith("how do i scan") ||
+                m.equals("scan") ||
+                m.equals("scanning") ||
+                m.contains("my garden") ||
+                m.contains("plant diary") ||
+                m.equals("garden") ||
+                m.contains("reminder") ||
+                m.contains("notification") ||
+                m.contains("forum") ||
+                m.contains("community") ||
+                m.contains("history") ||
+                m.contains("past chat") ||
+                m.contains("session") ||
+                m.contains("chatbot") ||
+                m.contains("assistant") ||
+                m.contains("who are you") ||
+                m.contains("weather") ||
+                m.contains("dashboard") ||
+                m.contains("profile") ||
+                m.contains("account") ||
+                m.contains("settings");
+    }
+
+    private void respondToAppQuestion(String msg) {
+        String response;
+        ArrayList<String> suggestions = new ArrayList<>();
+        String m = msg.toLowerCase().trim();
+
+        if (m.contains("scan") || m.contains("identify") || m.contains("health")) {
+            response = "Plant Identification & Health Scanner\n\n" +
+                    "To identify a plant, tap the '+' button or the Scan icon.\n\n" +
+                    "Capture a new photo or select one from your gallery.\n\n" +
+                    "SmartGrow uses AI to:\n\n" +
+                    "  Identify 10,000+ species.\n\n" +
+                    "  Detect diseases, pests, and nutrient issues.\n\n" +
+                    "  Provide immediate care recommendations.";
+            suggestions.add("How to set reminders?");
+            suggestions.add("Tell me about My Garden.");
+        } else if (m.contains("garden") || m.contains("diary")) {
+            response = "My Garden (Plant Diary)\n\n" +
+                    "The 'My Garden' section is your digital greenhouse.\n\n" +
+                    "When you scan a plant, save it here to:\n\n" +
+                    "  Track growth history.\n\n" +
+                    "  Store health reports.\n\n" +
+                    "  Access specific care guides for your collection.";
+            suggestions.add("How to scan a plant?");
+            suggestions.add("What are Reminders?");
+        } else if (m.contains("reminder") || m.contains("notification")) {
+            response = "Care Reminders\n\n" +
+                    "Stay on top of your plant care with smart alerts!\n\n" +
+                    "You can set schedules for Watering, Fertilizing, and Repotting.\n\n" +
+                    "Access this via the 'Set Reminder' tab or a plant's profile in your Garden.";
+            suggestions.add("How do I scan a plant?");
+            suggestions.add("Tell me about the Community.");
+        } else if (m.contains("forum") || m.contains("community") || m.contains("global")) {
+            response = "Community Forum\n\n" +
+                    "Connect with a global network of plant lovers!\n\n" +
+                    "Share photos, ask for advice, and learn new gardening tips.\n\n" +
+                    "Tap the 'Global' card in the header to join.";
+            suggestions.add("How do I scan a plant?");
+            suggestions.add("What is the AI Chatbot?");
+        } else if (m.contains("history") || m.contains("past chat") || m.contains("session")) {
+            response = "Conversation & Scan History\n\n" +
+                    "SmartGrow saves your data.\n\n" +
+                    "You can revisit every AI conversation and plant analysis result.\n\n" +
+                    "Tap the 'Menu' icon (top right) in this chat and select 'History'.";
+            suggestions.add("Walk through into SmartGrow");
+            suggestions.add("How do I scan a plant?");
+        } else if (m.contains("chatbot") || m.contains("assistant") || m.contains("who are you")) {
+            response = "SmartGrow AI Assistant\n\n" +
+                    "I'm your 24/7 botanical expert!\n\n" +
+                    "I can help you identify plants, treat diseases, and navigate the app.\n\n" +
+                    "Ask me anything about gardening or app features.";
+            suggestions.add("Give me care tips for a Monstera.");
+            suggestions.add("Walk through into SmartGrow");
+        } else {
+            response = "Welcome to SmartGrow!\n\n" +
+                    "Here is a full walk-through of what I can do:\n\n" +
+                    "  Scan & Diagnose: Identify plants and health issues via camera.\n\n" +
+                    "  My Garden: Save and organize your personal plant collection.\n\n" +
+                    "  Care Reminders: Set custom alerts for watering and more.\n\n" +
+                    "  Community Forum: Chat with other growers globally.\n\n" +
+                    "  AI Assistant: Get expert care advice 24/7.\n\n" +
+                    "  History: Revisit all your past scans and chats anytime.\n\n" +
+                    "Which feature would you like to know more about?";
+            suggestions.add("Tell me more about Scanning.");
+            suggestions.add("How do Reminders work?");
+            suggestions.add("What is My Garden?");
+        }
+
+        ChatMessageModel aiMsg = new ChatMessageModel(response, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+        aiMsg.setFollowUpSuggestions(suggestions);
+        activeChatList.add(aiMsg);
+        
+        if (activeChatAdapter != null) {
+            activeChatAdapter.notifyItemInserted(activeChatList.size() - 1);
+        }
+        if (activeRvChatMessages != null) {
+            activeRvChatMessages.scrollToPosition(activeChatList.size() - 1);
+        }
+        appendMessageToFirestore(aiMsg);
     }
 
     private void launchCameraScanner() {
@@ -610,29 +739,27 @@ public class MainActivity extends AppCompatActivity {
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
-    // ==========================================
-    // TEXT SANITIZER & FORMAT CLEANER
-    // ==========================================
-
     private String cleanAiResponseText(String input) {
         if (input == null || input.isEmpty()) return "";
 
         if (input.trim().startsWith("{") && input.trim().endsWith("}")) {
             input = input.replaceAll("[\\{\\}\"\\[\\]]", "")
-                    .replaceAll(",", "\n")
+                    .replaceAll(",", "\n\n")
                     .replaceAll(":", ": ");
         }
 
-        String cleaned = input.replaceAll("[*#()\\[\\]_~`]", "");
+        String cleaned = input.replace("*", "");
+        cleaned = cleaned.replaceAll("[#()\\[\\]_~`]", "");
         cleaned = cleaned.replaceAll("(?m)^[ \t]+|[ \t]+$", "");
-        cleaned = cleaned.replaceAll("\n{3,}", "\n\n");
+        
+        cleaned = cleaned.replaceAll("\n{2,}", "\n\n");
+        
+        if (!cleaned.contains("\n\n") && cleaned.contains("\n")) {
+             cleaned = cleaned.replace("\n", "\n\n");
+        }
 
         return cleaned.trim();
     }
-
-    // ==========================================
-    // FIRESTORE SINGLE-DOCUMENT CHAT HELPERS
-    // ==========================================
 
     private String getCurrentUserId() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -841,6 +968,7 @@ public class MainActivity extends AppCompatActivity {
     private void addDefaultWelcomeMessage() {
         if (activeChatList == null) activeChatList = new ArrayList<>();
         ArrayList<String> welcomeSuggestions = new ArrayList<>();
+        welcomeSuggestions.add("Walk through into SmartGrow");
         welcomeSuggestions.add("How do I scan a plant?");
         welcomeSuggestions.add("Give me care tips for a Monstera.");
 
@@ -851,10 +979,6 @@ public class MainActivity extends AppCompatActivity {
         welcomeMessage.setFollowUpSuggestions(welcomeSuggestions);
         activeChatList.add(welcomeMessage);
     }
-
-    // ==========================================
-    // UI POPUPS & ASSISTANT LOGIC
-    // ==========================================
 
     private void showAssistantPopupMenu(View anchorView) {
         View popupView = LayoutInflater.from(this).inflate(R.layout.layout_modern_popup, null);
@@ -1093,28 +1217,6 @@ public class MainActivity extends AppCompatActivity {
                 activeChatAdapter.notifyItemRemoved(index);
             }
         }
-    }
-
-    private void hideSystemBars() {
-        if (findViewById(R.id.layout_top_header) != null)
-            findViewById(R.id.layout_top_header).setVisibility(View.GONE);
-        if (findViewById(R.id.bottom_navigation_bar) != null)
-            findViewById(R.id.bottom_navigation_bar).setVisibility(View.GONE);
-        if (cardNavChatAssistant != null)
-            cardNavChatAssistant.setVisibility(View.GONE);
-        if (findViewById(R.id.view_nav_shadow) != null)
-            findViewById(R.id.view_nav_shadow).setVisibility(View.GONE);
-    }
-
-    private void showSystemBars() {
-        if (findViewById(R.id.layout_top_header) != null)
-            findViewById(R.id.layout_top_header).setVisibility(View.VISIBLE);
-        if (findViewById(R.id.bottom_navigation_bar) != null)
-            findViewById(R.id.bottom_navigation_bar).setVisibility(View.VISIBLE);
-        if (cardNavChatAssistant != null)
-            cardNavChatAssistant.setVisibility(View.VISIBLE);
-        if (findViewById(R.id.view_nav_shadow) != null)
-            findViewById(R.id.view_nav_shadow).setVisibility(View.VISIBLE);
     }
 
     private void setupGlobalHeaderListeners() {
