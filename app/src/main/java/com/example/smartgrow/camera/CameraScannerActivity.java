@@ -736,6 +736,29 @@ public class CameraScannerActivity extends AppCompatActivity {
                 }
             }
 
+            // Parse and store pest information
+            JSONObject pestInfo = root.optJSONObject("pest_info");
+            if (pestInfo != null) {
+                historyEntry.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "None detected"));
+                historyEntry.put("how_to_avoid_pest", pestInfo.optString("how_to_avoid_pest", "N/A"));
+                
+                JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
+                if (commonPestsArray != null && commonPestsArray.length() > 0) {
+                    historyEntry.put("commonPestsJson", commonPestsArray.toString());
+                    List<Map<String, String>> pestList = new ArrayList<>();
+                    for (int i = 0; i < commonPestsArray.length(); i++) {
+                        JSONObject pestObj = commonPestsArray.optJSONObject(i);
+                        if (pestObj != null) {
+                            Map<String, String> pestMap = new HashMap<>();
+                            pestMap.put("name", pestObj.optString("name"));
+                            pestMap.put("description", pestObj.optString("description"));
+                            pestList.add(pestMap);
+                        }
+                    }
+                    historyEntry.put("common_pests", pestList);
+                }
+            }
+
             historyEntry.put("rawAnalysisJson", rawJson);
             historyEntry.put("timestamp", System.currentTimeMillis());
 

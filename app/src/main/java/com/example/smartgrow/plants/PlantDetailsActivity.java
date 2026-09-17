@@ -25,6 +25,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -90,6 +92,10 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     // UI Elements - Common Problems Container
     private LinearLayout layoutCommonProblemsContainer;
 
+    // UI Elements - Common Pests
+    private RecyclerView rvCommonPests;
+    private List<PestModel> pestList = new ArrayList<>();
+
     // UI Elements - Characteristics
     private TextView tvUltimateHeight, tvUltimateSpread, tvLeafType, tvPlantingTime;
     private LinearLayout layoutLeafColorsContainer;
@@ -124,6 +130,10 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private boolean isArtificial = false;
 
     private List<String> leafColorsList = new ArrayList<>();
+
+    // Pest Info Fields
+    private String possiblePestDetected = "None detected";
+    private String howToAvoidPest = "N/A";
 
     // Coordinates (Default Region)
     private double mapLat = 14.5995;
@@ -242,6 +252,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         tvLifespan = findViewById(R.id.tv_lifespan);
 
         layoutCommonProblemsContainer = findViewById(R.id.layout_common_problems_container);
+
+        // Initialize RecyclerView for Common Pests
+        rvCommonPests = findViewById(R.id.rv_common_pests);
+        if (rvCommonPests != null) {
+            rvCommonPests.setLayoutManager(new LinearLayoutManager(this));
+        }
 
         tvUltimateHeight = findViewById(R.id.tv_ultimate_height);
         tvUltimateSpread = findViewById(R.id.tv_ultimate_spread);
@@ -465,6 +481,20 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                                 }
                             }
 
+                            // Parse Pest Info from Firestore
+                            possiblePestDetected = documentSnapshot.getString("possible_pest_detected");
+                            if (possiblePestDetected == null) possiblePestDetected = "None detected";
+                            howToAvoidPest = documentSnapshot.getString("how_to_avoid_pest");
+                            if (howToAvoidPest == null) howToAvoidPest = "N/A";
+                            
+                            pestList.clear();
+                            List<Map<String, String>> pestData = (List<Map<String, String>>) documentSnapshot.get("common_pests");
+                            if (pestData != null) {
+                                for (Map<String, String> pMap : pestData) {
+                                    pestList.add(new PestModel(pMap.get("name"), pMap.get("description"), ""));
+                                }
+                            }
+
                             mRawAnalysisJson = documentSnapshot.getString("rawAnalysisJson");
                             if (mRawAnalysisJson != null && !mRawAnalysisJson.trim().isEmpty()) {
                                 populateDataFromJson(sanitizeJsonString(mRawAnalysisJson));
@@ -658,6 +688,35 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 commonProblemsArray = newProblems;
             }
 
+            // Parse Pest Information
+            JSONObject pestInfo = root.optJSONObject("pest_info");
+            if (pestInfo != null) {
+                possiblePestDetected = pestInfo.optString("possible_pest_detected", "None detected");
+                howToAvoidPest = pestInfo.optString("how_to_avoid_pest", "N/A");
+                
+                JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
+                if (commonPestsArray != null && commonPestsArray.length() > 0) {
+                    pestList.clear();
+                    for (int i = 0; i < commonPestsArray.length(); i++) {
+                        JSONObject pestObj = commonPestsArray.optJSONObject(i);
+                        if (pestObj != null) {
+                            pestList.add(new PestModel(
+                                    pestObj.optString("name", "N/A"),
+                                    pestObj.optString("description", "N/A"),
+                                    ""
+                            ));
+                        }
+                    }
+                } else {
+                    // Fallback to old key if exists
+                    String oldPest = pestInfo.optString("common_pest", "");
+                    if (!oldPest.isEmpty() && !"N/A".equals(oldPest)) {
+                        pestList.clear();
+                        pestList.add(new PestModel(oldPest, "Commonly known pest for this plant species.", ""));
+                    }
+                }
+            }
+
             JSONObject characteristics = root.optJSONObject("characteristics");
             if (characteristics != null) {
                 ultimateHeight = characteristics.optString("ultimate_height", ultimateHeight);
@@ -810,6 +869,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         setupMapView();
         renderCommonProblems();
+        renderCommonPests();
         renderLeafColorSwatches();
 
         if (tvUltimateHeight != null) tvUltimateHeight.setText(ultimateHeight);
@@ -1068,6 +1128,12 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
     }
 
+    private void renderCommonPests() {
+        if (rvCommonPests == null || pestList.isEmpty()) return;
+        PestAdapter adapter = new PestAdapter(pestList);
+        rvCommonPests.setAdapter(adapter);
+    }
+
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
@@ -1102,6 +1168,18 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         diaryEntry.put("plantType", plantType);
         diaryEntry.put("lifespan", lifespan);
         diaryEntry.put("isArtificial", isArtificial);
+
+        // Pest Information
+        diaryEntry.put("possible_pest_detected", possiblePestDetected);
+        diaryEntry.put("how_to_avoid_pest", howToAvoidPest);
+        List<Map<String, String>> pList = new ArrayList<>();
+        for (PestModel pest : pestList) {
+            Map<String, String> pMap = new HashMap<>();
+            pMap.put("name", pest.getName());
+            pMap.put("description", pest.getDescription());
+            pList.add(pMap);
+        }
+        diaryEntry.put("common_pests", pList);
 
         // Save multiple pin points coordinates to Firestore diary entry
         List<Map<String, Object>> distCoords = new ArrayList<>();

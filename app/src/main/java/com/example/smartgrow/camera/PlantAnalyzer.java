@@ -298,7 +298,12 @@ public class PlantAnalyzer {
                         .append("  },\n")
                         .append("  \"pest_info\": {\n")
                         .append("    \"possible_pest_detected\": \"Describe any pests detected or damage like chew marks (ngatngat) observed. If none, say 'No pests currently visible'.\",\n")
-                        .append("    \"common_pest\": \"List pests that commonly attack this species\",\n")
+                        .append("    \"common_pests\": [\n")
+                        .append("      {\n")
+                        .append("        \"name\": \"Pest Name\",\n")
+                        .append("        \"description\": \"Short description of the pest and its impact\"\n")
+                        .append("      }\n")
+                        .append("    ],\n")
                         .append("    \"how_to_avoid_pest\": \"Prevention steps and spray recommendations (e.g. Neem oil) to avoid/prevent pests\"\n")
                         .append("  },\n")
                         .append("  \"recommendations\": \"Immediate and long-term care actions\",\n")
@@ -619,11 +624,21 @@ public class PlantAnalyzer {
 
             // 🐛 Pest Information Sections
             if (pestInfo != null) {
-                // Common Pest line (Possible pest detected / Common pest)
-                sb.append("🐛 Common Pest\n");
+                // Common Pests Section
+                sb.append("🐛 Common Pests\n");
                 String detected = pestInfo.optString("possible_pest_detected", "None detected");
-                String common = pestInfo.optString("common_pest", "N/A");
-                sb.append("• ").append(detected).append(" / ").append(common).append("\n\n");
+                JSONArray commonPests = pestInfo.optJSONArray("common_pests");
+                
+                sb.append("• Detected: ").append(detected).append("\n");
+                if (commonPests != null && commonPests.length() > 0) {
+                    for (int i = 0; i < commonPests.length(); i++) {
+                        JSONObject pest = commonPests.optJSONObject(i);
+                        if (pest != null) {
+                            sb.append("• ").append(pest.optString("name", "N/A")).append("\n");
+                        }
+                    }
+                }
+                sb.append("\n");
                 
                 // 🛡️ How to Avoid Pest section
                 sb.append("🛡️ How to Avoid Pest\n");
