@@ -239,6 +239,10 @@ public class HomeFragment extends Fragment {
                 e.printStackTrace();
             }
 
+            boolean waterTaskAdded = false;
+            boolean checkTaskAdded = false;
+            boolean countedForWater = false;
+
             if (reminders != null) {
                 String waterFreq = (String) reminders.get("wateringSchedule");
                 String fertFreq = (String) reminders.get("fertilizerSchedule");
@@ -251,13 +255,16 @@ public class HomeFragment extends Fragment {
                         CareTaskModel task = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "💧 Scheduled at " + prefTime, "Water Now", plantBitmap, "Water");
                         task.setDone(isWateredToday);
                         careTaskList.add(task);
+                        waterTaskAdded = true;
 
                         if (!isWateredToday && isTimeReached(prefTime)) {
                             needWaterCount++;
+                            countedForWater = true;
                         }
                     }
                 } else if (!isWateredToday && p.getHealthPercentage() < 60) {
                     needWaterCount++;
+                    countedForWater = true;
                 }
 
                 // Handle Fertilizer Task
@@ -277,11 +284,34 @@ public class HomeFragment extends Fragment {
                         CareTaskModel task = new CareTaskModel(p.getId(), "Check " + p.getPlantName(), "☀️ Sunlight check today", "Inspect", plantBitmap, "Check");
                         task.setDone(isDone);
                         careTaskList.add(task);
+                        checkTaskAdded = true;
                     }
                 }
             } else {
                 if (!isWateredToday && p.getHealthPercentage() < 60) {
                     needWaterCount++;
+                    countedForWater = true;
+                }
+            }
+
+            // Health-based triggers (Health below 50)
+            if (p.getHealthPercentage() < 50) {
+                // 1. Inspect Task
+                if (!checkTaskAdded) {
+                    boolean isCheckedToday = todayDate.equals(p.getLastCheckedDate());
+                    CareTaskModel inspectTask = new CareTaskModel(p.getId(), "Inspect " + p.getPlantName(), "⚠️ Low Health: " + p.getHealthPercentage() + "%", "Inspect", plantBitmap, "Check");
+                    inspectTask.setDone(isCheckedToday);
+                    careTaskList.add(inspectTask);
+                }
+
+                // 2. Need to water Task
+                if (!isWateredToday && !waterTaskAdded) {
+                    CareTaskModel waterTask = new CareTaskModel(p.getId(), "Need to water " + p.getPlantName(), "⚠️ Critical health needs attention", "Water Now", plantBitmap, "Water");
+                    waterTask.setDone(false);
+                    careTaskList.add(waterTask);
+                    if (!countedForWater) {
+                        needWaterCount++;
+                    }
                 }
             }
 
