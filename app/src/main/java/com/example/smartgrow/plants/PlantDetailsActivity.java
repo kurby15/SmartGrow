@@ -676,8 +676,8 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             double lng = locObj.optDouble("longitude", locObj.optDouble("lng", mapLng));
                             String title = locObj.optString("title", "Point " + (i + 1));
                             String snippet = locObj.optString("snippet", "Distribution Region");
-                            String distType = locObj.optString("distribution_type", locObj.optBoolean("is_native", i == 0) ? "Native" : "Introduced");
-                            mapLocations.add(new MapLocation(lat, lng, title, snippet, distType));
+                            String dType = locObj.optString("distribution_type", locObj.optBoolean("is_native", i == 0) ? "Native" : "Introduced");
+                            mapLocations.add(new MapLocation(lat, lng, title, snippet, dType));
                         }
                     }
                 }
@@ -688,31 +688,49 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 commonProblemsArray = newProblems;
             }
 
+            // Health scanner must be parsed before pest info to know healthStatus
+            JSONObject health = root.optJSONObject("health_scanner");
+            if (health != null) {
+                healthStatus = health.optString("status", healthStatus);
+                healthPercentage = parsePercentage(
+                        health.opt("health_score") != null ? health.opt("health_score") : health.opt("confidence"),
+                        healthPercentage
+                );
+            }
+
             // Parse Pest Information
             JSONObject pestInfo = root.optJSONObject("pest_info");
             if (pestInfo != null) {
                 possiblePestDetected = pestInfo.optString("possible_pest_detected", "None detected");
                 howToAvoidPest = pestInfo.optString("how_to_avoid_pest", "N/A");
                 
-                JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
-                if (commonPestsArray != null && commonPestsArray.length() > 0) {
-                    pestList.clear();
-                    for (int i = 0; i < commonPestsArray.length(); i++) {
-                        JSONObject pestObj = commonPestsArray.optJSONObject(i);
-                        if (pestObj != null) {
-                            pestList.add(new PestModel(
-                                    pestObj.optString("name", "N/A"),
-                                    pestObj.optString("description", "N/A"),
-                                    ""
-                            ));
-                        }
-                    }
+                pestList.clear();
+                boolean isHealthy = healthStatus.toLowerCase().contains("healthy");
+                boolean noDetected = possiblePestDetected.toLowerCase().contains("none") || 
+                                     possiblePestDetected.toLowerCase().contains("no pest") ||
+                                     possiblePestDetected.toLowerCase().contains("no visible");
+
+                if (isHealthy && noDetected) {
+                    pestList.add(new PestModel("No detected pest", "The plant appears healthy with no visible signs of pest infestation.", ""));
                 } else {
-                    // Fallback to old key if exists
-                    String oldPest = pestInfo.optString("common_pest", "");
-                    if (!oldPest.isEmpty() && !"N/A".equals(oldPest)) {
-                        pestList.clear();
-                        pestList.add(new PestModel(oldPest, "Commonly known pest for this plant species.", ""));
+                    JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
+                    if (commonPestsArray != null && commonPestsArray.length() > 0) {
+                        for (int i = 0; i < commonPestsArray.length(); i++) {
+                            JSONObject pestObj = commonPestsArray.optJSONObject(i);
+                            if (pestObj != null) {
+                                pestList.add(new PestModel(
+                                        pestObj.optString("name", "N/A"),
+                                        pestObj.optString("description", "N/A"),
+                                        ""
+                                ));
+                            }
+                        }
+                    } else {
+                        // Fallback to old key if exists
+                        String oldPest = pestInfo.optString("common_pest", "");
+                        if (!oldPest.isEmpty() && !"N/A".equals(oldPest)) {
+                            pestList.add(new PestModel(oldPest, "Commonly known pest for this plant species.", ""));
+                        }
                     }
                 }
             }
@@ -768,15 +786,6 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 historyText = extraDetails.optString("history_and_legends", historyText);
                 nameStoryText = extraDetails.optString("name_story", nameStoryText);
                 symbolismText = extraDetails.optString("symbolism", symbolismText);
-            }
-
-            JSONObject health = root.optJSONObject("health_scanner");
-            if (health != null) {
-                healthStatus = health.optString("status", healthStatus);
-                healthPercentage = parsePercentage(
-                        health.opt("health_score") != null ? health.opt("health_score") : health.opt("confidence"),
-                        healthPercentage
-                );
             }
 
         } catch (Exception e) {

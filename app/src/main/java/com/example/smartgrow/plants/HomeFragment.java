@@ -34,6 +34,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,7 +55,7 @@ public class HomeFragment extends Fragment {
     private TextView tvDashboardLiveDateTime;
     private TextView tvDashboardWeatherMock;
     private TextView tvUserGreeting;
-    
+
     // Stats TextViews
     private TextView tvTotalPlants, tvAvgHealth, tvNeedWater, tvPestAlerts;
 
@@ -102,11 +105,11 @@ public class HomeFragment extends Fragment {
     private void initViews(View view) {
         tvUserGreeting = view.findViewById(R.id.tv_user_greeting);
         rvTodaysCare = view.findViewById(R.id.rv_todays_care);
-        
+
         // Map to existing weather description field in layout to avoid missing ID compilation errors
         tvDashboardWeatherMock = view.findViewById(R.id.tv_weather_desc);
         tvDashboardLiveDateTime = null; // No corresponding field in fragment_home.xml, kept safe as null
-        
+
         tvTotalPlants = view.findViewById(R.id.tv_count_total_plants);
         tvAvgHealth = view.findViewById(R.id.tv_value_avg_health);
         tvNeedWater = view.findViewById(R.id.tv_count_need_water);
@@ -143,7 +146,7 @@ public class HomeFragment extends Fragment {
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
         String todayDate = sdf.format(new Date());
         String fieldToUpdate = "";
-        
+
         if ("Water".equals(task.getTaskType())) {
             fieldToUpdate = "lastWateredDate";
         } else if ("Check".equals(task.getTaskType())) {
@@ -208,6 +211,24 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    private boolean isRealPest(String text) {
+        if (text == null || text.isEmpty()) return false;
+        String lower = text.toLowerCase().trim();
+
+        // Return false if it matches any common "clean" or "no pest" messages
+        if (lower.equals("none detected") ||
+                lower.equals("n/a") ||
+                lower.equals("none") ||
+                lower.contains("no detected pest") ||
+                lower.contains("no pests detected") ||
+                lower.contains("no visible signs") ||
+                lower.contains("appears healthy") ||
+                lower.contains("healthy plant")) {
+            return false;
+        }
+        return true;
+    }
+
     private void updateDashboardStats() {
         if (!isAdded()) return;
 
@@ -216,14 +237,33 @@ public class HomeFragment extends Fragment {
         String todayDate = sdf.format(new Date());
 
         if (tvTotalPlants != null) tvTotalPlants.setText(String.valueOf(plantList.size()));
-        if (tvPestAlerts != null) tvPestAlerts.setText("0");
 
         int needWaterCount = 0;
         int totalHealth = 0;
+        java.util.HashSet<String> plantsWithPests = new java.util.HashSet<>();
         careTaskList.clear();
 
         for (MyGardenPlantModel p : plantList) {
             totalHealth += p.getHealthPercentage();
+
+            boolean hasPest = false;
+
+            // VALIDATION RULE: If health percentage is 20 or above, do not count as pest alert.
+            // Only count if health percentage is strictly below 20.
+            if (p.getHealthPercentage() < 20) {
+                hasPest = true;
+            } else {
+                hasPest = false;
+            }
+
+            if (hasPest) {
+                String plantKey = (p.getPlantId() != null && !p.getPlantId().isEmpty()) ? p.getPlantId() : p.getPlantName();
+                if (plantKey == null || plantKey.isEmpty()) plantKey = p.getId();
+
+                if (plantKey != null && !plantKey.isEmpty()) {
+                    plantsWithPests.add(plantKey);
+                }
+            }
 
             boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
             Map<String, Object> reminders = p.getReminders();
@@ -314,7 +354,6 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
-
         }
 
         if (todaysCareAdapter != null) {
@@ -329,6 +368,7 @@ public class HomeFragment extends Fragment {
         }
 
         if (tvNeedWater != null) tvNeedWater.setText(String.valueOf(needWaterCount));
+        if (tvPestAlerts != null) tvPestAlerts.setText(String.valueOf(plantsWithPests.size()));
     }
 
     private boolean isTimeReached(String prefTime) {
@@ -358,12 +398,12 @@ public class HomeFragment extends Fragment {
 
     private boolean isTaskDue(String frequency, String lastDate) {
         if (frequency == null || "None".equalsIgnoreCase(frequency)) return false;
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
         String todayDate = sdf.format(new Date());
-        
-        if (todayDate.equals(lastDate)) return true; 
+
+        if (todayDate.equals(lastDate)) return true;
         if (lastDate == null || lastDate.isEmpty()) return true;
 
         try {
@@ -380,7 +420,7 @@ public class HomeFragment extends Fragment {
             if ("Weekly".equalsIgnoreCase(frequency) || "Every Week".equalsIgnoreCase(frequency)) return diffInDays >= 7;
             if ("Every 2 Weeks".equalsIgnoreCase(frequency)) return diffInDays >= 14;
             if ("Monthly".equalsIgnoreCase(frequency)) return diffInDays >= 30;
-            
+
             return false;
         } catch (Exception e) {
             return true;
