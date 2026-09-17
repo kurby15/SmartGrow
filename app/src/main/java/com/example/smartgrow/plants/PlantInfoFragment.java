@@ -1,5 +1,9 @@
 package com.example.smartgrow.plants;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,16 +16,23 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.smartgrow.R;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +43,7 @@ public class PlantInfoFragment extends Fragment {
     private static final String TAG = "PlantInfoFragment";
 
     private TextView tvPetToxicity, tvWeedPotential, tvDistribution, tvHabitat, tvPlantType, tvLifespan;
-    private TextView tvUltimateHeight, tvUltimateSpread, tvLeafType, tvPlantingTime, tvLeafColor;
+    private TextView tvUltimateHeight, tvUltimateSpread, tvLeafType, tvPlantingTime;
     private TextView tvTemp, tvHardiness, tvSunlight, tvSoil;
     private TextView tvPruningContent, tvPropagationContent, tvRepottingContent;
     private TextView tvUsesContent, tvAdaptationContent, tvEcologicalContent, tvHistoryContent, tvNamestoryContent, tvSymbolismContent;
@@ -43,6 +54,11 @@ public class PlantInfoFragment extends Fragment {
     private RecyclerView rvCommonPests;
 
     private FirebaseFirestore db;
+
+    // Data members
+    private JSONArray commonProblemsArray = null;
+    private List<PestModel> pestList = new ArrayList<>();
+    private String scientificName = "";
 
     // Store coordinates for the map
     private List<MapLocation> mapLocations = new ArrayList<>();
@@ -74,7 +90,7 @@ public class PlantInfoFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // 1. Initialize ang lahat ng TextViews (Kasama ang tv_leaf_color)
+        // 1. Initialize all TextViews
         tvPetToxicity = view.findViewById(R.id.tv_pet_toxicity);
         tvWeedPotential = view.findViewById(R.id.tv_weed_potential);
         tvDistribution = view.findViewById(R.id.tv_distribution);
@@ -86,7 +102,6 @@ public class PlantInfoFragment extends Fragment {
         tvUltimateSpread = view.findViewById(R.id.tv_ultimate_spread);
         tvLeafType = view.findViewById(R.id.tv_leaf_type);
         tvPlantingTime = view.findViewById(R.id.tv_planting_time);
-
 
         tvTemp = view.findViewById(R.id.tv_temp);
         tvHardiness = view.findViewById(R.id.tv_hardiness);
@@ -108,7 +123,7 @@ public class PlantInfoFragment extends Fragment {
         layoutLeafColorsContainer = view.findViewById(R.id.layout_leaf_colors_container);
         layoutCommonProblemsContainer = view.findViewById(R.id.layout_common_problems_container);
 
-        // 2. MapView Initialization at Async Setup
+        // 2. MapView Initialization
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(map -> {
@@ -117,7 +132,9 @@ public class PlantInfoFragment extends Fragment {
         });
 
         rvCommonPests = view.findViewById(R.id.rv_common_pests);
-        rvCommonPests.setLayoutManager(new LinearLayoutManager(requireContext()));
+        if (rvCommonPests != null) {
+            rvCommonPests.setLayoutManager(new LinearLayoutManager(requireContext()));
+        }
 
         if (getActivity() instanceof PlantDiaryActivity) {
             String plantId = ((PlantDiaryActivity) getActivity()).getPlantId();
@@ -132,6 +149,8 @@ public class PlantInfoFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists() && getView() != null) {
+                        scientificName = documentSnapshot.getString("scientificName");
+
                         // Basic Info & Care
                         if (tvPetToxicity != null) tvPetToxicity.setText(documentSnapshot.getString("petToxicity"));
                         if (tvWeedPotential != null) tvWeedPotential.setText(documentSnapshot.getString("weedPotential"));
@@ -146,17 +165,12 @@ public class PlantInfoFragment extends Fragment {
                         if (tvLeafType != null) tvLeafType.setText(documentSnapshot.getString("leafType"));
                         if (tvPlantingTime != null) tvPlantingTime.setText(documentSnapshot.getString("plantingTime"));
 
-                        // 3. Leaf Colors Parsing & Display
+                        // 3. Leaf Colors
                         List<String> colorsList = (List<String>) documentSnapshot.get("leaf_colors");
-                        if (tvLeafColor != null) {
-                            if (colorsList != null && !colorsList.isEmpty()) {
-                                tvLeafColor.setText(TextUtils.join(", ", colorsList));
-                            } else {
-                                tvLeafColor.setText("N/A");
-                            }
-                        }
+                        if (colorsList == null) colorsList = (List<String>) documentSnapshot.get("leafColors");
+                        renderLeafColorSwatches(colorsList);
 
-                        // 4. Distribution Coordinates Parsing para sa Maps
+                        // 4. Map Coordinates
                         mapLocations.clear();
                         List<Map<String, Object>> coordsList = (List<Map<String, Object>>) documentSnapshot.get("distribution_coordinates");
                         if (coordsList != null) {
@@ -179,6 +193,35 @@ public class PlantInfoFragment extends Fragment {
                             }
                         }
                         updateMapMarkers();
+
+                        // Common Problems
+                        String cpJson = documentSnapshot.getString("commonProblemsJson");
+                        if (cpJson != null && !cpJson.isEmpty()) {
+                            try {
+                                commonProblemsArray = new JSONArray(cpJson);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing commonProblemsJson", e);
+                            }
+                        } else {
+                            List<Map<String, Object>> cpList = (List<Map<String, Object>>) documentSnapshot.get("common_problems_list");
+                            if (cpList != null) {
+                                commonProblemsArray = new JSONArray();
+                                for (Map<String, Object> pMap : cpList) {
+                                    commonProblemsArray.put(new JSONObject(pMap));
+                                }
+                            }
+                        }
+                        renderCommonProblems();
+
+                        // Common Pests
+                        pestList.clear();
+                        List<Map<String, String>> pestData = (List<Map<String, String>>) documentSnapshot.get("common_pests");
+                        if (pestData != null) {
+                            for (Map<String, String> pMap : pestData) {
+                                pestList.add(new PestModel(pMap.get("name"), pMap.get("description"), ""));
+                            }
+                        }
+                        renderCommonPests();
 
                         // Care Conditions
                         if (tvTemp != null) {
@@ -212,6 +255,138 @@ public class PlantInfoFragment extends Fragment {
                         if (tvSymbolismContent != null) tvSymbolismContent.setText(documentSnapshot.getString("symbolismText"));
                     }
                 });
+    }
+
+    private void renderLeafColorSwatches(List<String> leafColorsList) {
+        if (layoutLeafColorsContainer == null) return;
+        layoutLeafColorsContainer.removeAllViews();
+
+        if (leafColorsList == null || leafColorsList.isEmpty()) {
+            return;
+        }
+
+        for (String hexColor : leafColorsList) {
+            if (hexColor == null || hexColor.trim().isEmpty()) continue;
+
+            View colorSwatch = new View(requireContext());
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dpToPx(16), dpToPx(16));
+            params.setMargins(dpToPx(4), 0, 0, 0);
+            colorSwatch.setLayoutParams(params);
+
+            try {
+                String colorStr = hexColor.trim();
+                if (!colorStr.startsWith("#")) colorStr = "#" + colorStr;
+
+                GradientDrawable circleDrawable = new GradientDrawable();
+                circleDrawable.setShape(GradientDrawable.OVAL);
+                circleDrawable.setColor(Color.parseColor(colorStr));
+
+                colorSwatch.setBackground(circleDrawable);
+            } catch (Exception e) {
+                Log.w(TAG, "Invalid color code fallback: " + hexColor);
+            }
+
+            layoutLeafColorsContainer.addView(colorSwatch);
+        }
+    }
+
+    private void renderCommonProblems() {
+        if (layoutCommonProblemsContainer == null) return;
+        layoutCommonProblemsContainer.removeAllViews();
+
+        if (commonProblemsArray != null && commonProblemsArray.length() > 0) {
+            int defaultDrawableRes = R.drawable.disease;
+
+            for (int i = 0; i < commonProblemsArray.length(); i++) {
+                try {
+                    JSONObject problem = commonProblemsArray.getJSONObject(i);
+                    String problemTitle = problem.optString("title", "Common Issue");
+                    int problemLikelihood = problem.optInt("likelihood_percentage", 0);
+                    String problemImageUrl = problem.optString("image_url", "");
+
+                    MaterialCardView card = new MaterialCardView(requireContext());
+                    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dpToPx(160), dpToPx(160));
+                    cardParams.setMargins(0, 0, dpToPx(12), 0);
+                    card.setLayoutParams(cardParams);
+                    card.setRadius(dpToPx(16));
+                    card.setCardElevation(dpToPx(2));
+                    card.setCardBackgroundColor(Color.parseColor("#1E1E1E"));
+                    card.setStrokeWidth(0);
+
+                    LinearLayout innerLayout = new LinearLayout(requireContext());
+                    innerLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                    innerLayout.setOrientation(LinearLayout.VERTICAL);
+
+                    ImageView problemImageView = new ImageView(requireContext());
+                    problemImageView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(100)));
+                    problemImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+                    final String targetProblemImg = (problemImageUrl != null && problemImageUrl.startsWith("http"))
+                            ? problemImageUrl
+                            : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
+
+                    Glide.with(this)
+                            .load(targetProblemImg)
+                            .placeholder(defaultDrawableRes)
+                            .error(defaultDrawableRes)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .into(problemImageView);
+
+                    card.setOnClickListener(v -> showProblemDetailBottomSheet(problem));
+
+                    TextView titleTextView = new TextView(requireContext());
+                    titleTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                    String displayProblemText = (problemLikelihood > 0) ? problemTitle + " (" + problemLikelihood + "%)" : problemTitle;
+                    titleTextView.setText(displayProblemText);
+                    titleTextView.setTextColor(Color.WHITE);
+                    titleTextView.setTextSize(13);
+                    titleTextView.setPadding(dpToPx(10), dpToPx(6), dpToPx(10), dpToPx(6));
+
+                    innerLayout.addView(problemImageView);
+                    innerLayout.addView(titleTextView);
+                    card.addView(innerLayout);
+                    layoutCommonProblemsContainer.addView(card);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error rendering problem card", e);
+                }
+            }
+        }
+    }
+
+    private void showProblemDetailBottomSheet(JSONObject problem) {
+        String problemTitle = problem.optString("title", "Common Issue");
+        String problemDescription = problem.optString("description", "No description available.");
+        String symptomAnalysis = problem.optString("symptom_analysis", "No symptom analysis provided.");
+        String diseaseCause = problem.optString("disease_cause", "No cause information provided.");
+        String solutions = problem.optString("solutions", "No solution steps provided.");
+        String prevention = problem.optString("prevention", "No prevention guide provided.");
+        String problemImageUrl = problem.optString("image_url", "");
+
+        final String targetProblemImg = (problemImageUrl != null && problemImageUrl.startsWith("http"))
+                ? problemImageUrl
+                : "https://loremflickr.com/320/240/" + Uri.encode(scientificName + " " + problemTitle);
+
+        Intent intent = new Intent(requireContext(), ProblemDetailsActivity.class);
+        intent.putExtra("problem_title", problemTitle);
+        intent.putExtra("problem_description", problemDescription);
+        intent.putExtra("symptom_analysis", symptomAnalysis);
+        intent.putExtra("disease_cause", diseaseCause);
+        intent.putExtra("solutions", solutions);
+        intent.putExtra("prevention", prevention);
+        intent.putExtra("image_url", targetProblemImg);
+        intent.putExtra("scientific_name", scientificName);
+
+        startActivity(intent);
+    }
+
+    private void renderCommonPests() {
+        if (rvCommonPests == null || pestList.isEmpty()) return;
+        PestAdapter adapter = new PestAdapter(pestList);
+        rvCommonPests.setAdapter(adapter);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private void updateMapMarkers() {
