@@ -10,6 +10,7 @@ public class MyGardenPlantModel {
 
     private String id;
     private String plantId;
+    private String plant_uid;
     private String userId;
     private String plantName;
     private String scientificName;
@@ -85,6 +86,16 @@ public class MyGardenPlantModel {
     @PropertyName("plantId")
     public void setPlantId(String plantId) {
         this.plantId = plantId;
+    }
+
+    @PropertyName("plant_uid")
+    public String getPlantUid() {
+        return plant_uid;
+    }
+
+    @PropertyName("plant_uid")
+    public void setPlantUid(String plant_uid) {
+        this.plant_uid = plant_uid;
     }
 
     @PropertyName("userId")

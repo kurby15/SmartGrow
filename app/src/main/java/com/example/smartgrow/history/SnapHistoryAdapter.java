@@ -152,7 +152,10 @@ public class SnapHistoryAdapter extends RecyclerView.Adapter<SnapHistoryAdapter.
 
         popup.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.action_delete) {
+            if (itemId == R.id.action_rename_snap) {
+                if (listener != null) listener.onEditNameClick(snap);
+                return true;
+            } else if (itemId == R.id.action_delete) {
                 if (listener != null) listener.onDeleteSnapClick(snap);
                 return true;
             }

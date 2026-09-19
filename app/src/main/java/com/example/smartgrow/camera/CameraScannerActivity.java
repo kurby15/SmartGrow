@@ -507,12 +507,13 @@ public class CameraScannerActivity extends AppCompatActivity {
                         updateDiaryPlant(bitmap, rawJson);
                     } else {
                         // Auto-save the scanned details into 'diary_history' Firestore collection
-                        autoSaveToDiaryHistory(bitmap, rawJson);
+                        String plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
 
                         PlantDetailsActivity.tempScannedBitmap = bitmap;
 
                         Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
                         intent.putExtra("raw_ai_json", rawJson);
+                        intent.putExtra("plant_uid", plantUid);
                         startActivity(intent);
                         finish();
                     }
@@ -815,22 +816,23 @@ public class CameraScannerActivity extends AppCompatActivity {
         }
     }
 
-    private void autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
+    private String autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Log.w(TAG, "User not logged in. Skipping auto-save to diary_history.");
-            return;
+            return null;
         }
 
         try {
             Map<String, Object> historyEntry = parseAnalysisToMap(bitmap, rawJson);
-            if (historyEntry == null) return;
+            if (historyEntry == null) return null;
 
             String userId = currentUser.getUid();
             String docId = String.valueOf(System.currentTimeMillis());
 
             historyEntry.put("id", docId);
             historyEntry.put("userId", userId);
+            historyEntry.put("plant_uid", docId);
             historyEntry.put("rawAnalysisJson", rawJson);
             historyEntry.put("timestamp", System.currentTimeMillis());
 
@@ -865,8 +867,11 @@ public class CameraScannerActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error saving entry to diary_history: " + e.getMessage(), e));
 
+            return docId;
+
         } catch (Exception e) {
             Log.e(TAG, "Error auto-saving diary_history entry from AI JSON", e);
+            return null;
         }
     }
 

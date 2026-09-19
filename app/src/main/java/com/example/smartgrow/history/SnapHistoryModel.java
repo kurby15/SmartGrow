@@ -10,6 +10,7 @@ public class SnapHistoryModel {
 
     private String id;
     private String userId;
+    private String plant_uid;
     private String plantName;
     private String scientificName;
     private String healthStatus;
@@ -63,6 +64,11 @@ public class SnapHistoryModel {
     public String getUserId() { return userId; }
     @PropertyName("userId")
     public void setUserId(String userId) { this.userId = userId; }
+
+    @PropertyName("plant_uid")
+    public String getPlantUid() { return plant_uid; }
+    @PropertyName("plant_uid")
+    public void setPlantUid(String plant_uid) { this.plant_uid = plant_uid; }
 
     @PropertyName("plantName")
     public String getPlantName() { return plantName; }

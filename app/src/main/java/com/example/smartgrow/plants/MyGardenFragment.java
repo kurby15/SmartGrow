@@ -34,6 +34,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -416,10 +417,50 @@ public class MyGardenFragment extends Fragment {
         }
 
         db.collection(collectionName).document(documentId)
-                .update("plantName", newName)
-                .addOnSuccessListener(aVoid -> {
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Plant renamed to: " + newName, Toast.LENGTH_SHORT).show();
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String plantUid = documentSnapshot.getString("plant_uid");
+                        String userId = documentSnapshot.getString("userId");
+
+                        WriteBatch batch = db.batch();
+                        batch.update(db.collection(collectionName).document(documentId), "plantName", newName);
+
+                        if (plantUid != null && !plantUid.isEmpty() && userId != null) {
+                            // Update matching plants in "diary"
+                            db.collection("diary")
+                                    .whereEqualTo("userId", userId)
+                                    .whereEqualTo("plant_uid", plantUid)
+                                    .get()
+                                    .addOnSuccessListener(querySnapshot -> {
+                                        WriteBatch syncBatch = db.batch();
+                                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                                            syncBatch.update(doc.getReference(), "plantName", newName);
+                                        }
+
+                                        // Update matching plants in "diary_history"
+                                        db.collection("diary_history")
+                                                .whereEqualTo("userId", userId)
+                                                .whereEqualTo("plant_uid", plantUid)
+                                                .get()
+                                                .addOnSuccessListener(historySnapshot -> {
+                                                    for (QueryDocumentSnapshot doc : historySnapshot) {
+                                                        syncBatch.update(doc.getReference(), "plantName", newName);
+                                                    }
+                                                    syncBatch.commit().addOnSuccessListener(aVoid -> {
+                                                        if (getContext() != null) {
+                                                            Toast.makeText(getContext(), "Plant name synchronized!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                });
+                                    });
+                        } else {
+                            batch.commit().addOnSuccessListener(aVoid -> {
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Plant renamed to: " + newName, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                     }
                 })
                 .addOnFailureListener(e -> Log.e("FirestoreError", "Failed to update plant name", e));

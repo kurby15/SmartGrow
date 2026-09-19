@@ -128,6 +128,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private String plantType = "Unknown";
     private String lifespan = "N/A";
     private boolean isArtificial = false;
+    private String plant_uid = null;
 
     private List<String> leafColorsList = new ArrayList<>();
 
@@ -380,6 +381,8 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private void parseIntentData() {
         if (getIntent() == null) return;
 
+        plant_uid = getIntent().getStringExtra("plant_uid");
+
         String plantId = getIntent().getStringExtra("plant_id");
         if (plantId != null && !plantId.isEmpty()) {
             if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
@@ -392,6 +395,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                             plantName = documentSnapshot.getString("plantName");
                             scientificName = documentSnapshot.getString("scientificName");
                             healthStatus = documentSnapshot.getString("healthStatus");
+                            plant_uid = documentSnapshot.getString("plant_uid");
 
                             distribution = documentSnapshot.getString("distribution");
                             habitat = documentSnapshot.getString("habitat");
@@ -1160,6 +1164,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         Map<String, Object> diaryEntry = new HashMap<>();
         diaryEntry.put("id", docId);
         diaryEntry.put("userId", userId);
+        diaryEntry.put("plant_uid", plant_uid != null ? plant_uid : docId);
         diaryEntry.put("plantName", plantName);
         diaryEntry.put("scientificName", scientificName);
         diaryEntry.put("healthStatus", healthStatus);

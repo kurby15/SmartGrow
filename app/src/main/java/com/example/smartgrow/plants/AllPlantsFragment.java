@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -215,7 +216,55 @@ public class AllPlantsFragment extends Fragment {
 
     private void updatePlantNameInFirestore(String documentId, String newName) {
         if (documentId == null || documentId.isEmpty()) return;
-        db.collection("diary").document(documentId).update("plantName", newName);
+
+        db.collection("diary").document(documentId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String plantUid = documentSnapshot.getString("plant_uid");
+                        String userId = documentSnapshot.getString("userId");
+
+                        WriteBatch batch = db.batch();
+                        batch.update(db.collection("diary").document(documentId), "plantName", newName);
+
+                        if (plantUid != null && !plantUid.isEmpty() && userId != null) {
+                            // Sync name in "diary"
+                            db.collection("diary")
+                                    .whereEqualTo("userId", userId)
+                                    .whereEqualTo("plant_uid", plantUid)
+                                    .get()
+                                    .addOnSuccessListener(querySnapshot -> {
+                                        WriteBatch syncBatch = db.batch();
+                                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                                            syncBatch.update(doc.getReference(), "plantName", newName);
+                                        }
+
+                                        // Sync name in "diary_history"
+                                        db.collection("diary_history")
+                                                .whereEqualTo("userId", userId)
+                                                .whereEqualTo("plant_uid", plantUid)
+                                                .get()
+                                                .addOnSuccessListener(historySnapshot -> {
+                                                    for (QueryDocumentSnapshot doc : historySnapshot) {
+                                                        syncBatch.update(doc.getReference(), "plantName", newName);
+                                                    }
+                                                    syncBatch.commit().addOnSuccessListener(aVoid -> {
+                                                        if (getContext() != null) {
+                                                            Toast.makeText(getContext(), "Plant name synchronized!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                });
+                                    });
+                        } else {
+                            batch.commit().addOnSuccessListener(aVoid -> {
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Plant renamed to: " + newName, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("FirestoreError", "Failed to update plant name", e));
     }
 
     private void deletePlantFromFirestore(String documentId, String plantName) {
