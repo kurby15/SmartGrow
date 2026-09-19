@@ -67,6 +67,7 @@ public class ProfileFragment extends Fragment {
 
     private ListenerRegistration userListenerRegistration;
     private ListenerRegistration plantListenerRegistration;
+    private ListenerRegistration scanListenerRegistration;
     private ListenerRegistration postListenerRegistration;
 
     private String currentUid;
@@ -151,6 +152,10 @@ public class ProfileFragment extends Fragment {
         if (plantListenerRegistration != null) {
             plantListenerRegistration.remove();
             plantListenerRegistration = null;
+        }
+        if (scanListenerRegistration != null) {
+            scanListenerRegistration.remove();
+            scanListenerRegistration = null;
         }
         if (postListenerRegistration != null) {
             postListenerRegistration.remove();
@@ -265,21 +270,42 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadUserStats() {
-        if (userDocRef == null) return;
+        if (currentUid == null) return;
 
-        plantListenerRegistration = userDocRef.collection("plants").addSnapshotListener((querySnapshot, error) -> {
-            if (!isAdded() || error != null || querySnapshot == null) return;
-            int count = querySnapshot.size();
-            if (tvPlantCount != null) {
-                tvPlantCount.setText(count + (count == 1 ? " Plant" : " Plants"));
-            }
-        });
-
-        postListenerRegistration = db.collection("posts")
+        // Plants count from "diary" collection
+        plantListenerRegistration = db.collection("diary")
                 .whereEqualTo("userId", currentUid)
                 .addSnapshotListener((querySnapshot, error) -> {
                     if (!isAdded() || error != null || querySnapshot == null) return;
                     int count = querySnapshot.size();
+                    if (tvPlantCount != null) {
+                        tvPlantCount.setText(count + (count == 1 ? " Plant" : " Plants"));
+                    }
+                });
+
+        // Scans count from "diary_history" collection
+        scanListenerRegistration = db.collection("diary_history")
+                .whereEqualTo("userId", currentUid)
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (!isAdded() || error != null || querySnapshot == null) return;
+                    int count = querySnapshot.size();
+                    if (tvScanCount != null) {
+                        tvScanCount.setText(count + (count == 1 ? " Scan" : " Scans"));
+                    }
+                });
+
+        // Client-side mapping fallback to count matching both old/swapped and standard post user fields flawlessly
+        postListenerRegistration = db.collection("posts")
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (!isAdded() || error != null || querySnapshot == null) return;
+                    int count = 0;
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String uidInUsername = doc.getString("username");
+                        String uidInUserId = doc.getString("userId");
+                        if (currentUid.equals(uidInUsername) || currentUid.equals(uidInUserId)) {
+                            count++;
+                        }
+                    }
                     if (tvPostCount != null) {
                         tvPostCount.setText(count + (count == 1 ? " Post" : " Posts"));
                     }

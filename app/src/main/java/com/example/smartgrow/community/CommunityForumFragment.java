@@ -38,6 +38,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SharedPrefManager;
+import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
@@ -244,6 +245,13 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                                     CommunityPostModel post = snap.toObject(CommunityPostModel.class);
                                     if (post != null) {
                                         post.setPostId(snap.getId());
+                                        
+                                        // Decrypt username if it's encrypted
+                                        if (post.getUsername() != null && post.getUserId() != null) {
+                                            String decryptedName = FirebaseCryptoUtils.decrypt(post.getUsername(), post.getUserId());
+                                            post.setUsername(decryptedName);
+                                        }
+
                                         if (!post.isArchived() && !hiddenIds.contains(post.getPostId())) {
                                             postList.add(post);
                                         }
@@ -340,26 +348,30 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         db.collection("users").document(currentUid).get().addOnSuccessListener(documentSnapshot -> {
             // Palitan ang "username" o "fullName" kung ano man ang exact field name ng pangalan sa database mo
-            String realName = documentSnapshot.getString("username");
-            if (realName == null || realName.isEmpty()) {
-                realName = documentSnapshot.getString("fullName"); // Fallback kung fullName ang ginamit
+            String rawName = documentSnapshot.getString("username");
+            if (rawName == null || rawName.isEmpty()) {
+                rawName = documentSnapshot.getString("fullName"); // Fallback kung fullName ang ginamit
             }
+
+            // Decrypt the name before saving it to the post for better readability/performance
+            String realName = FirebaseCryptoUtils.decrypt(rawName, currentUid);
             if (realName == null || realName.isEmpty()) {
                 realName = "SmartGrow User"; // Safety fallback
             }
 
             String finalRealName = realName;
 
+            // Correct mapping to match constructor parameters:
+            // 1. postId, 2. username, 3. userId, 4. profileImageUri, 5. timestamp, 6. content, 7. postImageUri, 8. location
             CommunityPostModel post = new CommunityPostModel(
                     newPostRef.getId(),
-                    currentUid,
-                    finalRealName,
+                    finalRealName,    // username
+                    currentUid,       // userId (the actual user ID string)
                     currentUserProfilePic,
                     System.currentTimeMillis(),
                     content,
                     imageBase64,
                     ""
-
             );
 
             newPostRef.set(post)
@@ -632,6 +644,11 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                         CommentModel c = snap.toObject(CommentModel.class);
                         if (c != null) {
                             c.setCommentId(snap.getId());
+                            // Decrypt comment username if it's encrypted
+                            if (c.getUsername() != null && c.getUserId() != null) {
+                                String decryptedName = FirebaseCryptoUtils.decrypt(c.getUsername(), c.getUserId());
+                                c.setUsername(decryptedName);
+                            }
                             commentList.add(c);
                         }
                     }
@@ -648,7 +665,8 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 if (content.isEmpty()) return;
 
                 DocumentReference newCommentRef = db.collection("posts").document(post.getPostId()).collection("comments").document();
-                CommentModel cm = new CommentModel(newCommentRef.getId(), currentUid, currentUsername, currentUserProfilePic, content, System.currentTimeMillis());
+                // Fixed argument order: username (currentUsername) should be 2nd, userId (currentUid) should be 3rd
+                CommentModel cm = new CommentModel(newCommentRef.getId(), currentUsername, currentUid, currentUserProfilePic, content, System.currentTimeMillis());
 
                 newCommentRef.set(cm).addOnSuccessListener(aVoid -> {
                     if (etComment != null) etComment.setText("");
