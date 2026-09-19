@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.smartgrow.R;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -47,6 +48,7 @@ public class PlantInfoFragment extends Fragment {
     private TextView tvTemp, tvHardiness, tvSunlight, tvSoil;
     private TextView tvPruningContent, tvPropagationContent, tvRepottingContent;
     private TextView tvUsesContent, tvAdaptationContent, tvEcologicalContent, tvHistoryContent, tvNamestoryContent, tvSymbolismContent;
+    private TextView tvDetectedPest;
 
     private LinearLayout layoutDistributionClick, layoutLeafColorsContainer, layoutCommonProblemsContainer;
     private MapView mapView;
@@ -54,6 +56,7 @@ public class PlantInfoFragment extends Fragment {
     private RecyclerView rvCommonPests;
 
     private FirebaseFirestore db;
+    private ListenerRegistration plantListener;
 
     // Data members
     private JSONArray commonProblemsArray = null;
@@ -118,6 +121,7 @@ public class PlantInfoFragment extends Fragment {
         tvHistoryContent = view.findViewById(R.id.tv_history_content);
         tvNamestoryContent = view.findViewById(R.id.tv_namestory_content);
         tvSymbolismContent = view.findViewById(R.id.tv_symbolism_content);
+        tvDetectedPest = view.findViewById(R.id.tv_detected_pest);
 
         layoutDistributionClick = view.findViewById(R.id.layout_distribution_click);
         layoutLeafColorsContainer = view.findViewById(R.id.layout_leaf_colors_container);
@@ -139,16 +143,24 @@ public class PlantInfoFragment extends Fragment {
         if (getActivity() instanceof PlantDiaryActivity) {
             String plantId = ((PlantDiaryActivity) getActivity()).getPlantId();
             if (plantId != null && !plantId.isEmpty()) {
-                loadPlantDataFromFirestore(plantId);
+                startPlantListener(plantId);
             }
         }
     }
 
-    private void loadPlantDataFromFirestore(String plantId) {
-        db.collection("diary").document(plantId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists() && getView() != null) {
+    private void startPlantListener(String plantId) {
+        if (plantListener != null) {
+            plantListener.remove();
+        }
+
+        plantListener = db.collection("diary").document(plantId)
+                .addSnapshotListener((documentSnapshot, e) -> {
+                    if (e != null) {
+                        Log.w(TAG, "Listen failed.", e);
+                        return;
+                    }
+
+                    if (documentSnapshot != null && documentSnapshot.exists() && getView() != null) {
                         scientificName = documentSnapshot.getString("scientificName");
 
                         // Basic Info & Care
@@ -187,8 +199,8 @@ public class PlantInfoFragment extends Fragment {
                                     String title = (String) cMap.get("title");
                                     String snippet = (String) cMap.get("snippet");
                                     mapLocations.add(new MapLocation(lat, lng, title, snippet));
-                                } catch (Exception e) {
-                                    Log.w(TAG, "Error parsing coordinate", e);
+                                } catch (Exception ex) {
+                                    Log.w(TAG, "Error parsing coordinate", ex);
                                 }
                             }
                         }
@@ -199,8 +211,8 @@ public class PlantInfoFragment extends Fragment {
                         if (cpJson != null && !cpJson.isEmpty()) {
                             try {
                                 commonProblemsArray = new JSONArray(cpJson);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error parsing commonProblemsJson", e);
+                            } catch (Exception ex) {
+                                Log.e(TAG, "Error parsing commonProblemsJson", ex);
                             }
                         } else {
                             List<Map<String, Object>> cpList = (List<Map<String, Object>>) documentSnapshot.get("common_problems_list");
@@ -213,7 +225,12 @@ public class PlantInfoFragment extends Fragment {
                         }
                         renderCommonProblems();
 
-                        // Common Pests
+                        // Pest Information
+                        String detectedPest = documentSnapshot.getString("possible_pest_detected");
+                        if (tvDetectedPest != null) {
+                            tvDetectedPest.setText("Detected: " + (detectedPest != null ? detectedPest : "no pest detected"));
+                        }
+
                         pestList.clear();
                         List<Map<String, String>> pestData = (List<Map<String, String>>) documentSnapshot.get("common_pests");
                         if (pestData != null) {
@@ -258,7 +275,7 @@ public class PlantInfoFragment extends Fragment {
     }
 
     private void renderLeafColorSwatches(List<String> leafColorsList) {
-        if (layoutLeafColorsContainer == null) return;
+        if (layoutLeafColorsContainer == null || !isAdded()) return;
         layoutLeafColorsContainer.removeAllViews();
 
         if (leafColorsList == null || leafColorsList.isEmpty()) {
@@ -291,7 +308,7 @@ public class PlantInfoFragment extends Fragment {
     }
 
     private void renderCommonProblems() {
-        if (layoutCommonProblemsContainer == null) return;
+        if (layoutCommonProblemsContainer == null || !isAdded()) return;
         layoutCommonProblemsContainer.removeAllViews();
 
         if (commonProblemsArray != null && commonProblemsArray.length() > 0) {
@@ -380,12 +397,13 @@ public class PlantInfoFragment extends Fragment {
     }
 
     private void renderCommonPests() {
-        if (rvCommonPests == null || pestList.isEmpty()) return;
+        if (rvCommonPests == null || pestList.isEmpty() || !isAdded()) return;
         PestAdapter adapter = new PestAdapter(pestList);
         rvCommonPests.setAdapter(adapter);
     }
 
     private int dpToPx(int dp) {
+        if (!isAdded()) return 0;
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
@@ -434,6 +452,9 @@ public class PlantInfoFragment extends Fragment {
     @Override
     public void onDestroy() {
         if (mapView != null) mapView.onDestroy();
+        if (plantListener != null) {
+            plantListener.remove();
+        }
         super.onDestroy();
     }
 

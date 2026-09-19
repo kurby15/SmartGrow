@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import org.json.JSONArray;
 
@@ -49,6 +50,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private ListenerRegistration plantListener;
 
     // TTS Engine
     private TextToSpeech textToSpeech;
@@ -180,7 +182,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
         }
 
         if (plantId != null && !plantId.isEmpty()) {
-            parseIntentData();
+            startPlantListener();
         }
 
         if (ibBack != null) {
@@ -193,11 +195,9 @@ public class PlantDiaryActivity extends AppCompatActivity {
 
         if (tvDiagnose != null) {
             tvDiagnose.setOnClickListener(v -> {
-
                 Intent intent = new Intent(PlantDiaryActivity.this, CameraScannerActivity.class);
-
                 intent.putExtra("plant_id", plantId);
-
+                intent.putExtra("plant_name", plantName);
                 startActivity(intent);
             });
         }
@@ -275,13 +275,17 @@ public class PlantDiaryActivity extends AppCompatActivity {
         });
     }
 
-    private void parseIntentData() {
+    private void startPlantListener() {
         if (plantId == null || plantId.isEmpty()) return;
 
-        db.collection("diary").document(plantId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
+        plantListener = db.collection("diary").document(plantId)
+                .addSnapshotListener((documentSnapshot, e) -> {
+                    if (e != null) {
+                        Log.w(TAG, "Listen failed.", e);
+                        return;
+                    }
+
+                    if (documentSnapshot != null && documentSnapshot.exists()) {
                         // Basic Info & Text fields
                         plantName = documentSnapshot.getString("plantName");
                         scientificName = documentSnapshot.getString("scientificName");
@@ -367,8 +371,8 @@ public class PlantDiaryActivity extends AppCompatActivity {
                                     String snippet = (String) cMap.get("snippet");
                                     String dType = (String) cMap.get("distribution_type");
                                     mapLocations.add(new MapLocation(lat, lng, title, snippet, dType));
-                                } catch (Exception e) {
-                                    Log.w(TAG, "Error parsing coordinate from list", e);
+                                } catch (Exception ex) {
+                                    Log.w(TAG, "Error parsing coordinate from list", ex);
                                 }
                             }
                         }
@@ -379,18 +383,15 @@ public class PlantDiaryActivity extends AppCompatActivity {
                             try {
                                 byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);
                                 scannedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error decoding base64 image", e);
+                            } catch (Exception ex) {
+                                Log.e(TAG, "Error decoding base64 image", ex);
                             }
                         }
 
                         updateUI();
                         updateMapMarkers();
-                    } else {
-                        Toast.makeText(this, "Plant details not found.", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error loading details: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                });
     }
 
     private void updateUI() {
@@ -521,6 +522,9 @@ public class PlantDiaryActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (mapView != null) mapView.onDestroy();
+        if (plantListener != null) {
+            plantListener.remove();
+        }
         if (textToSpeech != null) {
             textToSpeech.stop();
             textToSpeech.shutdown();

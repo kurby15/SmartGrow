@@ -38,7 +38,7 @@ public class PlantAnalyzer {
             "https://api.sambanova.ai/v1/chat/completions";
 
     private static final String GEMINI_API_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
 
     private static final String CHAT_MODEL = "DeepSeek-V3.1";
 
@@ -193,7 +193,7 @@ public class PlantAnalyzer {
                         .append("   - Assess the plant's health status and identify any problems or diseases.\n")
                         .append("   - Identify any pests that have damaged or could damage the uploaded plant.\n")
                         .append("   - Check specifically for signs of pest damage like chew marks (ngatngat), spots, or actual insects.\n")
-                        .append("   - Provide details on what pests were detected (if any) and list pests that commonly attack this specific plant species.\n")
+                        .append("   - Provide details on what pests were detected (if any). If no pests are detected, set \"possible_pest_detected\" to \"no pest detected\".\n")
                         .append("   - Provide specific steps to avoid pests, including recommendations for organic or chemical sprays (e.g., Neem oil).\n\n")
                         .append("4. CARE GUIDE MANDATE AND GEOGRAPHICAL DISTRIBUTION MAP PINPOINTS:\n")
                         .append("   - Detail the essential care conditions (sunlight, watering, temperature).\n")
@@ -309,7 +309,7 @@ public class PlantAnalyzer {
                         .append("    \"symbolism\": \"What it symbolizes\"\n")
                         .append("  },\n")
                         .append("  \"pest_info\": {\n")
-                        .append("    \"possible_pest_detected\": \"Describe any pests detected or damage like chew marks (ngatngat) observed. If none, say 'No pests currently visible'.\",\n")
+                        .append("    \"possible_pest_detected\": \"Describe any pests detected or damage like chew marks (ngatngat) observed. If none, say 'no pest detected'.\",\n")
                         .append("    \"common_pests\": [\n")
                         .append("      {\n")
                         .append("        \"name\": \"Pest Name\",\n")
@@ -637,7 +637,7 @@ public class PlantAnalyzer {
             if (pestInfo != null) {
                 // Common Pests Section
                 sb.append("🐛 Common Pests\n\n");
-                String detected = pestInfo.optString("possible_pest_detected", "None detected");
+                String detected = pestInfo.optString("possible_pest_detected", "no pest detected");
                 JSONArray commonPests = pestInfo.optJSONArray("common_pests");
                 
                 sb.append("  Detected: ").append(detected).append("\n\n");

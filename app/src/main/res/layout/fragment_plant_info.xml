@@ -905,13 +905,29 @@
             app:cardElevation="2dp"
             app:strokeWidth="0dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_common_pests"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:padding="16dp"
-                tools:listitem="@layout/item_pest" />
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_detected_pest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter_medium"
+                    android:layout_marginBottom="8dp"
+                    tools:text="Detected: no pest detected" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_common_pests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_pest" />
+            </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 

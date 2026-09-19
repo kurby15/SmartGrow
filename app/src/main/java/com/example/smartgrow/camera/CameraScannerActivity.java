@@ -45,10 +45,12 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartgrow.R;
 import com.example.smartgrow.plants.PlantDetailsActivity;
+import com.example.smartgrow.plants.PlantDiaryActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -107,15 +109,21 @@ public class CameraScannerActivity extends AppCompatActivity {
     private boolean isAnalyzing = false;
 
     private boolean isChatMode = false;
+    private String diaryPlantId = null;
+    private String diaryPlantName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        // Check if launched specifically from AI Chat
-        if (getIntent() != null && MODE_CHAT_ATTACHMENT.equals(getIntent().getStringExtra(EXTRA_MODE))) {
-            isChatMode = true;
+        // Check if launched specifically from AI Chat or Diagnose
+        if (getIntent() != null) {
+            if (MODE_CHAT_ATTACHMENT.equals(getIntent().getStringExtra(EXTRA_MODE))) {
+                isChatMode = true;
+            }
+            diaryPlantId = getIntent().getStringExtra("plant_id");
+            diaryPlantName = getIntent().getStringExtra("plant_name");
         }
 
         try {
@@ -354,9 +362,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             return;
         }
 
-        if (!isChatMode) {
-            showLoading(true);
-        }
+        showLoading(true);
 
         File photoFile = new File(getFilesDir(), "raw_capture.jpg");
         ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(photoFile).build();
@@ -464,15 +470,51 @@ public class CameraScannerActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // Auto-save the scanned details into 'diary_history' Firestore collection
-                    autoSaveToDiaryHistory(bitmap, rawJson);
+                    if (diaryPlantId != null) {
+                        // Extract scanned plant name to verify it's the same species/plant
+                        String scannedPlantName = "";
+                        try {
+                            JSONObject root = new JSONObject(rawJson);
+                            JSONObject profile = root.optJSONObject("plant_profile");
+                            if (profile != null) {
+                                String fullTitle = profile.optString("name", "");
+                                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                                    int open = fullTitle.indexOf("(");
+                                    if (open != -1) {
+                                        scannedPlantName = fullTitle.substring(0, open).trim();
+                                    } else {
+                                        scannedPlantName = fullTitle.trim();
+                                    }
+                                } else {
+                                    scannedPlantName = fullTitle.trim();
+                                }
+                            }
+                        } catch (Exception ignored) {}
 
-                    PlantDetailsActivity.tempScannedBitmap = bitmap;
+                        if (diaryPlantName != null && !diaryPlantName.trim().isEmpty() && !scannedPlantName.trim().isEmpty()) {
+                            String name1 = diaryPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
+                            String name2 = scannedPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
+                            if (!name1.contains(name2) && !name2.contains(name1)) {
+                                unfreezeScreen();
+                                Toast.makeText(CameraScannerActivity.this,
+                                        "Mismatched plant species detected. Diagnosis stopped. Please scan the correct plant (" + diaryPlantName + ").",
+                                        Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                        }
 
-                    Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
-                    intent.putExtra("raw_ai_json", rawJson);
-                    startActivity(intent);
-                    finish();
+                        updateDiaryPlant(bitmap, rawJson);
+                    } else {
+                        // Auto-save the scanned details into 'diary_history' Firestore collection
+                        autoSaveToDiaryHistory(bitmap, rawJson);
+
+                        PlantDetailsActivity.tempScannedBitmap = bitmap;
+
+                        Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
+                        intent.putExtra("raw_ai_json", rawJson);
+                        startActivity(intent);
+                        finish();
+                    }
                 });
             }
 
@@ -493,22 +535,39 @@ public class CameraScannerActivity extends AppCompatActivity {
         });
     }
 
-    private void autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            Log.w(TAG, "User not logged in. Skipping auto-save to diary_history.");
-            return;
-        }
+    private void updateDiaryPlant(Bitmap bitmap, String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+            Map<String, Object> updateMap = parseAnalysisToMap(bitmap, rawJson);
+            
+            if (updateMap == null) return;
 
+            FirebaseFirestore.getInstance()
+                    .collection("diary")
+                    .document(diaryPlantId)
+                    .set(updateMap, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(CameraScannerActivity.this, "Diagnosis updated successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error updating diary entry: " + e.getMessage());
+                        Toast.makeText(CameraScannerActivity.this, "Failed to update diagnosis", Toast.LENGTH_SHORT).show();
+                        unfreezeScreen();
+                    });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating diary plant", e);
+        }
+    }
+
+    private Map<String, Object> parseAnalysisToMap(Bitmap bitmap, String rawJson) {
         try {
             JSONObject root = new JSONObject(rawJson);
 
             if (!root.optBoolean("is_plant", true)) {
-                return;
+                return null;
             }
-
-            String userId = currentUser.getUid();
-            String docId = String.valueOf(System.currentTimeMillis());
 
             String plantName = "Unknown Plant";
             String scientificName = "N/A";
@@ -646,29 +705,26 @@ public class CameraScannerActivity extends AppCompatActivity {
                 healthColorHex = "#81C784";
             }
 
-            // Construct complete map
-            Map<String, Object> historyEntry = new HashMap<>();
-            historyEntry.put("id", docId);
-            historyEntry.put("userId", userId);
-            historyEntry.put("plantName", plantName);
-            historyEntry.put("scientificName", scientificName);
-            historyEntry.put("healthStatus", healthStatus);
-            historyEntry.put("healthPercentage", healthPercentage);
-            historyEntry.put("healthColor", healthColorHex);
-            historyEntry.put("matchConfidencePercentage", matchConfidencePercentage);
-            historyEntry.put("careDifficultyText", careDifficultyText);
-            historyEntry.put("careDifficultyPercentage", careDifficultyPercentage);
-            historyEntry.put("leafColors", leafColorsList);
-            historyEntry.put("aliases", aliases);
-            historyEntry.put("petToxicity", petToxicity);
-            historyEntry.put("weedPotential", weedPotential);
-            historyEntry.put("distribution", distribution);
-            historyEntry.put("habitat", habitat);
-            historyEntry.put("plantType", plantType);
-            historyEntry.put("lifespan", lifespan);
-            historyEntry.put("isArtificial", isArtificial);
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("plantName", plantName);
+            dataMap.put("scientificName", scientificName);
+            dataMap.put("healthStatus", healthStatus);
+            dataMap.put("healthPercentage", healthPercentage);
+            dataMap.put("healthColor", healthColorHex);
+            dataMap.put("matchConfidencePercentage", matchConfidencePercentage);
+            dataMap.put("careDifficultyText", careDifficultyText);
+            dataMap.put("careDifficultyPercentage", careDifficultyPercentage);
+            dataMap.put("leaf_colors", leafColorsList);
+            dataMap.put("aliases", aliases);
+            dataMap.put("petToxicity", petToxicity);
+            dataMap.put("weedPotential", weedPotential);
+            dataMap.put("distribution", distribution);
+            dataMap.put("habitat", habitat);
+            dataMap.put("plantType", plantType);
+            dataMap.put("lifespan", lifespan);
+            dataMap.put("isArtificial", isArtificial);
 
-            // Distribution Coordinates for Map
+            // Distribution Coordinates
             List<Map<String, Object>> distCoords = new ArrayList<>();
             if (profile != null) {
                 JSONArray locArray = profile.optJSONArray("distribution_coordinates");
@@ -688,63 +744,41 @@ public class CameraScannerActivity extends AppCompatActivity {
                     }
                 }
             }
-            historyEntry.put("distribution_coordinates", distCoords);
+            dataMap.put("distribution_coordinates", distCoords);
 
-            historyEntry.put("ultimateHeight", ultimateHeight);
-            historyEntry.put("ultimateSpread", ultimateSpread);
-            historyEntry.put("leafType", leafType);
-            historyEntry.put("plantingTime", plantingTime);
-            historyEntry.put("temperatureRange", temperatureRange);
-            historyEntry.put("hardinessZones", hardinessZones);
-            historyEntry.put("sunlight", sunlightText);
-            historyEntry.put("soil", soilText);
-            historyEntry.put("pruning", pruningText);
-            historyEntry.put("propagation", propagationText);
-            historyEntry.put("repotting", repottingText);
+            dataMap.put("ultimateHeight", ultimateHeight);
+            dataMap.put("ultimateSpread", ultimateSpread);
+            dataMap.put("leafType", leafType);
+            dataMap.put("plantingTime", plantingTime);
+            dataMap.put("temperatureRange", temperatureRange);
+            dataMap.put("hardinessZones", hardinessZones);
+            dataMap.put("sunlight", sunlightText);
+            dataMap.put("soil", soilText);
+            dataMap.put("pruning", pruningText);
+            dataMap.put("propagation", propagationText);
+            dataMap.put("repotting", repottingText);
 
-            historyEntry.put("usesText", usesText);
-            historyEntry.put("adaptationText", adaptationText);
-            historyEntry.put("ecologicalText", ecologicalText);
-            historyEntry.put("historyText", historyText);
-            historyEntry.put("nameStoryText", nameStoryText);
-            historyEntry.put("symbolismText", symbolismText);
+            dataMap.put("usesText", usesText);
+            dataMap.put("adaptationText", adaptationText);
+            dataMap.put("ecologicalText", ecologicalText);
+            dataMap.put("historyText", historyText);
+            dataMap.put("nameStoryText", nameStoryText);
+            dataMap.put("symbolismText", symbolismText);
 
-            // Parse and store common problems into diary_history
+            // Problems
             JSONArray commonProblemsArray = root.optJSONArray("common_problems");
-            if (commonProblemsArray != null && commonProblemsArray.length() > 0) {
-                historyEntry.put("commonProblemsJson", commonProblemsArray.toString());
-                try {
-                    List<Map<String, Object>> probList = new ArrayList<>();
-                    for (int i = 0; i < commonProblemsArray.length(); i++) {
-                        JSONObject obj = commonProblemsArray.getJSONObject(i);
-                        Map<String, Object> probMap = new HashMap<>();
-                        probMap.put("title", obj.optString("title"));
-                        probMap.put("likelihood_percentage", obj.optInt("likelihood_percentage"));
-                        probMap.put("description", obj.optString("description"));
-                        probMap.put("symptom_analysis", obj.optString("symptom_analysis"));
-                        probMap.put("disease_cause", obj.optString("disease_cause"));
-                        probMap.put("solutions", obj.optString("solutions"));
-                        probMap.put("prevention", obj.optString("prevention"));
-                        probMap.put("image_url", obj.optString("image_url"));
-                        probList.add(probMap);
-                    }
-                    historyEntry.put("common_problems_list", probList);
-                    historyEntry.put("common_problems", probList);
-                    historyEntry.put("commonProblems", probList);
-                } catch (Exception e) {
-                    Log.e(TAG, "Error saving common problems list to history", e);
-                }
+            if (commonProblemsArray != null) {
+                dataMap.put("commonProblemsJson", commonProblemsArray.toString());
             }
 
-            // Parse and store pest information
+            // Pests
             JSONObject pestInfo = root.optJSONObject("pest_info");
             if (pestInfo != null) {
-                historyEntry.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "None detected"));
-                historyEntry.put("how_to_avoid_pest", pestInfo.optString("how_to_avoid_pest", "N/A"));
+                dataMap.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "no pest detected"));
+                dataMap.put("how_to_avoid_pest", pestInfo.optString("how_to_avoid_pest", "N/A"));
                 
                 JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
-                if (commonPestsArray != null && commonPestsArray.length() > 0) {
-                    historyEntry.put("commonPestsJson", commonPestsArray.toString());
+                if (commonPestsArray != null) {
                     List<Map<String, String>> pestList = new ArrayList<>();
                     for (int i = 0; i < commonPestsArray.length(); i++) {
                         JSONObject pestObj = commonPestsArray.optJSONObject(i);
@@ -755,18 +789,41 @@ public class CameraScannerActivity extends AppCompatActivity {
                             pestList.add(pestMap);
                         }
                     }
-                    historyEntry.put("common_pests", pestList);
+                    dataMap.put("common_pests", pestList);
                 }
             }
-
-            historyEntry.put("rawAnalysisJson", rawJson);
-            historyEntry.put("timestamp", System.currentTimeMillis());
 
             if (bitmap != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
-                historyEntry.put("imageBase64", Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT));
+                dataMap.put("imageBase64", Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT));
             }
+
+            return dataMap;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing analysis JSON", e);
+            return null;
+        }
+    }
+
+    private void autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "User not logged in. Skipping auto-save to diary_history.");
+            return;
+        }
+
+        try {
+            Map<String, Object> historyEntry = parseAnalysisToMap(bitmap, rawJson);
+            if (historyEntry == null) return;
+
+            String userId = currentUser.getUid();
+            String docId = String.valueOf(System.currentTimeMillis());
+
+            historyEntry.put("id", docId);
+            historyEntry.put("userId", userId);
+            historyEntry.put("rawAnalysisJson", rawJson);
+            historyEntry.put("timestamp", System.currentTimeMillis());
 
             // Save into Firestore under "diary_history"
             FirebaseFirestore.getInstance()
@@ -867,9 +924,7 @@ public class CameraScannerActivity extends AppCompatActivity {
         if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
-                if (!isChatMode) {
-                    showLoading(true);
-                }
+                showLoading(true);
 
                 cameraExecutor.execute(() -> {
                     try {
