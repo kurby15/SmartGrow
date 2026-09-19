@@ -15,9 +15,7 @@ import com.example.smartgrow.R;
 
 public class AppPreferencesFragment extends Fragment {
 
-    private SwitchCompat switchDarkMode, switchNotifications;
-
-
+    private SwitchCompat switchDarkMode;
 
     @Nullable
     @Override
@@ -26,7 +24,6 @@ public class AppPreferencesFragment extends Fragment {
 
         // Correct IDs mapped from fragment_app_preferences.xml
         switchDarkMode = view.findViewById(R.id.switch_theme);
-        switchNotifications = view.findViewById(R.id.switch_notifications);
         
         View btnBack = view.findViewById(R.id.btn_back_preferences);
         if (btnBack != null) {
@@ -51,15 +48,9 @@ public class AppPreferencesFragment extends Fragment {
             });
         }
 
-        if (switchNotifications != null) {
-            switchNotifications.setChecked(prefs.getBoolean("notifications_enabled", true));
-            switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
-            });
-        }
-
         return view;
     }
+
     @Override
     public void onResume() {
         super.onResume();

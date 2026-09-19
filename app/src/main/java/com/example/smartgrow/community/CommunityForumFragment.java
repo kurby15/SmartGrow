@@ -276,7 +276,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         MaterialCardView cardPreview = v.findViewById(R.id.card_preview_container);
         ImageView ivPostPreview = v.findViewById(R.id.iv_post_preview);
 
-        if (tvName != null) tvName.setText(currentUsername);
+        if (tvName != null) tvName.setText(currentUserFullName);
         if (imgAvatar != null) loadProfileImage(currentUserProfilePic, imgAvatar);
         if (etContent != null) etContent.setText(savedDraftContent);
         if (selectedImageUri != null) {
@@ -347,10 +347,9 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         }
 
         db.collection("users").document(currentUid).get().addOnSuccessListener(documentSnapshot -> {
-            // Palitan ang "username" o "fullName" kung ano man ang exact field name ng pangalan sa database mo
-            String rawName = documentSnapshot.getString("username");
+            String rawName = documentSnapshot.getString("fullName");
             if (rawName == null || rawName.isEmpty()) {
-                rawName = documentSnapshot.getString("fullName"); // Fallback kung fullName ang ginamit
+                rawName = documentSnapshot.getString("username"); // Fallback kung username ang ginamit
             }
 
             // Decrypt the name before saving it to the post for better readability/performance
@@ -365,7 +364,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             // 1. postId, 2. username, 3. userId, 4. profileImageUri, 5. timestamp, 6. content, 7. postImageUri, 8. location
             CommunityPostModel post = new CommunityPostModel(
                     newPostRef.getId(),
-                    finalRealName,    // username
+                    finalRealName,    // username (storing fullname here)
                     currentUid,       // userId (the actual user ID string)
                     currentUserProfilePic,
                     System.currentTimeMillis(),
