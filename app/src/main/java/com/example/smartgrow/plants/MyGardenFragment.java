@@ -580,44 +580,60 @@ public class MyGardenFragment extends Fragment {
             String prefTime = (reminders != null) ? (String) reminders.get("preferredTime") : "12:00 PM";
             if (prefTime == null) prefTime = "12:00 PM";
 
-            // Water logic
             boolean isWateredToday = todayDate.equals(p.getLastWateredDate());
-            if (!isWateredToday) {
+            boolean isFertilizedToday = todayDate.equals(p.getLastFertilizedDate());
+            boolean isCheckedToday = todayDate.equals(p.getLastCheckedDate());
+            
+            boolean needsWater = false;
+            boolean needsFertilizer = false;
+            boolean needsSunlight = false;
+
+            // Health-based triggers (Below 50% health automatically adds to all care tasks)
+            if (p.getHealthPercentage() < 50) {
+                if (!isWateredToday) needsWater = true;
+                if (!isFertilizedToday) needsFertilizer = true;
+                if (!isCheckedToday) needsSunlight = true;
+            }
+
+            // Schedule-based or legacy health triggers (for Water)
+            if (!isWateredToday && !needsWater) {
                 if (reminders != null) {
                     String waterFreq = (String) reminders.get("wateringSchedule");
                     if (waterFreq != null && !"None".equalsIgnoreCase(waterFreq)) {
                         if (isTaskDue(waterFreq, p.getLastWateredDate()) && isTimeReached(prefTime)) {
-                            toWaterCount++;
+                            needsWater = true;
                         }
                     } else if (p.getHealthPercentage() < 60) {
-                        toWaterCount++;
+                        needsWater = true;
                     }
                 } else if (p.getHealthPercentage() < 60) {
-                    toWaterCount++;
+                    needsWater = true;
                 }
             }
 
-            // Fertilize logic
-            boolean isFertilizedToday = todayDate.equals(p.getLastFertilizedDate());
-            if (!isFertilizedToday && reminders != null) {
+            // Schedule-based triggers (for Fertilizer)
+            if (!isFertilizedToday && !needsFertilizer && reminders != null) {
                 String fertFreq = (String) reminders.get("fertilizerSchedule");
                 if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
                     if (isTaskDue(fertFreq, p.getLastFertilizedDate()) && isTimeReached(prefTime)) {
-                        toFertilizeCount++;
+                        needsFertilizer = true;
                     }
                 }
             }
 
-            // Sunlight logic
-            boolean isCheckedToday = todayDate.equals(p.getLastCheckedDate());
-            if (!isCheckedToday && reminders != null) {
+            // Schedule-based triggers (for Sunlight/Check)
+            if (!isCheckedToday && !needsSunlight && reminders != null) {
                 String sunFreq = (String) reminders.get("sunlightSchedule");
                 if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
                     if (isTaskDue(sunFreq, p.getLastCheckedDate()) && isTimeReached(prefTime)) {
-                        toSunlightCount++;
+                        needsSunlight = true;
                     }
                 }
             }
+            
+            if (needsWater) toWaterCount++;
+            if (needsFertilizer) toFertilizeCount++;
+            if (needsSunlight) toSunlightCount++;
         }
 
         if (tvStatToWaterCount != null) tvStatToWaterCount.setText(String.valueOf(toWaterCount));
@@ -740,12 +756,35 @@ public class MyGardenFragment extends Fragment {
             diaryEntry.put("rawAnalysisJson", snap.getRawAnalysisJson());
         }
 
+        // Automatically set default reminders for sick plant (< 50% health)
+        if (snap.getHealthPercentage() < 50) {
+            Map<String, Object> reminderData = new HashMap<>();
+            reminderData.put("wateringSchedule", "Every Day");
+            reminderData.put("fertilizerSchedule", "Every Week");
+            reminderData.put("sunlightSchedule", "Every Day");
+            reminderData.put("preferredTime", "08:00 AM");
+            diaryEntry.put("reminders", reminderData);
+        }
+
         db.collection("diary")
                 .document(docId)
                 .set(diaryEntry)
                 .addOnSuccessListener(aVoid -> {
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Added " + snap.getPlantName() + " to My Garden!", Toast.LENGTH_SHORT).show();
+
+                        // Automatically trigger system notifications for sick plant
+                        if (snap.getHealthPercentage() < 50) {
+                            try {
+                                com.example.smartgrow.core.NotificationHelper.createNotificationChannel(getContext());
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Water", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Sunlight", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Fertilize", "08:00 AM", "Every Week");
+                                Toast.makeText(getContext(), "Automatic reminders scheduled for your sick plant! 🌿", Toast.LENGTH_LONG).show();
+                            } catch (Exception e) {
+                                Log.e("MyGardenFragment", "Error triggering auto-schedule notifications", e);
+                            }
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {

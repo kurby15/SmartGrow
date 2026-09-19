@@ -45,13 +45,13 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
     private MaterialButton btnSave;
 
     private String plantId, plantName = "your plant";
-    private String oldPreferredTime = ""; // Track old time to reset button if changed
+    private String oldPreferredTime = ""; 
     private FirebaseFirestore db;
+    private boolean isAutoSchedule = false;
 
     // Permission launcher for Android 13+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                // CHANGED: Removed the condition that bypassed saving if denied; now it saves the schedule regardless so user configuration isn't lost.
                 saveScheduleAndNotify();
                 if (!isGranted) {
                     Toast.makeText(getContext(), "Notification permission denied. You can enable it in settings to receive reminders.", Toast.LENGTH_LONG).show();
@@ -59,9 +59,14 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
             });
 
     public static PlantReminderBottomSheet newInstance(String plantId) {
+        return newInstance(plantId, false);
+    }
+
+    public static PlantReminderBottomSheet newInstance(String plantId, boolean autoSchedule) {
         PlantReminderBottomSheet fragment = new PlantReminderBottomSheet();
         Bundle args = new Bundle();
         args.putString("key_plant_id", plantId);
+        args.putBoolean("key_auto_schedule", autoSchedule);
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,6 +76,7 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             plantId = getArguments().getString("key_plant_id");
+            isAutoSchedule = getArguments().getBoolean("key_auto_schedule", false);
         }
         db = FirebaseFirestore.getInstance();
     }
@@ -139,7 +145,6 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                             plantName = fetchedPlantName;
                         }
 
-                        // Load and display existing reminders
                         Map<String, Object> reminders = (Map<String, Object>) documentSnapshot.get("reminders");
                         if (reminders != null) {
                             String water = (String) reminders.get("wateringSchedule");
@@ -154,6 +159,15 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                                 etTime.setText(time);
                                 oldPreferredTime = time;
                             }
+                        } else if (isAutoSchedule) {
+                            // Automatically set default reminders for sick plant (< 50% health)
+                            actvWater.setText("Every Day", false);
+                            actvFertilizer.setText("Every Week", false);
+                            actvSunlight.setText("Every Day", false);
+                            etTime.setText("08:00 AM");
+                            
+                            // Automatically save the schedule as requested
+                            handleSaveWithPermission();
                         }
                     }
                 })
@@ -199,7 +213,6 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         Map<String, Object> updates = new HashMap<>();
         updates.put("reminders", reminderData);
 
-        // Reset the care status if preferred time changed, so user can click button again
         if (!timeSet.equals(oldPreferredTime)) {
             updates.put("lastWateredDate", "");
             updates.put("lastFertilizedDate", "");
@@ -209,6 +222,7 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         db.collection("diary").document(plantId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
+                    if (!isAdded()) return;
                     NotificationHelper.createNotificationChannel(requireContext());
 
                     if (!waterSched.equals("None"))
@@ -229,7 +243,11 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
                     Toast.makeText(getContext(), "Schedule saved for " + plantName + "! 🌿", Toast.LENGTH_SHORT).show();
                     dismiss();
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void showTimePicker() {
@@ -240,7 +258,6 @@ public class PlantReminderBottomSheet extends BottomSheetDialogFragment {
         new TimePickerDialog(getContext(), (view, hourOfDay, selectedMinute) -> {
             String amPm = (hourOfDay >= 12) ? "PM" : "AM";
             int displayHour = (hourOfDay > 12) ? hourOfDay - 12 : (hourOfDay == 0 ? 12 : hourOfDay);
-            // Use Locale.US for consistent storage
             etTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, selectedMinute, amPm));
         }, hour, minute, false).show();
     }

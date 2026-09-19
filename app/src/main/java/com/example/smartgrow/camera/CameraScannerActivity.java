@@ -46,6 +46,7 @@ import androidx.exifinterface.media.ExifInterface;
 import com.example.smartgrow.R;
 import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.example.smartgrow.plants.PlantDiaryActivity;
+import com.example.smartgrow.plants.PlantReminderBottomSheet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -539,7 +540,7 @@ public class CameraScannerActivity extends AppCompatActivity {
         try {
             JSONObject root = new JSONObject(rawJson);
             Map<String, Object> updateMap = parseAnalysisToMap(bitmap, rawJson);
-            
+
             if (updateMap == null) return;
 
             FirebaseFirestore.getInstance()
@@ -548,7 +549,15 @@ public class CameraScannerActivity extends AppCompatActivity {
                     .set(updateMap, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(CameraScannerActivity.this, "Diagnosis updated successfully", Toast.LENGTH_SHORT).show();
-                        finish();
+                        
+                        // Automatically set reminders if plant health is below 50%
+                        Integer health = (Integer) updateMap.get("healthPercentage");
+                        if (health != null && health < 50) {
+                            PlantReminderBottomSheet sheet = PlantReminderBottomSheet.newInstance(diaryPlantId, true);
+                            sheet.show(getSupportFragmentManager(), sheet.getTag());
+                        } else {
+                            finish();
+                        }
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error updating diary entry: " + e.getMessage());
@@ -755,7 +764,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             dataMap.put("sunlight", sunlightText);
             dataMap.put("soil", soilText);
             dataMap.put("pruning", pruningText);
-            dataMap.put("propagation", propagationText);
+            dataMap.put("propagationText", propagationText);
             dataMap.put("repotting", repottingText);
 
             dataMap.put("usesText", usesText);
@@ -825,12 +834,35 @@ public class CameraScannerActivity extends AppCompatActivity {
             historyEntry.put("rawAnalysisJson", rawJson);
             historyEntry.put("timestamp", System.currentTimeMillis());
 
+            Integer healthPercentage = (Integer) historyEntry.get("healthPercentage");
+            if (healthPercentage != null && healthPercentage < 50) {
+                Map<String, Object> reminderData = new HashMap<>();
+                reminderData.put("wateringSchedule", "Every Day");
+                reminderData.put("fertilizerSchedule", "Every Week");
+                reminderData.put("sunlightSchedule", "Every Day");
+                reminderData.put("preferredTime", "08:00 AM");
+                historyEntry.put("reminders", reminderData);
+            }
+
             // Save into Firestore under "diary_history"
             FirebaseFirestore.getInstance()
                     .collection("diary_history")
                     .document(docId)
                     .set(historyEntry)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully auto-saved scan to diary_history collection."))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Successfully auto-saved scan to diary_history collection.");
+                        if (healthPercentage != null && healthPercentage < 50) {
+                            try {
+                                String plantName = (String) historyEntry.get("plantName");
+                                com.example.smartgrow.core.NotificationHelper.createNotificationChannel(CameraScannerActivity.this);
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(CameraScannerActivity.this, docId, plantName, "Water", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(CameraScannerActivity.this, docId, plantName, "Sunlight", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(CameraScannerActivity.this, docId, plantName, "Fertilize", "08:00 AM", "Every Week");
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error triggering auto-schedule reminders for diary_history", e);
+                            }
+                        }
+                    })
                     .addOnFailureListener(e -> Log.e(TAG, "Error saving entry to diary_history: " + e.getMessage(), e));
 
         } catch (Exception e) {

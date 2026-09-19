@@ -1260,12 +1260,33 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
             diaryEntry.put("rawAnalysisJson", mRawAnalysisJson);
         }
 
+        if (healthPercentage < 50) {
+            Map<String, Object> reminderData = new HashMap<>();
+            reminderData.put("wateringSchedule", "Every Day");
+            reminderData.put("fertilizerSchedule", "Every Week");
+            reminderData.put("sunlightSchedule", "Every Day");
+            reminderData.put("preferredTime", "08:00 AM");
+            diaryEntry.put("reminders", reminderData);
+        }
+
         db.collection("diary")
                 .document(docId)
                 .set(diaryEntry)
                 .addOnSuccessListener(aVoid -> {
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(this, "Added to My Garden Diary!", Toast.LENGTH_SHORT).show();
+
+                        if (healthPercentage < 50) {
+                            try {
+                                com.example.smartgrow.core.NotificationHelper.createNotificationChannel(this);
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(this, docId, plantName, "Water", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(this, docId, plantName, "Sunlight", "08:00 AM", "Every Day");
+                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(this, docId, plantName, "Fertilize", "08:00 AM", "Every Week");
+                                Toast.makeText(this, "Automatic reminders scheduled for your sick plant! 🌿", Toast.LENGTH_LONG).show();
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error triggering auto-schedule notifications", e);
+                            }
+                        }
 
                         Intent intent = new Intent(this, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);

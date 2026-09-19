@@ -280,6 +280,7 @@ public class HomeFragment extends Fragment {
             }
 
             boolean waterTaskAdded = false;
+            boolean fertTaskAdded = false;
             boolean checkTaskAdded = false;
             boolean countedForWater = false;
 
@@ -314,6 +315,7 @@ public class HomeFragment extends Fragment {
                         CareTaskModel task = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "🌿 Feeding due today", "Feed Now", plantBitmap, "Fertilize");
                         task.setDone(isDone);
                         careTaskList.add(task);
+                        fertTaskAdded = true;
                     }
                 }
 
@@ -334,24 +336,33 @@ public class HomeFragment extends Fragment {
                 }
             }
 
-            // Health-based triggers (Health below 50)
+            // Health-based triggers (Health below 50) - Automatically add Water, Fertilizer, and Sunlight tasks
             if (p.getHealthPercentage() < 50) {
-                // 1. Inspect Task
-                if (!checkTaskAdded) {
-                    boolean isCheckedToday = todayDate.equals(p.getLastCheckedDate());
-                    CareTaskModel inspectTask = new CareTaskModel(p.getId(), "Inspect " + p.getPlantName(), "⚠️ Low Health: " + p.getHealthPercentage() + "%", "Inspect", plantBitmap, "Check");
-                    inspectTask.setDone(isCheckedToday);
-                    careTaskList.add(inspectTask);
-                }
-
-                // 2. Need to water Task
+                // 1. Water Task
                 if (!isWateredToday && !waterTaskAdded) {
-                    CareTaskModel waterTask = new CareTaskModel(p.getId(), "Need to water " + p.getPlantName(), "⚠️ Critical health needs attention", "Water Now", plantBitmap, "Water");
+                    CareTaskModel waterTask = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "⚠️ Low Health: needs water", "Water Now", plantBitmap, "Water");
                     waterTask.setDone(false);
                     careTaskList.add(waterTask);
+                    waterTaskAdded = true;
                     if (!countedForWater) {
                         needWaterCount++;
                     }
+                }
+
+                // 2. Fertilizer Task
+                if (!todayDate.equals(p.getLastFertilizedDate()) && !fertTaskAdded) {
+                    CareTaskModel fertTask = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "⚠️ Low Health: needs nutrients", "Feed Now", plantBitmap, "Fertilize");
+                    fertTask.setDone(false);
+                    careTaskList.add(fertTask);
+                    fertTaskAdded = true;
+                }
+
+                // 3. Sunlight (Check) Task
+                if (!todayDate.equals(p.getLastCheckedDate()) && !checkTaskAdded) {
+                    CareTaskModel sunTask = new CareTaskModel(p.getId(), "Sunlight for " + p.getPlantName(), "⚠️ Low Health: needs sunlight", "Inspect", plantBitmap, "Check");
+                    sunTask.setDone(false);
+                    careTaskList.add(sunTask);
+                    checkTaskAdded = true;
                 }
             }
         }

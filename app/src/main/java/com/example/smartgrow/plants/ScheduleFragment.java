@@ -15,8 +15,11 @@ import android.widget.Toast;
 import com.example.smartgrow.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ScheduleFragment extends Fragment {
@@ -61,28 +64,57 @@ public class ScheduleFragment extends Fragment {
                         scheduleList.clear();
                         Map<String, Object> reminders = (Map<String, Object>) documentSnapshot.get("reminders");
                         
+                        int health = 100;
+                        Long hPercent = documentSnapshot.getLong("healthPercentage");
+                        if (hPercent != null) health = hPercent.intValue();
+                        
+                        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                        String lastWatered = documentSnapshot.getString("lastWateredDate");
+                        String lastFertilized = documentSnapshot.getString("lastFertilizedDate");
+                        String lastChecked = documentSnapshot.getString("lastCheckedDate");
+
+                        boolean waterAdded = false;
+                        boolean fertAdded = false;
+                        boolean sunAdded = false;
+
+                        String prefTime = "12:00 PM";
                         if (reminders != null) {
-                            String time = (String) reminders.get("preferredTime");
-                            if (time == null) time = "Not set";
+                            prefTime = (String) reminders.get("preferredTime");
+                            if (prefTime == null) prefTime = "12:00 PM";
 
-                            String water = (String) reminders.get("wateringSchedule");
-                            if (water != null && !water.equalsIgnoreCase("None")) {
-                                scheduleList.add(new ScheduleModel("Water", time, "Frequency: " + water));
+                            String waterFreq = (String) reminders.get("wateringSchedule");
+                            if (waterFreq != null && !waterFreq.equalsIgnoreCase("None")) {
+                                scheduleList.add(new ScheduleModel("Water", prefTime, "Frequency: " + waterFreq));
+                                waterAdded = true;
                             }
 
-                            String fert = (String) reminders.get("fertilizerSchedule");
-                            if (fert != null && !fert.equalsIgnoreCase("None")) {
-                                scheduleList.add(new ScheduleModel("Fertilize", time, "Frequency: " + fert));
+                            String fertFreq = (String) reminders.get("fertilizerSchedule");
+                            if (fertFreq != null && !fertFreq.equalsIgnoreCase("None")) {
+                                scheduleList.add(new ScheduleModel("Fertilize", prefTime, "Frequency: " + fertFreq));
+                                fertAdded = true;
                             }
 
-                            String sun = (String) reminders.get("sunlightSchedule");
-                            if (sun != null && !sun.equalsIgnoreCase("None")) {
-                                scheduleList.add(new ScheduleModel("Sunlight", time, "Frequency: " + sun));
+                            String sunFreq = (String) reminders.get("sunlightSchedule");
+                            if (sunFreq != null && !sunFreq.equalsIgnoreCase("None")) {
+                                scheduleList.add(new ScheduleModel("Sunlight", prefTime, "Frequency: " + sunFreq));
+                                sunAdded = true;
+                            }
+                        }
+
+                        // Health-based automatic tasks (Health below 50)
+                        if (health < 50) {
+                            if (!waterAdded && !todayDate.equals(lastWatered)) {
+                                scheduleList.add(new ScheduleModel("Water (Low Health)", "Immediate", "Automatic care needed"));
+                            }
+                            if (!fertAdded && !todayDate.equals(lastFertilized)) {
+                                scheduleList.add(new ScheduleModel("Fertilize (Low Health)", "Immediate", "Nutrients required"));
+                            }
+                            if (!sunAdded && !todayDate.equals(lastChecked)) {
+                                scheduleList.add(new ScheduleModel("Sunlight (Low Health)", "Immediate", "Sunlight check required"));
                             }
                         }
 
                         if (scheduleList.isEmpty()) {
-                            // Optional: add a placeholder if no schedules are set
                             scheduleList.add(new ScheduleModel("No Schedule", "-", "Set reminders to see them here."));
                         }
                         
@@ -91,7 +123,9 @@ public class ScheduleFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading schedule", e);
-                    Toast.makeText(getContext(), "Failed to load schedule", Toast.LENGTH_SHORT).show();
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to load schedule", Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 }
