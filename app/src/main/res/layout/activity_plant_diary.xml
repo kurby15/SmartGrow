@@ -253,7 +253,7 @@
         app:layout_constraintBottom_toTopOf="@id/btn_diagnose"
         app:layout_constraintTop_toBottomOf="@id/layout_custom_tabs" />
 
-    <!-- FLOATING DIAGNOSE BUTTON SA IBABA -->
+    <!-- FLOATING RE-SCAN BUTTON SA IBABA -->
     <TextView
         android:id="@+id/btn_diagnose"
         android:layout_width="match_parent"
@@ -263,7 +263,7 @@
         android:background="@drawable/bg_pill_active"
         android:fontFamily="@font/inter_extrabold"
         android:gravity="center"
-        android:text="Diagnose"
+        android:text="Re-scan"
         android:textColor="@color/white"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent" />
