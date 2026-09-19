@@ -115,10 +115,6 @@ public class ProfileFragment extends Fragment {
         tvFullName = view.findViewById(R.id.tv_user_display_name);
         tvRank = view.findViewById(R.id.tv_user_rank);
 
-        chipChoice2 = view.findViewById(R.id.tv_choice2);
-        chipChoice3 = view.findViewById(R.id.tv_choice3);
-        chipChoice4 = view.findViewById(R.id.tv_choice4);
-
         ivProfilePic = view.findViewById(R.id.iv_profile_pic);
         btnCameraBadge = view.findViewById(R.id.btn_camera_badge);
 

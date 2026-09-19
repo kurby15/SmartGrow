@@ -14,7 +14,6 @@ import android.util.Patterns;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
 
 public class RegisterStep5Activity extends AppCompatActivity {
 
-    private EditText etUsername, etFullName, etEmail, etPassword, etConfirmPassword, etPhone, etAddress;
+    private EditText etFullName, etEmail, etPassword, etConfirmPassword;
     private LinearLayout layoutPasswordRequirements;
     private TextView tvReqLength, tvReqUppercase, tvReqNumber, tvReqSpecial;
     private MaterialButton btnSignUp;
@@ -67,13 +66,10 @@ public class RegisterStep5Activity extends AppCompatActivity {
         userData = (User) getIntent().getSerializableExtra("user_data");
 
         // Bind layout views
-        etUsername = findViewById(R.id.et_signup_username);
         etFullName = findViewById(R.id.et_signup_fullname);
         etEmail = findViewById(R.id.et_signup_email);
         etPassword = findViewById(R.id.et_signup_password);
         etConfirmPassword = findViewById(R.id.et_confirm_password);
-        etPhone = findViewById(R.id.et_signup_phone);
-        etAddress = findViewById(R.id.et_signup_address);
 
         // Bind layout views for password requirements
         layoutPasswordRequirements = findViewById(R.id.layout_password_requirements);
@@ -169,19 +165,10 @@ public class RegisterStep5Activity extends AppCompatActivity {
     }
 
     private void validateAndSubmitForm() {
-        String username = etUsername != null ? etUsername.getText().toString().trim() : "";
         String fullName = etFullName != null ? etFullName.getText().toString().trim() : "";
         String email = etEmail != null ? etEmail.getText().toString().trim() : "";
         String password = etPassword != null ? etPassword.getText().toString() : "";
         String confirmPassword = etConfirmPassword != null ? etConfirmPassword.getText().toString() : "";
-        String phone = etPhone != null ? etPhone.getText().toString().trim() : "";
-        String address = etAddress != null ? etAddress.getText().toString().trim() : "";
-
-        if (username.isEmpty()) {
-            etUsername.setError("Username is required");
-            etUsername.requestFocus();
-            return;
-        }
 
         if (fullName.isEmpty()) {
             etFullName.setError("Full name is required");
@@ -209,11 +196,6 @@ public class RegisterStep5Activity extends AppCompatActivity {
         }
 
         btnSignUp.setEnabled(false);
-
-        String choice1 = (userData != null) ? userData.getChoice1() : "";
-        String choice2 = (userData != null) ? userData.getChoice2() : "";
-        String choice3 = (userData != null) ? userData.getChoice3() : "";
-        String choice4 = (userData != null) ? userData.getChoice4() : "";
 
         loadingDialog.show();
 
@@ -260,41 +242,29 @@ public class RegisterStep5Activity extends AppCompatActivity {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
 
-                registerUser(username, fullName, email, password, phone, address, choice1, choice2, choice3, choice4);
+                registerUser(fullName, email, password);
             }
         });
 
         animator.start();
     }
 
-    private void registerUser(String username, String fullName, String email, String password,
-                              String phone, String address, String choice1, String choice2,
-                              String choice3, String choice4) {
+    private void registerUser(String fullName, String email, String password) {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        String encryptedUsername = FirebaseCryptoUtils.encrypt(username, uid);
                         String encryptedEmail = FirebaseCryptoUtils.encrypt(email, uid);
                         String encryptedFullName = FirebaseCryptoUtils.encrypt(fullName, uid);
-                        String encryptedPhone = FirebaseCryptoUtils.encrypt(phone, uid);
-                        String encryptedAddress = FirebaseCryptoUtils.encrypt(address, uid);
                         String encryptedPassword = FirebaseCryptoUtils.encrypt(password, uid);
 
                         Map<String, Object> userMap = new HashMap<>();
                         userMap.put("uid", uid);
-                        userMap.put("username", encryptedUsername);
                         userMap.put("fullName", encryptedFullName);
                         userMap.put("email", encryptedEmail);
                         userMap.put("password", encryptedPassword);
-                        userMap.put("phone", encryptedPhone);
-                        userMap.put("address", encryptedAddress);
-                        userMap.put("choice1", choice1);
-                        userMap.put("choice2", choice2);
-                        userMap.put("choice3", choice3);
-                        userMap.put("choice4", choice4);
                         userMap.put("profilePic", "");
                         userMap.put("bio", "");
                         userMap.put("followersCount", 0);

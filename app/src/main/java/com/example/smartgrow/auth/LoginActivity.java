@@ -82,7 +82,9 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
-        tvGoToRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterStep1Activity.class)));
+        
+        // Modified to go directly to the final registration step (Create Account)
+        tvGoToRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterStep5Activity.class)));
     }
 
     private void loginWithEmailAndPassword(String email, String password, MaterialButton btnLogin) {
