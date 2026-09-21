@@ -91,7 +91,7 @@
             app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Bottom Action Bar -->
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -104,12 +104,12 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="5dp">
-
+                android:paddingVertical="5dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
                     android:id="@+id/tv_health_status"
@@ -134,16 +134,17 @@
 
             </LinearLayout>
 
-            <!-- Add Reminder Button -->
             <LinearLayout
                 android:id="@+id/btn_add_reminder"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_marginEnd="-8dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center">
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
                     android:layout_width="14dp"
@@ -154,7 +155,7 @@
 
             </LinearLayout>
 
-        </RelativeLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

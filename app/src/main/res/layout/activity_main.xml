@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/app_background">
+    android:background="@color/header_background">
 
     <!-- TOP HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -48,8 +48,6 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             app:layout_constraintEnd_toEndOf="parent">
-
-
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_action_global"
@@ -115,7 +113,6 @@
         android:background="@color/divider_color"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"/>
 
-    <!-- BOTTOM NAVIGATION BAR -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"
         android:layout_width="match_parent"
@@ -131,32 +128,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_nav_chat_assistant"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="20dp"
-        app:cardCornerRadius="32dp"
-        app:cardBackgroundColor="@color/primary_green"
-        app:cardElevation="10dp"
-        app:strokeWidth="4dp"
-        app:strokeColor="@color/app_background"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:id="@+id/img_nav_chat_icon"
-            android:layout_width="23dp"
-            android:layout_height="23dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_chat"
-            app:backgroundTint="@color/primary_green"
-            app:tint="@android:color/white"
-            android:contentDescription="SmartGrow AI Assistant" />
-    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

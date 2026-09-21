@@ -176,7 +176,7 @@
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
-                                android:src="@drawable/ic_scan"
+                                android:src="@drawable/ic_cam"
                                 app:tint="#F57F17"/>
                             <TextView
                                 android:id="@+id/tv_stats_scans"

@@ -5,7 +5,6 @@ public class ScheduleModel {
     private String taskTime;
     private String taskNote;
 
-    // ITONG CONSTRUCTOR ANG KAILANGAN MO PARA MAWALA ANG PULA SA FRAGMENT:
     public ScheduleModel(String taskTitle, String taskTime, String taskNote) {
         this.taskTitle = taskTitle;
         this.taskTime = taskTime;

@@ -56,11 +56,11 @@ public class AppPreferencesFragment extends Fragment {
         super.onResume();
         View bottomNav = requireActivity().findViewById(R.id.bottom_navigation_bar);
         View mainHeader = requireActivity().findViewById(R.id.layout_top_header);
-        View chatAssistant = requireActivity().findViewById(R.id.card_nav_chat_assistant);
+
 
         if (bottomNav != null) bottomNav.setVisibility(View.GONE);
         if (mainHeader != null) mainHeader.setVisibility(View.GONE);
-        if (chatAssistant != null) chatAssistant.setVisibility(View.GONE);
+
     }
 
     @Override
@@ -69,10 +69,10 @@ public class AppPreferencesFragment extends Fragment {
 
         View bottomNav = requireActivity().findViewById(R.id.bottom_navigation_bar);
         View mainHeader = requireActivity().findViewById(R.id.layout_top_header);
-        View chatAssistant = requireActivity().findViewById(R.id.card_nav_chat_assistant);
+
 
         if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
         if (mainHeader != null) mainHeader.setVisibility(View.VISIBLE);
-        if (chatAssistant != null) chatAssistant.setVisibility(View.VISIBLE);
+
     }
 }

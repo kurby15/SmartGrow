@@ -137,7 +137,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         }
 
         viewFinder = findViewById(R.id.viewFinder);
-        overlayView = findViewById(R.id.scanner_overlay);
         ivFrozenPreview = findViewById(R.id.iv_frozen_preview);
 
         ImageView btnClose = findViewById(R.id.btn_close_scanner);

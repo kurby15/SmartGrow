@@ -38,9 +38,11 @@
         tools:replace="android:allowBackup,android:fullBackupContent,android:dataExtractionRules"
         tools:targetApi="36">
         <activity
-            android:name=".plants.PlantDiaryActivity"
+            android:name=".plants.AIChatActivity"
             android:exported="false" />
-        <!-- 🗝️ Google Maps API Key Injected from local.properties via Gradle -->
+        <activity
+            android:name=".plants.PlantDiaryActivity"
+            android:exported="false" /> <!-- 🗝️ Google Maps API Key Injected from local.properties via Gradle -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${mapsApiKey}" /> <!-- 🚀 1. Splash / Launcher Activity -->

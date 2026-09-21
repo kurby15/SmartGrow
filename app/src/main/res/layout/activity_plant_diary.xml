@@ -6,6 +6,11 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <!-- TOP IMAGE COLLAGE GRID CONTAINER -->
     <RelativeLayout
         android:id="@+id/layout_top_images"
@@ -108,7 +113,7 @@
         android:paddingBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/layout_top_images">
 
-        <!-- Plant Title & Health Score Badge (Row) -->
+        <!-- Plant Title & AI Chat Icon (Row) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,18 +131,17 @@
                 android:textSize="20sp"
                 tools:text="Goosegrass" />
 
-            <!-- Health Score Badge -->
-            <TextView
-                android:id="@+id/tv_health_score"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_match"
-                android:fontFamily="@font/inter_extrabold"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                tools:text="Health: 95%" />
+            <ImageView
+                android:id="@+id/btn_plant_ai_chat"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="4dp"
+                android:contentDescription="Chat with AI about this plant"
+                android:src="@drawable/ic_a_i_chat"
+                app:tint="@color/primary_green" />
         </LinearLayout>
 
         <!-- Scientific Name & Speaker Icon -->
@@ -168,16 +172,42 @@
                 app:tint="#81C784" />
         </LinearLayout>
 
-        <!-- Health State -->
-        <TextView
-            android:id="@+id/tv_health_state"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
-            android:fontFamily="@font/inter_medium"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            tools:text="Status: Healthy" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Health State TextView -->
+            <TextView
+                android:id="@+id/tv_health_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_medium"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="Status: Healthy" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_medium"
+                android:paddingHorizontal="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="9sp"
+                android:text="|" />
+
+            <!-- Health Score TextView -->
+            <TextView
+                android:id="@+id/tv_health_score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_medium"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="Health: 95%" />
+        </LinearLayout>
 
         <!-- Also known as -->
         <TextView
@@ -245,7 +275,6 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- VIEW PAGER PARA SA MGA TABS -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
@@ -253,7 +282,6 @@
         app:layout_constraintBottom_toTopOf="@id/btn_diagnose"
         app:layout_constraintTop_toBottomOf="@id/layout_custom_tabs" />
 
-    <!-- FLOATING RE-SCAN BUTTON SA IBABA -->
     <TextView
         android:id="@+id/btn_diagnose"
         android:layout_width="match_parent"

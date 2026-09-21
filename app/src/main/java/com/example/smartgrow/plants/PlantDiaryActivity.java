@@ -21,6 +21,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.smartgrow.R;
 import com.example.smartgrow.camera.CameraScannerActivity;
+import com.example.smartgrow.profile.ProfileFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -63,7 +64,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
     private View tabOverview, tabCare, tabExplore;
 
     // UI Elements - Images & Map
-    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker;
+    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker, btnPlantAiChat;
     private MapView mapView;
     private GoogleMap googleMap;
 
@@ -201,6 +202,14 @@ public class PlantDiaryActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+
+        btnPlantAiChat.setOnClickListener(v -> {
+            String plantName = tvPlantTitle.getText().toString();
+
+            Intent intent = new Intent(PlantDiaryActivity.this, AIChatActivity.class);
+            intent.putExtra("EXTRA_PLANT_NAME", plantName);
+            startActivity(intent);
+        });
     }
 
     private void initViews() {
@@ -216,6 +225,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
         ivPlantMatch2 = findViewById(R.id.iv_plant_match_2);
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
+        btnPlantAiChat = findViewById(R.id.btn_plant_ai_chat);
 
         // Map View
         mapView = findViewById(R.id.map_view);

@@ -37,12 +37,18 @@ public class ScannerOverlayView extends View {
     }
 
     private void init() {
-        // White Curved Focus Brackets
+        // Mahalaga para gumana ang shadow/glow effect sa Android hardware
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
+
+        // White Curved Focus Brackets na may Glowing Effect
         bracketPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bracketPaint.setColor(Color.WHITE);
         bracketPaint.setStrokeWidth(12f);
         bracketPaint.setStyle(Paint.Style.STROKE);
         bracketPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        // 🌟 Dito idinagdag ang soft glow/neon light effect (radius, dx, dy, color)
+        bracketPaint.setShadowLayer(20f, 0f, 0f, Color.parseColor("#99FFFFFF"));
 
         // Animated Laser Line
         linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -126,7 +132,7 @@ public class ScannerOverlayView extends View {
         float cornerSize = 60f;
         float radius = 30f;
 
-        // 2. Draw 4 Curved Corner Reticles
+        // 2. Draw 4 Curved Corner Reticles na may Glow
         // Top-Left Corner
         RectF arcTL = new RectF(scanRect.left, scanRect.top, scanRect.left + radius * 2, scanRect.top + radius * 2);
         canvas.drawArc(arcTL, 180, 90, false, bracketPaint);

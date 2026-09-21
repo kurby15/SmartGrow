@@ -43,6 +43,7 @@ import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
+import com.example.smartgrow.plants.AIChatActivity;
 import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.profile.ProfileFragment;
@@ -135,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottom_navigation_bar);
         mainHeaderBar = findViewById(R.id.layout_top_header);
-        cardNavChatAssistant = findViewById(R.id.card_nav_chat_assistant);
         cardActionGlobal = findViewById(R.id.card_action_global);
         cardActionProfile = findViewById(R.id.card_action_profile);
 
@@ -170,7 +170,18 @@ public class MainActivity extends AppCompatActivity {
                             .replace(R.id.fragment_container, new MyGardenFragment())
                             .commit();
                     return true;
+                } else if (itemId == R.id.nav_scan) {
+                    Intent intent = new Intent(MainActivity.this, CameraScannerActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    return true;
+                } else if (itemId == R.id.nav_chat) {
+                    Intent intent = new Intent(MainActivity.this, AIChatActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    return true;
                 }
+
                 return false;
             });
         }
@@ -1252,5 +1263,19 @@ public class MainActivity extends AppCompatActivity {
         MaterialCardView btnClose = dialog.findViewById(R.id.btn_close_notification);
         if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkCurrentFragmentForVisibility();
+
+
+        if (bottomNav != null) {
+            Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (current instanceof HomeFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            }
+        }
     }
 }

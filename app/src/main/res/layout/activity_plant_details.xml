@@ -117,14 +117,36 @@
                 android:paddingHorizontal="16dp"
                 android:paddingTop="20dp">
 
-                <TextView
-                    android:id="@+id/tv_plant_title"
-                    android:layout_width="wrap_content"
+                <!-- Katabi ng Pangalan ng Halaman ang AI Chat Icon -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/primary_green"
-                    android:textSize="24sp"
-                    android:fontFamily="@font/inter_extrabold"
-                    tools:text="Goosegrass" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_plant_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/primary_green"
+                        android:textSize="24sp"
+                        android:fontFamily="@font/inter_extrabold"
+                        tools:text="Goosegrass" />
+
+                    <ImageView
+                        android:id="@+id/btn_plant_ai_chat"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="4dp"
+                        android:contentDescription="Chat with AI about this plant"
+                        android:src="@drawable/ic_a_i_chat"
+                        app:tint="@color/primary_green" />
+
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -348,7 +370,7 @@
                 android:paddingTop="24dp"
                 android:text="Basic Info"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold" />
 
             <com.google.android.material.card.MaterialCardView
@@ -372,7 +394,7 @@
                         android:layout_height="wrap_content"
                         android:text="Toxicity to Pets"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -381,7 +403,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/primary_green"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Non-toxic to pets" />
 
@@ -396,7 +418,7 @@
                         android:layout_height="wrap_content"
                         android:text="Weed Potential"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -405,7 +427,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/primary_green"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Commonly considered weeds" />
 
@@ -430,7 +452,7 @@
                             android:layout_height="wrap_content"
                             android:text="Distribution"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
@@ -439,7 +461,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/primary_green"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Native to Philippines" />
                     </LinearLayout>
@@ -456,7 +478,7 @@
                         android:layout_height="wrap_content"
                         android:text="Habitat"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -465,7 +487,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/primary_green"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Roadsides, waste places" />
 
@@ -523,7 +545,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Native"
                                     android:textColor="#4CAF50"
-                                    android:textSize="11sp"
+                                    android:textSize="12sp"
                                     android:fontFamily="@font/inter_extrabold"/>
 
                                 <TextView
@@ -531,7 +553,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Species present in wild and native habitats"
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -559,7 +581,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Cultivated"
                                     android:textColor="#00BCD4"
-                                    android:textSize="11sp"
+                                    android:textSize="12sp"
                                     android:fontFamily="@font/inter_extrabold"/>
 
                                 <TextView
@@ -567,7 +589,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Species cultivated as garden or house plant"
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -595,7 +617,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Introduced"
                                     android:textColor="#2196F3"
-                                    android:textSize="11sp"
+                                    android:textSize="12sp"
                                     android:fontFamily="@font/inter_extrabold" />
 
                                 <TextView
@@ -603,7 +625,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Species present in wild and exotic habitats, not reported as invasive."
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -631,7 +653,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Invasive"
                                     android:textColor="#F44336"
-                                    android:textSize="11sp"
+                                    android:textSize="12sp"
                                     android:fontFamily="@font/inter_extrabold" />
 
                                 <TextView
@@ -639,7 +661,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="Species labeled as invasive by law enforcement."
                                     android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:fontFamily="@font/inter_medium"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -656,7 +678,7 @@
                         android:layout_height="wrap_content"
                         android:text="Plant Type"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -665,7 +687,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/primary_green"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Grass" />
 
@@ -680,7 +702,7 @@
                         android:layout_height="wrap_content"
                         android:text="Lifespan"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -689,7 +711,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/primary_green"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Annual, Biennial" />
                 </LinearLayout>
@@ -703,7 +725,7 @@
                 android:paddingTop="24dp"
                 android:text="Characteristics"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold"/>
 
             <com.google.android.material.card.MaterialCardView
@@ -732,7 +754,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ultimate Height"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
@@ -741,7 +763,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:textColor="@color/primary_green"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="10 cm to 90 cm" />
                     </RelativeLayout>
@@ -761,7 +783,7 @@
                             android:layout_height="wrap_content"
                             android:text="Ultimate Spread"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold" />
 
                         <TextView
@@ -770,7 +792,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:textColor="@color/primary_green"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="5 cm to 8 cm" />
                     </RelativeLayout>
@@ -791,7 +813,7 @@
                             android:layout_centerVertical="true"
                             android:text="Leaf Color"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold" />
 
                         <LinearLayout
@@ -819,7 +841,7 @@
                             android:layout_height="wrap_content"
                             android:text="Leaf Type"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold" />
 
                         <TextView
@@ -828,7 +850,10 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:textColor="@color/primary_green"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
+                            android:maxLines="2"
+                            android:ellipsize="none"
+                            android:singleLine="false"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Deciduous" />
                     </RelativeLayout>
@@ -848,7 +873,7 @@
                             android:layout_height="wrap_content"
                             android:text="Planting Time"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:fontFamily="@font/inter_extrabold"/>
 
                         <TextView
@@ -857,7 +882,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:textColor="@color/primary_green"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Spring" />
                     </RelativeLayout>
@@ -873,7 +898,7 @@
                 android:paddingTop="24dp"
                 android:text="Care Condition"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold" />
 
             <!-- Climate Card -->
@@ -908,7 +933,7 @@
                         android:layout_toEndOf="@id/iv_ic_climate"
                         android:text="Climate"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
@@ -918,7 +943,7 @@
                         android:layout_below="@id/tv_climate_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Temperature: 5 - 43°C" />
 
@@ -929,7 +954,7 @@
                         android:layout_below="@id/tv_temp"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Hardiness Zones: 10-12" />
                 </RelativeLayout>
@@ -967,7 +992,7 @@
                         android:layout_toEndOf="@id/iv_ic_sunlight"
                         android:text="Sunlight"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
@@ -977,7 +1002,7 @@
                         android:layout_below="@id/tv_sunlight_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Partial sun" />
                 </RelativeLayout>
@@ -1015,7 +1040,7 @@
                         android:layout_toEndOf="@id/iv_ic_soil"
                         android:text="Soil"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"  />
 
                     <TextView
@@ -1025,7 +1050,7 @@
                         android:layout_below="@id/tv_soil_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Loam, Sandy loam" />
                 </RelativeLayout>
@@ -1039,7 +1064,7 @@
                 android:paddingTop="24dp"
                 android:text="How-tos"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold" />
 
             <!-- Pruning Card -->
@@ -1074,7 +1099,7 @@
                         android:layout_toEndOf="@id/iv_ic_pruning"
                         android:text="Pruning"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -1084,7 +1109,7 @@
                         android:layout_below="@id/tv_pruning_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Spring, Summer" />
                 </RelativeLayout>
@@ -1122,7 +1147,7 @@
                         android:layout_toEndOf="@id/iv_ic_propagation"
                         android:text="Propagation"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold" />
 
                     <TextView
@@ -1132,7 +1157,7 @@
                         android:layout_below="@id/tv_propagation_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Cutting" />
                 </RelativeLayout>
@@ -1170,7 +1195,7 @@
                         android:layout_toEndOf="@id/iv_ic_repotting"
                         android:text="Repotting"
                         android:textColor="@color/primary_green"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="@font/inter_extrabold"/>
 
                     <TextView
@@ -1180,7 +1205,7 @@
                         android:layout_below="@id/tv_repotting_title"
                         android:layout_marginTop="12dp"
                         android:textColor="@color/text_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:fontFamily="@font/inter_extrabold"
                         tools:text="Growing season" />
                 </RelativeLayout>
@@ -1195,7 +1220,7 @@
                 android:paddingBottom="8dp"
                 android:text="Common Problems"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold" />
 
             <HorizontalScrollView
@@ -1221,7 +1246,7 @@
                 android:paddingTop="24dp"
                 android:text="Common Pests"
                 android:textColor="@color/primary_green"
-                android:textSize="17sp"
+                android:textSize="15sp"
                 android:fontFamily="@font/inter_extrabold" />
 
             <com.google.android.material.card.MaterialCardView
@@ -1266,7 +1291,7 @@
                     android:layout_height="wrap_content"
                     android:text="Uses"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold"/>
             </LinearLayout>
 
@@ -1287,7 +1312,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
@@ -1314,7 +1339,7 @@
                     android:layout_height="wrap_content"
                     android:text="Adaptation Strategies"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold" />
             </LinearLayout>
 
@@ -1335,7 +1360,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
@@ -1362,7 +1387,7 @@
                     android:layout_height="wrap_content"
                     android:text="Ecological Application"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold"/>
             </LinearLayout>
 
@@ -1383,7 +1408,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
@@ -1410,7 +1435,7 @@
                     android:layout_height="wrap_content"
                     android:text="History &amp; Legends"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold" />
             </LinearLayout>
 
@@ -1431,7 +1456,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
@@ -1458,7 +1483,7 @@
                     android:layout_height="wrap_content"
                     android:text="Name Story"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold" />
             </LinearLayout>
 
@@ -1479,7 +1504,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
@@ -1506,7 +1531,7 @@
                     android:layout_height="wrap_content"
                     android:text="Symbolism"
                     android:textColor="@color/primary_green"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:fontFamily="@font/inter_extrabold" />
             </LinearLayout>
 
@@ -1527,7 +1552,7 @@
                     android:layout_height="wrap_content"
                     android:padding="16dp"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
             </com.google.android.material.card.MaterialCardView>
