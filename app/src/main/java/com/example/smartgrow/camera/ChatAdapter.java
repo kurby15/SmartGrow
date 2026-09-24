@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
+import com.example.smartgrow.plants.AIChatActivity;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -72,14 +73,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 userHolder.tvMessageText.setText(message.getMessageText());
             }
 
-            // Retrieve or decode Bitmap safely (handles Firestore Base64 images)
             Bitmap displayBitmap = getOrDecodeBitmap(message);
 
             if (message.hasImage() && displayBitmap != null) {
                 userHolder.cardImage.setVisibility(View.VISIBLE);
                 userHolder.ivChatImage.setImageBitmap(displayBitmap);
 
-                // Click listener to expand image into a full-screen preview dialog
                 View.OnClickListener imageClickListener = v -> {
                     Dialog previewDialog = new Dialog(v.getContext());
                     previewDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -135,6 +134,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             Activity activity = getActivityFromContext(v.getContext());
                             if (activity instanceof MainActivity) {
                                 ((MainActivity) activity).submitFollowUpQuestion(textQuestion);
+                            } else if (activity instanceof AIChatActivity) {
+                                ((AIChatActivity) activity).submitFollowUpQuestion(textQuestion);
                             }
                         });
 
@@ -152,9 +153,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return messageList != null ? messageList.size() : 0;
     }
 
-    /**
-     * Safely returns memory Bitmap or decodes Base64 string from Firestore
-     */
     private Bitmap getOrDecodeBitmap(ChatMessageModel message) {
         if (message.getImageBitmap() != null) {
             return message.getImageBitmap();
@@ -163,7 +161,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             try {
                 byte[] decodedBytes = Base64.decode(message.getImageBase64(), Base64.DEFAULT);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                message.setImageBitmap(bitmap); // Cache bitmap locally in model to prevent re-decoding
+                message.setImageBitmap(bitmap); 
                 return bitmap;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -172,9 +170,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return null;
     }
 
-    /**
-     * Safely unwrap ContextWrapper to get host Activity
-     */
     private Activity getActivityFromContext(Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) {

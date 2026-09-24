@@ -3,6 +3,7 @@ package com.example.smartgrow.camera;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,14 +18,20 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
 
     private final List<ChatSessionModel> sessionList;
     private final OnSessionClickListener listener;
+    private final OnSessionDeleteListener deleteListener;
 
     public interface OnSessionClickListener {
         void onSessionClick(ChatSessionModel session);
     }
 
-    public AiHistoryAdapter(List<ChatSessionModel> sessionList, OnSessionClickListener listener) {
+    public interface OnSessionDeleteListener {
+        void onSessionDelete(ChatSessionModel session, int position);
+    }
+
+    public AiHistoryAdapter(List<ChatSessionModel> sessionList, OnSessionClickListener listener, OnSessionDeleteListener deleteListener) {
         this.sessionList = sessionList;
         this.listener = listener;
+        this.deleteListener = deleteListener;
     }
 
     @NonNull
@@ -61,6 +68,15 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
                 listener.onSessionClick(session);
             }
         });
+
+        // Delete Listener
+        if (holder.ivDeleteHistory != null) {
+            holder.ivDeleteHistory.setOnClickListener(v -> {
+                if (deleteListener != null) {
+                    deleteListener.onSessionDelete(session, holder.getAdapterPosition());
+                }
+            });
+        }
     }
 
     @Override
@@ -71,11 +87,13 @@ public class AiHistoryAdapter extends RecyclerView.Adapter<AiHistoryAdapter.View
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvHistoryTitle;
         TextView tvHistoryDate;
+        ImageView ivDeleteHistory;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvHistoryTitle = itemView.findViewById(R.id.tv_history_title);
-            tvHistoryDate = itemView.findViewById(R.id.tv_history_date); // Optional ID in XML
+            tvHistoryDate = itemView.findViewById(R.id.tv_history_date);
+            ivDeleteHistory = itemView.findViewById(R.id.iv_delete_history);
         }
     }
 }
