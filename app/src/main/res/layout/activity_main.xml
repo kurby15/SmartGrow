@@ -4,129 +4,135 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/header_background">
+    android:background="@color/app_background">
 
-    <!-- TOP HEADER -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_top_header"
+    <!-- MODERN TOP HEADER WITH SHADOW -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_top_header"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:background="@color/header_background"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="12dp"
+        android:layout_height="wrap_content"
+        app:cardElevation="8dp"
+        app:cardCornerRadius="0dp"
+        app:cardBackgroundColor="@color/header_background"
+        app:strokeWidth="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintStart_toStartOf="parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_top_header"
+            android:layout_width="match_parent"
+            android:layout_height="75dp"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp">
 
-            <ImageView
-                android:id="@+id/img_header_logo"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/smartgrow_logo"
-                app:tint="@color/primary_green"/>
-
-            <TextView
-                android:id="@+id/tv_header_brand_name"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SmartGrow"
-                android:textColor="@color/primary_green"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/inter_extrabold"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_action_global"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="4dp"
-                app:cardCornerRadius="19dp"
-                app:cardElevation="3dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:strokeWidth="0dp">
                 <ImageView
-                    android:id="@+id/img_icon_global"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_global_green"
+                    android:id="@+id/img_header_logo"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/smartgrow_logo"
                     app:tint="@color/primary_green"/>
-            </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_action_profile"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="4dp"
-                app:cardCornerRadius="19dp"
-                app:cardElevation="3dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:strokeWidth="0dp">
-                <ImageView
-                    android:id="@+id/img_icon_profile"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_profile_avatar"
-                    app:tint="@color/primary_green"/>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/tv_header_brand_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SmartGrow"
+                    android:textColor="@color/primary_green"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/inter_extrabold"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
 
-    <!-- TOP GRAY LINE -->
-    <View
-        android:id="@+id/view_header_shadow"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        app:layout_constraintTop_toBottomOf="@id/layout_top_header"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_action_global"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginHorizontal="4dp"
+                    app:cardCornerRadius="19dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/card_background"
+                    app:strokeWidth="0dp">
+                    <ImageView
+                        android:id="@+id/img_icon_global"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_global_green"
+                        app:tint="@color/primary_green"/>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_action_profile"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginHorizontal="4dp"
+                    app:cardCornerRadius="19dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/card_background"
+                    app:strokeWidth="0dp">
+                    <ImageView
+                        android:id="@+id/img_icon_profile"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_profile_avatar"
+                        app:tint="@color/primary_green"/>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- FRAGMENT CONTAINER -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/view_header_shadow" />
+        app:layout_constraintTop_toBottomOf="@id/card_top_header" />
 
-    <!-- BOTTOM GRAY LINE -->
-    <View
-        android:id="@+id/view_nav_shadow"
+    <!-- MODERN FLOATING BOTTOM NAVIGATION (FLUTTER UI STYLE) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_bottom_nav_container"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"/>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_bar"
-        android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:background="@color/header_background"
-        app:elevation="0dp"
-        app:labelVisibilityMode="unlabeled"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/selector_nav_colors"
-        app:itemIconSize="26dp"
-        app:itemActiveIndicatorStyle="@style/CustomNavIndicator"
-        app:itemRippleColor="#200C6211"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="@color/header_background"
+        app:strokeWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation_bar"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:labelVisibilityMode="unlabeled"
+            app:menu="@menu/bottom_nav_menu"
+            app:itemIconTint="@color/selector_nav_colors"
+            app:itemIconSize="26dp"
+            app:itemActiveIndicatorStyle="@style/CustomNavIndicator"
+            app:itemRippleColor="#200C6211" />
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

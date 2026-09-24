@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.github.com/tools">
 
     <style name="Base.Theme.SmartGrow" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/app_background</item>
@@ -15,9 +15,17 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
+
+        <!-- Modern Popup Menu Customization -->
+        <item name="popupMenuStyle">@style/ModernPopupMenuStyle</item>
     </style>
 
     <style name="Theme.SmartGrow" parent="Base.Theme.SmartGrow" />
+
+    <!-- Modern Popup Menu Style with Pure White Background and Shadow -->
+    <style name="ModernPopupMenuStyle" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@android:color/white</item>
+    </style>
 
     <!-- Navigation Fix: Removes the pill background (indicator) that hides icons on some phones -->
     <style name="CustomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">

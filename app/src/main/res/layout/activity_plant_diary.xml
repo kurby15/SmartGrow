@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:tools="http://schemas.github.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
     <!-- TOP IMAGE COLLAGE GRID CONTAINER -->
     <RelativeLayout
@@ -187,7 +195,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
-                tools:text="Status: Healthy" />
+                tools:text="Status" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -206,7 +214,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
-                tools:text="Health: 95%" />
+                tools:text="Health" />
         </LinearLayout>
 
         <!-- Also known as -->
@@ -221,7 +229,7 @@
             tools:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass" />
     </LinearLayout>
 
-    <!-- CUSTOM TABS (Plant Info, Schedule, History) -->
+    <!-- CUSTOM TABS (Plant Info, Schedule, History) WITH MODERN FLOATING SHADOW -->
     <LinearLayout
         android:id="@+id/layout_custom_tabs"
         android:layout_width="match_parent"
@@ -229,50 +237,80 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
+        android:paddingVertical="10dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/layout_header_details">
 
         <!-- Plant Info Tab (Active by default) -->
-        <TextView
-            android:id="@+id/btn_tab_plant_info"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_tab_plant_info"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="6dp"
+            android:layout_height="42dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_pill_active"
-            android:fontFamily="@font/inter_extrabold"
-            android:gravity="center"
-            android:text="Plant Info"
-            android:textColor="@color/white"
-            android:textSize="13sp" />
+            android:layout_marginEnd="5dp"
+            app:cardCornerRadius="21dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/primary_green">
+
+            <TextView
+                android:id="@+id/btn_tab_plant_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/inter_extrabold"
+                android:gravity="center"
+                android:text="Plant Info"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Schedule Tab (Inactive by default) -->
-        <TextView
-            android:id="@+id/btn_tab_schedule"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_tab_schedule"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginHorizontal="6dp"
+            android:layout_height="42dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_inactive_pill"
-            android:fontFamily="@font/inter_extrabold"
-            android:gravity="center"
-            android:text="Schedule"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+            android:layout_marginHorizontal="5dp"
+            app:cardCornerRadius="21dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/card_background">
+
+            <TextView
+                android:id="@+id/btn_tab_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/inter_extrabold"
+                android:gravity="center"
+                android:text="Schedule"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- History Tab (Inactive by default) -->
-        <TextView
-            android:id="@+id/btn_tab_history"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_tab_history"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
+            android:layout_height="42dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_inactive_pill"
-            android:fontFamily="@font/inter_extrabold"
-            android:gravity="center"
-            android:text="History"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+            android:layout_marginStart="5dp"
+            app:cardCornerRadius="21dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/card_background">
+
+            <TextView
+                android:id="@+id/btn_tab_history"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/inter_extrabold"
+                android:gravity="center"
+                android:text="History"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 
     <androidx.viewpager2.widget.ViewPager2

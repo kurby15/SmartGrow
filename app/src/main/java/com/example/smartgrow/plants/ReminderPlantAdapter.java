@@ -10,8 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.example.smartgrow.R;
 import java.util.List;
 
@@ -58,10 +59,19 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
             holder.ivPlantThumb.setImageResource(R.drawable.img_9);
         }
 
-        if (selectedPosition == holder.getAdapterPosition()) {
-            holder.itemView.setBackgroundResource(R.drawable.bg_selected_card);
-        } else {
-            holder.itemView.setBackgroundResource(R.drawable.bg_default_card);
+        // Final Fix for Dark Mode: Use the view's context to resolve theme colors correctly
+        Context themedContext = holder.itemView.getContext();
+        if (holder.itemView instanceof MaterialCardView) {
+            MaterialCardView cardView = (MaterialCardView) holder.itemView;
+            if (selectedPosition == holder.getAdapterPosition()) {
+                cardView.setCardBackgroundColor(ContextCompat.getColor(themedContext, R.color.bg_selected_card));
+                cardView.setCardElevation(12f);
+            } else {
+                // Ito ang magpapakulay ng dark grey/green sa gabi base sa values-night/colors.xml
+                cardView.setCardBackgroundColor(ContextCompat.getColor(themedContext, R.color.card_background));
+                cardView.setCardElevation(4f);
+            }
+            cardView.setStrokeWidth(0); 
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -76,10 +86,8 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
         });
 
         holder.ibMore.setOnClickListener(v -> {
-            android.widget.PopupMenu popup = new android.widget.PopupMenu(context, v);
-
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(themedContext, v);
             popup.getMenuInflater().inflate(R.menu.reminder_options_menu, popup.getMenu());
-
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.action_remove) {
                     if (listener != null) {
@@ -89,7 +97,6 @@ public class ReminderPlantAdapter extends RecyclerView.Adapter<ReminderPlantAdap
                 }
                 return false;
             });
-
             popup.show();
         });
     }

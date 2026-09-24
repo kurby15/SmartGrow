@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="app_background">#E8F5E9</color>
-    <color name="header_background">#F0F4F1</color>
+    <color name="app_background">#F5FFF8</color>
+    <color name="header_background">#FAFBFA</color>
     <color name="primary_green">#1e4620</color>
     <color name="text_primary">#1A2E22</color>
     <color name="text_secondary">#52705D</color>
@@ -10,7 +10,7 @@
     <color name="divider">#CCCCCC</color>
     <color name="surface_translucent">#80FFFFFF</color>
     <color name="white">#FFFFFF</color>
-    <color name="background">#E8F5E9</color>
+    <color name="background">#F5FFF8</color>
     <color name="ic_theme_tint">#1e4620</color>
     <color name="profile_title_color">#1e4620</color>
     <color name="profile_subtitle_color">#738173</color>
@@ -21,7 +21,4 @@
     <color name="label_to_water">#0288D1</color>
     <color name="label_to_fertilize">#E65100</color>
     <color name="label_sunlight">#F57C00</color>
-
-
-
 </resources>

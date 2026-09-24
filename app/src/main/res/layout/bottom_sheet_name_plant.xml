@@ -64,11 +64,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="2dp"
         app:cardBackgroundColor="@color/app_background"
         app:cardCornerRadius="26dp"
-        app:cardElevation="0dp"
-        app:strokeColor="@color/divider"
-        app:strokeWidth="1dp"
+        app:cardElevation="5dp"
+        app:strokeWidth="0dp"
         app:layout_constraintTop_toBottomOf="@id/layout_title_bar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -76,36 +76,52 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
-            <EditText
-                android:id="@+id/etPlantName"
+            <!-- Modern Card Wrapper para magkaroon ng malinis na Shadow ang EditText -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_et_container"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_edit_text"
-                android:backgroundTint="@color/profile_card_bg"
-                android:fontFamily="@font/inter_medium"
-                android:hint="Give the plant a name"
-                android:importantForAutofill="no"
-                android:inputType="textCapWords"
-                android:paddingHorizontal="12dp"
-                android:textColor="@color/profile_title_color"
-                android:textColorHint="@color/text_secondary"
-                android:textSize="14sp"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="4dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <EditText
+                    android:id="@+id/etPlantName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/inter_medium"
+                    android:hint="Give the plant a name"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapWords"
+                    android:paddingHorizontal="16dp"
+                    android:textColor="@color/profile_title_color"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tv_card_desc"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:fontFamily="@font/inter_medium"
                 android:text="Only the display name will change; plant information like care guides will remain the same."
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp"
-                app:layout_constraintTop_toBottomOf="@id/etPlantName"
+                app:layout_constraintTop_toBottomOf="@id/card_et_container"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 

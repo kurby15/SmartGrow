@@ -29,6 +29,7 @@ import com.example.smartgrow.R;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.history.SnapHistoryAdapter;
 import com.example.smartgrow.history.SnapHistoryModel;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -48,9 +49,8 @@ import java.util.Map;
 public class MyGardenFragment extends Fragment {
 
     // Header & Navigation Tab Elements
-    private LinearLayout tabMyGarden, tabSnapHistory;
+    private MaterialCardView tabMyGarden, tabSnapHistory;
     private TextView tvTabMyGarden, tvTabSnapHistory;
-    private View indicatorMyGarden, indicatorSnapHistory;
     private ImageButton ibTopMore;
     private EditText etSearchPlants;
     private LinearLayout layoutViewAll;
@@ -172,9 +172,6 @@ public class MyGardenFragment extends Fragment {
 
         tvTabMyGarden = view.findViewById(R.id.tv_tab_my_garden);
         tvTabSnapHistory = view.findViewById(R.id.tv_tab_snap_history);
-
-        indicatorMyGarden = view.findViewById(R.id.indicator_my_garden);
-        indicatorSnapHistory = view.findViewById(R.id.indicator_snap_history);
 
         tvStatPlantsCount = view.findViewById(R.id.tv_stat_plants_count);
         tvStatScannedCount = view.findViewById(R.id.tv_stat_scanned_count);
@@ -901,16 +898,22 @@ public class MyGardenFragment extends Fragment {
 
     private void updateTabIcons(boolean isMyGardenActive) {
         if (tabMyGarden != null) {
-            ImageView imgGarden = (ImageView) tabMyGarden.getChildAt(0);
-            if (imgGarden != null) {
-                imgGarden.setColorFilter(isMyGardenActive ? Color.parseColor("#FFFFFF") : Color.parseColor("#2E4336"));
+            View container = tabMyGarden.getChildAt(0);
+            if (container instanceof LinearLayout) {
+                View imgGarden = ((LinearLayout) container).getChildAt(0);
+                if (imgGarden instanceof ImageView) {
+                    ((ImageView) imgGarden).setColorFilter(isMyGardenActive ? Color.parseColor("#FFFFFF") : Color.parseColor("#2E4336"));
+                }
             }
         }
 
         if (tabSnapHistory != null) {
-            ImageView imgHistory = (ImageView) tabSnapHistory.getChildAt(0);
-            if (imgHistory != null) {
-                imgHistory.setColorFilter(isMyGardenActive ? Color.parseColor("#2E4336") : Color.parseColor("#FFFFFF"));
+            View container = tabSnapHistory.getChildAt(0);
+            if (container instanceof LinearLayout) {
+                View imgHistory = ((LinearLayout) container).getChildAt(0);
+                if (imgHistory instanceof ImageView) {
+                    ((ImageView) imgHistory).setColorFilter(isMyGardenActive ? Color.parseColor("#2E4336") : Color.parseColor("#FFFFFF"));
+                }
             }
         }
     }

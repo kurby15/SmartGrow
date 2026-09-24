@@ -158,7 +158,6 @@ public class PlantDiaryActivity extends AppCompatActivity {
     private JSONArray commonProblemsArray = null;
     private Bitmap scannedBitmap;
     private String mRawAnalysisJson = null;
-    private String plantBase64Image = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -205,13 +204,10 @@ public class PlantDiaryActivity extends AppCompatActivity {
         }
 
         btnPlantAiChat.setOnClickListener(v -> {
-            String plantNameStr = tvPlantTitle.getText().toString();
+            String plantName = tvPlantTitle.getText().toString();
 
             Intent intent = new Intent(PlantDiaryActivity.this, AIChatActivity.class);
-            intent.putExtra(AIChatActivity.EXTRA_PLANT_NAME, plantNameStr);
-            if (plantBase64Image != null) {
-                intent.putExtra(AIChatActivity.EXTRA_IMAGE_BASE64, plantBase64Image);
-            }
+            intent.putExtra("EXTRA_PLANT_NAME", plantName);
             startActivity(intent);
         });
     }
@@ -393,7 +389,6 @@ public class PlantDiaryActivity extends AppCompatActivity {
 
                         // Base64 Image Decoding
                         String base64Image = documentSnapshot.getString("imageBase64");
-                        plantBase64Image = base64Image;
                         if (base64Image != null && !base64Image.isEmpty()) {
                             try {
                                 byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);

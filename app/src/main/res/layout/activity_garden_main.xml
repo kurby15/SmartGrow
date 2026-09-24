@@ -23,23 +23,114 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="20dp"
             android:text="Plant Diary"
             android:textColor="@color/primary_green"
             android:textSize="21sp"
             android:textStyle="bold"
             android:fontFamily="@font/inter_extrabold"/>
 
-        <!-- Search Input Bar (As Card) -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Top Navigation Tabs (MODERN FLOATING PILLS) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Tab 1: My Garden (Active) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tab_my_garden"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/primary_green"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_tp"
+                        app:tint="@android:color/white"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tv_tab_my_garden"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Garden"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="@font/inter_extrabold"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tab 2: Scan History (Inactive) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tab_snap_history"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_scan_history"
+                        app:tint="@color/primary_green"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tv_tab_snap_history"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Scan History"
+                        android:textColor="@color/primary_green"
+                        android:textSize="13sp"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="@font/inter_extrabold"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Search Input Bar (Original Stable Version) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="20dp"
             android:layout_marginHorizontal="2dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="4dp"
             app:strokeWidth="0dp"
-            app:cardBackgroundColor="@color/card_background"
+            app:cardBackgroundColor="@android:color/white"
             android:clipChildren="false"
             android:clipToPadding="false">
 
@@ -48,7 +139,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                android:paddingHorizontal="20dp">
 
                 <ImageView
                     android:layout_width="20dp"
@@ -70,87 +161,9 @@
                     android:maxLines="1"
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_secondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <!-- Top Navigation Tabs -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:layout_marginBottom="16dp"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <!-- Tab 1: My Garden -->
-            <LinearLayout
-                android:id="@+id/tab_my_garden"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:background="@drawable/bg_active_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="6dp"
-                    android:src="@drawable/ic_my_garden"
-                    app:tint="@android:color/white"
-                    tools:ignore="ContentDescription" />
-
-                <TextView
-                    android:id="@+id/tv_tab_my_garden"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:text="My Garden"
-                    android:textColor="@android:color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/inter_extrabold"/>
-            </LinearLayout>
-
-            <!-- Tab 2: Scan History -->
-            <LinearLayout
-                android:id="@+id/tab_snap_history"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_inactive_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/ic_scan_history"
-                    app:tint="@color/text_primary"
-                    tools:ignore="ContentDescription" />
-
-                <TextView
-                    android:id="@+id/tv_tab_snap_history"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:text="Scan History"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/inter_extrabold"/>
-            </LinearLayout>
-        </LinearLayout>
 
         <!-- CONTENT SECTION 1: MY GARDEN -->
         <LinearLayout
@@ -174,11 +187,11 @@
                 <!-- Top Row: 2 Cards (Plants, Scanned) -->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="72dp"
+                    android:layout_height="80dp"
                     android:orientation="horizontal"
                     android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="12dp"
                     android:layout_marginHorizontal="2dp"
                     android:baselineAligned="false"
                     android:weightSum="2">
@@ -188,9 +201,9 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="4dp"
                         app:strokeWidth="0dp"
                         app:cardBackgroundColor="@color/card_background">
 
@@ -198,8 +211,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="8dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_stat_plants_count"
@@ -207,7 +219,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textColor="@color/text_primary"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_extrabold"/>
 
@@ -216,7 +228,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Plants"
                                 android:textColor="@color/label_plants"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_medium"/>
                         </LinearLayout>
@@ -227,9 +239,9 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="4dp"
                         app:strokeWidth="0dp"
                         app:cardBackgroundColor="@color/card_background">
 
@@ -237,8 +249,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="8dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_stat_scanned_count"
@@ -246,7 +257,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textColor="@color/text_primary"
-                                android:textSize="18sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_extrabold"/>
 
@@ -255,7 +266,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Scanned"
                                 android:textColor="@color/label_scanned"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_medium"/>
                         </LinearLayout>
@@ -265,10 +276,10 @@
                 <!-- Bottom Row: 3 Items inside ONE Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="72dp"
+                    android:layout_height="80dp"
                     android:layout_marginHorizontal="2dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="3dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
                     app:strokeWidth="0dp"
                     app:cardBackgroundColor="@color/card_background">
 
@@ -284,9 +295,8 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:layout_height="72dp"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="8dp">
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_stat_to_water_count"
@@ -295,17 +305,16 @@
                                 android:fontFamily="@font/inter_extrabold"
                                 android:text="0"
                                 android:textColor="@color/text_primary"
-                                android:textSize="18sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/inter_medium"
-                                android:maxLines="1"
                                 android:text="To Water"
                                 android:textColor="@color/label_to_water"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
@@ -318,11 +327,10 @@
                         <!-- Item 2: To Fertilize -->
                         <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="72dp"
+                            android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="4dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_stat_to_fertilize_count"
@@ -331,7 +339,7 @@
                                 android:fontFamily="@font/inter_extrabold"
                                 android:text="0"
                                 android:textColor="@color/text_primary"
-                                android:textSize="18sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -339,9 +347,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="To Fertilize"
                                 android:textColor="@color/label_to_fertilize"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
-                                android:maxLines="1"
                                 android:fontFamily="@font/inter_medium"/>
                         </LinearLayout>
 
@@ -354,11 +361,10 @@
                         <!-- Item 3: Sunlight -->
                         <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="72dp"
+                            android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="4dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_stat_to_sunlight_count"
@@ -366,7 +372,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textColor="@color/text_primary"
-                                android:textSize="18sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_extrabold"/>
 
@@ -375,14 +381,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="Sunlight"
                                 android:textColor="@color/label_sunlight"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
-                                android:maxLines="1"
                                 android:fontFamily="@font/inter_medium"/>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
+
             <!-- My Plants Section Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -390,7 +396,7 @@
                 android:layout_marginBottom="16dp"
                 android:layout_marginHorizontal="2dp"
                 app:cardCornerRadius="22dp"
-                app:cardElevation="3dp"
+                app:cardElevation="5dp"
                 app:strokeWidth="0dp"
                 app:cardBackgroundColor="@color/card_background"
                 android:clipChildren="false"
@@ -400,15 +406,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="16dp"
-                    android:paddingHorizontal="16dp">
+                    android:paddingTop="16dp"
+                    android:paddingBottom="20dp"
+                    android:paddingHorizontal="20dp">
 
                     <!-- Section Header Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="12dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -418,7 +424,7 @@
                             android:layout_weight="1"
                             android:text="My Plants"
                             android:textColor="@color/primary_green"
-                            android:textSize="15sp"
+                            android:textSize="17sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/inter_extrabold"/>
 
@@ -431,14 +437,14 @@
                             android:gravity="center_vertical"
                             android:background="?attr/selectableItemBackground"
                             android:paddingVertical="4dp"
-                            android:paddingHorizontal="4dp">
+                            android:paddingHorizontal="8dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="View all"
                                 android:textColor="@color/primary_green"
-                                android:textSize="10sp"
+                                android:textSize="12sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/inter_semibold"/>
                         </LinearLayout>
@@ -448,11 +454,11 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_plant_list"
                         android:layout_width="match_parent"
-                        android:layout_height="270dp"
+                        android:layout_height="280dp"
                         android:nestedScrollingEnabled="true"
                         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                         app:spanCount="2"
-                        tools:itemCount="4" />
+                        tools:listitem="@layout/item_my_garden_plant_card" />
 
                     <LinearLayout
                         android:id="@+id/layout_empty_plants"
@@ -467,7 +473,7 @@
                             android:layout_height="wrap_content"
                             android:text="No plants added yet"
                             android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
+                            android:textSize="13sp"
                             android:fontFamily="@font/inter_semibold"/>
                     </LinearLayout>
                 </LinearLayout>
@@ -483,18 +489,6 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <EditText
-                android:id="@+id/et_search_history"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_expiration_banner"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone" />
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_snap_history_list"
                 android:layout_width="match_parent"
@@ -502,7 +496,8 @@
                 android:nestedScrollingEnabled="false"
                 android:clipToPadding="false"
                 android:paddingBottom="16dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_snap_history" />
 
         </LinearLayout>
 

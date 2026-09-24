@@ -170,6 +170,8 @@ public class PlantNameBottomSheetFragment extends BottomSheetDialogFragment {
         if (chipGroup == null || getContext() == null) return;
 
         chipGroup.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+
         for (String name : suggestions) {
             if (name == null || name.trim().isEmpty()) continue;
 
@@ -178,7 +180,8 @@ public class PlantNameBottomSheetFragment extends BottomSheetDialogFragment {
                 cleanName = cleanName.substring(0, cleanName.indexOf("(")).trim();
             }
 
-            Chip chip = new Chip(getContext());
+            // Inflate our modern custom chip layout instead of creating a plain default generic one
+            Chip chip = (Chip) inflater.inflate(R.layout.item_suggestion_chip, chipGroup, false);
             chip.setText(cleanName);
             chip.setCheckable(false);
             chip.setClickable(true);
