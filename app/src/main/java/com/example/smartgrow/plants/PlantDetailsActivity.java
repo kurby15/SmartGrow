@@ -77,7 +77,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
     private View tabOverview, tabCare, tabExplore;
 
     // UI Elements - Images & Map
-    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker;
+    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker, btnPlantAiChat;
     private MapView mapView;
     private GoogleMap googleMap;
 
@@ -212,6 +212,19 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         if (ibBack != null) ibBack.setOnClickListener(v -> finish());
         if (ibSpeaker != null) ibSpeaker.setOnClickListener(v -> speakPlantPronunciation());
+        
+        // Setup AI Chatbot Click Listener
+        if (btnPlantAiChat != null) {
+            btnPlantAiChat.setOnClickListener(v -> {
+                Intent intent = new Intent(PlantDetailsActivity.this, AIChatActivity.class);
+                if (scannedBitmap != null) {
+                    intent.putExtra(AIChatActivity.EXTRA_IMAGE_BASE64, encodeBitmapToBase64(scannedBitmap));
+                }
+                intent.putExtra(AIChatActivity.EXTRA_PLANT_NAME, plantName);
+                startActivity(intent);
+            });
+        }
+
         if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setOnClickListener(v -> savePlantToDiary());
         if (btnInlineSave != null) btnInlineSave.setOnClickListener(v -> savePlantToDiary());
 
@@ -285,6 +298,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         btnSaveToGardenBottom = findViewById(R.id.btn_save_to_garden_bottom);
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
+        btnPlantAiChat = findViewById(R.id.btn_plant_ai_chat);
     }
 
     private void setupNavigationTabs() {

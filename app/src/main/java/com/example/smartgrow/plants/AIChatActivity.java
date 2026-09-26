@@ -332,16 +332,8 @@ public class AIChatActivity extends AppCompatActivity {
                             return;
                         }
 
-                        lastAnalyzedPlantProfile = formattedResult;
-                        String cleanedResult = cleanAiResponseText(formattedResult);
-
-                        ArrayList<String> suggestions = new ArrayList<>();
-                        suggestions.add("What are its watering needs?");
-                        suggestions.add("How much sunlight does it need?");
-                        suggestions.add("Common diseases and treatments?");
-                        suggestions.add("Walk through into SmartGrow");
-
-                        ChatMessageModel aiMsg = new ChatMessageModel(cleanedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                        ChatMessageModel aiMsg = new ChatMessageModel(formattedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                        ArrayList<String> suggestions = new ArrayList<>(PlantAnalyzer.extractPlantSuggestionsFromRawJson(rawJson));
                         aiMsg.setFollowUpSuggestions(suggestions);
 
                         chatList.add(aiMsg);

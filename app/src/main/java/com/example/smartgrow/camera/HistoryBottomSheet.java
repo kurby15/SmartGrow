@@ -97,7 +97,7 @@ public class HistoryBottomSheet extends BottomSheetDialogFragment {
 
         if (rvHistory != null) {
             rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
-            rvHistory.setHasFixedSize(true);
+            rvHistory.setHasFixedSize(false);
         }
 
         loadHistoryFromFirestore();

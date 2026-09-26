@@ -8,13 +8,14 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .idea/shelf
-.idea/assetWizardSettings.xml
 .DS_Store
 
 # Build outputs
 /build
 /app/build
+/app/release/
 /captures
+*.apk
 
 # Native build
 .externalNativeBuild

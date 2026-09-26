@@ -58,8 +58,10 @@ public class TodoListBottomSheet extends BottomSheetDialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         rvTasks = view.findViewById(R.id.rv_todo_tasks_list);
-        rvTasks.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvTasks.setHasFixedSize(true);
-        rvTasks.setNestedScrollingEnabled(false);
+        if (rvTasks != null) {
+            rvTasks.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvTasks.setHasFixedSize(false);
+            rvTasks.setNestedScrollingEnabled(false);
+        }
     }
 }

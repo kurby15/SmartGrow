@@ -118,6 +118,8 @@ public class PlantDiaryActivity extends AppCompatActivity {
     private double mapLat = 14.5995;
     private double mapLng = 120.9842;
 
+    private String plantImageBase64 = null;
+
     private static class MapLocation {
         double lat;
         double lng;
@@ -207,7 +209,10 @@ public class PlantDiaryActivity extends AppCompatActivity {
             String plantName = tvPlantTitle.getText().toString();
 
             Intent intent = new Intent(PlantDiaryActivity.this, AIChatActivity.class);
-            intent.putExtra("EXTRA_PLANT_NAME", plantName);
+            intent.putExtra(AIChatActivity.EXTRA_PLANT_NAME, plantName);
+            if (plantImageBase64 != null) {
+                intent.putExtra(AIChatActivity.EXTRA_IMAGE_BASE64, plantImageBase64);
+            }
             startActivity(intent);
         });
     }
@@ -388,10 +393,10 @@ public class PlantDiaryActivity extends AppCompatActivity {
                         }
 
                         // Base64 Image Decoding
-                        String base64Image = documentSnapshot.getString("imageBase64");
-                        if (base64Image != null && !base64Image.isEmpty()) {
+                        plantImageBase64 = documentSnapshot.getString("imageBase64");
+                        if (plantImageBase64 != null && !plantImageBase64.isEmpty()) {
                             try {
-                                byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);
+                                byte[] decodedBytes = Base64.decode(plantImageBase64, Base64.DEFAULT);
                                 scannedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
                             } catch (Exception ex) {
                                 Log.e(TAG, "Error decoding base64 image", ex);
