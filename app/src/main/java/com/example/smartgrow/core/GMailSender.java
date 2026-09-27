@@ -13,9 +13,8 @@ import javax.mail.internet.MimeMessage;
 
 public class GMailSender {
 
-
-    private static final String SENDER_EMAIL = "29ljdiodos@gmail.com";
-    private static final String SENDER_PASSWORD = "docnhhjfclpbfyiz";
+    private static final String SENDER_EMAIL = "supportsmartgrow@gmail.com";
+    private static final String SENDER_PASSWORD = "soct tvbn tsfj byfd";
 
     public interface EmailListener {
         void onSuccess();
