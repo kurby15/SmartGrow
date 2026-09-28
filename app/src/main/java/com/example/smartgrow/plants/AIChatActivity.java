@@ -12,6 +12,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -68,7 +70,7 @@ public class AIChatActivity extends AppCompatActivity {
 
     // Preview image views & pending bitmap state
     private View layoutImagePreviewContainer;
-    private ImageView ivPreviewSelectedImage;
+    private ImageView ivPreviewSelectedImage, ivPLantBot;
     private Bitmap pendingImageBitmap = null;
 
     private ArrayList<ChatMessageModel> chatList;
@@ -127,6 +129,30 @@ public class AIChatActivity extends AppCompatActivity {
                 }
             }
         }
+        ImageView ivPlantBot = findViewById(R.id.ivSproutAI);
+
+        int[] botFrames = {
+                R.drawable.bot_welcoming,
+                R.drawable.bot_smiling,
+                R.drawable.bot_mad,
+                R.drawable.bot_shy,
+                R.drawable.bot_feeling,
+                R.drawable.bot_curious
+        };
+
+        final int[] currentIndex = {0};
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Runnable animateMascotTask = new Runnable() {
+            @Override
+            public void run() {
+                currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
+                ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                handler.postDelayed(this, 2500);
+            }
+        };
+
+        handler.postDelayed(animateMascotTask, 2500);
     }
 
     private void initViews() {
@@ -504,7 +530,7 @@ public class AIChatActivity extends AppCompatActivity {
         ArrayList<String> welcomeSuggestions = new ArrayList<>();
         welcomeSuggestions.add("Walk through into SmartGrow");
         welcomeSuggestions.add("How do I scan a plant?");
-        ChatMessageModel welcomeMessage = new ChatMessageModel("Hi! I'm SmartGrow AI. How can I help you today?", getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+        ChatMessageModel welcomeMessage = new ChatMessageModel("Hi! I'm SproutAI. How can I help you today?", getCurrentPhTime(), ChatMessageModel.TYPE_AI);
         welcomeMessage.setFollowUpSuggestions(welcomeSuggestions);
         chatList.add(welcomeMessage);
     }

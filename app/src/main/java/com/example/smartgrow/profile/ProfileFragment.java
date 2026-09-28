@@ -114,7 +114,6 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         tvFullName = view.findViewById(R.id.tv_user_display_name);
-        tvRank = view.findViewById(R.id.tv_user_rank);
 
         ivProfilePic = view.findViewById(R.id.iv_profile_pic);
         btnCameraBadge = view.findViewById(R.id.btn_camera_badge);

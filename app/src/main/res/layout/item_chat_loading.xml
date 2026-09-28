@@ -16,11 +16,10 @@
         app:cardBackgroundColor="@color/divider"
         app:strokeWidth="0dp">
         <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/smartgrow_logo"
-            android:layout_gravity="center"
-            app:tint="#1e4620"/>
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/bot_welcoming"
+            android:layout_gravity="center"/>
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
@@ -52,7 +51,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SmartGrow is analyzing..."
+                    android:text="SproutAI is analyzing..."
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="italic"

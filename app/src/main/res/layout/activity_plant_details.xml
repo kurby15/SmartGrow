@@ -109,59 +109,64 @@
 
             </RelativeLayout>
 
-            <!-- TITLE & SCIENTIFIC NAME -->
-            <LinearLayout
+            <!-- TITLE & SCIENTIFIC NAME HEADER  -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_header_details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="20dp">
+                android:paddingTop="20dp"
+                app:layout_constraintTop_toBottomOf="@id/layout_top_images">
 
-                <!-- Katabi ng Pangalan ng Halaman ang AI Chat Icon -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Plant Title -->
+                <TextView
+                    android:id="@+id/tv_plant_title"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginEnd="12dp"
+                    android:fontFamily="@font/inter_extrabold"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/primary_green"
+                    android:textSize="24sp"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintEnd_toStartOf="@id/btn_plant_ai_chat"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Goosegrass" />
 
-                    <TextView
-                        android:id="@+id/tv_plant_title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textColor="@color/primary_green"
-                        android:textSize="24sp"
-                        android:fontFamily="@font/inter_extrabold"
-                        tools:text="Goosegrass" />
+                <!-- AI Chat Button (Naka-angkla sa title para hindi nag-uurong) -->
+                <ImageView
+                    android:id="@+id/btn_plant_ai_chat"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="Chat with AI about this plant"
+                    android:focusable="true"
+                    android:src="@drawable/bot_welcoming"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_plant_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tv_plant_title" />
 
-                    <ImageView
-                        android:id="@+id/btn_plant_ai_chat"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:contentDescription="Chat with AI about this plant"
-                        android:src="@drawable/ic_a_i_chat"
-                        app:tint="@color/primary_green" />
-
-                </LinearLayout>
-
+                <!-- Scientific Name & Speaker Row -->
                 <LinearLayout
+                    android:id="@+id/layout_scientific"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_plant_title">
 
                     <TextView
                         android:id="@+id/tv_scientific_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_light_italic"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
-                        android:fontFamily="@font/inter_light_italic"
                         tools:text="Eleusine indica" />
 
                     <ImageView
@@ -174,16 +179,20 @@
                         app:tint="#81C784" />
                 </LinearLayout>
 
+                <!-- Aliases / Also known as -->
                 <TextView
                     android:id="@+id/tv_aliases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:fontFamily="@font/inter_medium"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp"
-                    android:fontFamily="@font/inter_medium"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/layout_scientific"
                     tools:text="Also known as: Wiregrass, Crowfoot grass, Yard-grass" />
-            </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -837,8 +846,10 @@
                         android:paddingVertical="8dp">
 
                         <TextView
+                            android:id="@+id/tv_leaf"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
                             android:text="Leaf Type"
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
@@ -849,11 +860,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_toEndOf="@id/tv_leaf"
+                            android:layout_marginStart="16dp"
+                            android:gravity="end|center_vertical"
+                            android:textAlignment="viewEnd"
                             android:textColor="@color/primary_green"
                             android:textSize="11sp"
-                            android:maxLines="2"
-                            android:ellipsize="none"
-                            android:singleLine="false"
+                            android:maxLines="3"
+                            android:ellipsize="end"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Deciduous" />
                     </RelativeLayout>
@@ -869,8 +883,10 @@
                         android:paddingVertical="8dp">
 
                         <TextView
+                            android:id="@+id/tv_plant"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
                             android:text="Planting Time"
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
@@ -881,8 +897,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_toEndOf="@id/tv_plant"
+                            android:layout_marginStart="16dp"
+                            android:gravity="end|center_vertical"
+                            android:textAlignment="viewEnd"
                             android:textColor="@color/primary_green"
                             android:textSize="11sp"
+                            android:maxLines="3"
+                            android:ellipsize="end"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Spring" />
                     </RelativeLayout>

@@ -74,8 +74,8 @@
             app:cardBackgroundColor="@color/profile_card_bg"
             app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            app:strokeColor="@android:color/transparent">
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -115,8 +115,8 @@
             app:cardBackgroundColor="@color/profile_card_bg"
             app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            app:strokeColor="@android:color/transparent">
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -156,8 +156,8 @@
             app:cardBackgroundColor="@color/profile_card_bg"
             app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            app:strokeColor="@android:color/transparent">
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"

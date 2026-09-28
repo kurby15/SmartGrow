@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     android:background="@color/app_background">
 
-    <!-- 1. SCROLLABLE CONTENT (Nasa ilalim para hindi matakpan ang header) -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -109,6 +108,7 @@
 
                     <!-- FAQ Item 1 -->
                     <RelativeLayout
+                        android:id="@+id/card_faq_1"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:background="?attr/selectableItemBackground"
@@ -122,6 +122,8 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_1"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:fontFamily="@font/inter_semibold"
                             android:text="What is SmartGrow and how does it help?"
                             android:textColor="@color/profile_title_color"
@@ -133,6 +135,8 @@
                             android:layout_height="16dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:src="@drawable/ic_next"
                             app:tint="@color/text_secondary"
                             android:contentDescription="Next"/>
@@ -146,6 +150,7 @@
 
                     <!-- FAQ Item 2 -->
                     <RelativeLayout
+                        android:id="@+id/card_faq_2"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:background="?attr/selectableItemBackground"
@@ -159,6 +164,8 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_2"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:fontFamily="@font/inter_semibold"
                             android:text="Are my plant scan records saved automatically?"
                             android:textColor="@color/profile_title_color"
@@ -170,6 +177,8 @@
                             android:layout_height="16dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:src="@drawable/ic_next"
                             app:tint="@color/text_secondary"
                             android:contentDescription="Next"/>
@@ -183,6 +192,7 @@
 
                     <!-- FAQ Item 3 -->
                     <RelativeLayout
+                        android:id="@+id/card_faq_3"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:background="?attr/selectableItemBackground"
@@ -196,6 +206,8 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_3"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:fontFamily="@font/inter_semibold"
                             android:text="Can I delete my posts in the Community Forum?"
                             android:textColor="@color/profile_title_color"
@@ -207,6 +219,8 @@
                             android:layout_height="16dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:src="@drawable/ic_next"
                             app:tint="@color/text_secondary"
                             android:contentDescription="Next"/>
@@ -220,6 +234,7 @@
 
                     <!-- FAQ Item 4 -->
                     <RelativeLayout
+                        android:id="@+id/card_faq_4"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:background="?attr/selectableItemBackground"
@@ -233,6 +248,8 @@
                             android:layout_alignParentStart="true"
                             android:layout_centerInParent="true"
                             android:layout_toStartOf="@id/iv_arrow_4"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:fontFamily="@font/inter_semibold"
                             android:text="Can I use the application while offline?"
                             android:textColor="@color/profile_title_color"
@@ -244,6 +261,260 @@
                             android:layout_height="16dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 5 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_5"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_5"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="How do I set up automated care reminders for my plants?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_5"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 6 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_6"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_6"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="How do I add and manage plants in &quot;My Garden&quot;?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_6"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 7 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_7"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_7"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="What should I do if my plant scan image is blurry or yields uncertain results?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_7"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 8 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_8"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_8"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="Can I use SmartGrow offline, and what happens to my saved data?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_8"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 9 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_9"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_9"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="How do I talk to the AI Plant Assistant?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_9"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:src="@drawable/ic_next"
+                            app:tint="@color/text_secondary"
+                            android:contentDescription="Next"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <!-- FAQ Item 10 -->
+                    <RelativeLayout
+                        android:id="@+id/card_faq_10"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@id/iv_arrow_10"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:fontFamily="@font/inter_semibold"
+                            android:text="How does the AI Plant Health Diagnosis work?"
+                            android:textColor="@color/profile_title_color"
+                            android:textSize="10sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_arrow_10"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerInParent="true"
+                            android:clickable="false"
+                            android:focusable="false"
                             android:src="@drawable/ic_next"
                             app:tint="@color/text_secondary"
                             android:contentDescription="Next"/>
@@ -255,7 +526,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 2. FIXED HEADER (Nasa ibabaw na may solid background at naka-center ang title) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -282,13 +552,12 @@
             app:layout_constraintTop_toTopOf="parent"
             android:contentDescription="Go back"/>
 
-        <!-- Screen Title na naka-CENTER sa buong header -->
         <TextView
             android:id="@+id/tv_help_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_extrabold"
-            android:text="Help Center"
+            text="Help Center"
             android:textColor="@color/profile_title_color"
             android:textSize="16sp"
             android:textStyle="bold"

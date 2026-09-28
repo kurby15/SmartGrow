@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -64,7 +66,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
     private View tabOverview, tabCare, tabExplore;
 
     // UI Elements - Images & Map
-    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker, btnPlantAiChat;
+    private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker, ivPlantBot;
     private MapView mapView;
     private GoogleMap googleMap;
 
@@ -205,7 +207,32 @@ public class PlantDiaryActivity extends AppCompatActivity {
             });
         }
 
-        btnPlantAiChat.setOnClickListener(v -> {
+        ImageView ivPlantBot = findViewById(R.id.btn_plant_ai_chat);
+
+        int[] botFrames = {
+                R.drawable.bot_welcoming,
+                R.drawable.bot_smiling,
+                R.drawable.bot_mad,
+                R.drawable.bot_shy,
+                R.drawable.bot_feeling,
+                R.drawable.bot_curious
+        };
+
+        final int[] currentIndex = {0};
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Runnable animateMascotTask = new Runnable() {
+            @Override
+            public void run() {
+                currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
+                ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                handler.postDelayed(this, 2500);
+            }
+        };
+
+        handler.postDelayed(animateMascotTask, 2500);
+
+        ivPlantBot.setOnClickListener(v -> {
             String plantName = tvPlantTitle.getText().toString();
 
             Intent intent = new Intent(PlantDiaryActivity.this, AIChatActivity.class);
@@ -230,7 +257,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
         ivPlantMatch2 = findViewById(R.id.iv_plant_match_2);
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
-        btnPlantAiChat = findViewById(R.id.btn_plant_ai_chat);
+        ivPlantBot = findViewById(R.id.btn_plant_ai_chat);
 
         // Map View
         mapView = findViewById(R.id.map_view);

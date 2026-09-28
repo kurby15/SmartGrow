@@ -38,6 +38,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SharedPrefManager;
+import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -675,4 +676,5 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         }
         dialog.show();
     }
+
 }

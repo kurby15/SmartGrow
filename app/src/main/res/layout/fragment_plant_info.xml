@@ -486,8 +486,10 @@
                         android:paddingVertical="8dp">
 
                         <TextView
+                            android:id="@+id/tv_leaf"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
                             android:text="Leaf Type"
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
@@ -498,11 +500,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_toEndOf="@id/tv_leaf"
+                            android:layout_marginStart="16dp"
+                            android:gravity="end|center_vertical"
+                            android:textAlignment="viewEnd"
                             android:textColor="@color/primary_green"
                             android:textSize="11sp"
-                            android:maxLines="2"
-                            android:ellipsize="none"
-                            android:singleLine="false"
+                            android:maxLines="3"
+                            android:ellipsize="end"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Deciduous" />
                     </RelativeLayout>
@@ -518,8 +523,10 @@
                         android:paddingVertical="8dp">
 
                         <TextView
+                            android:id="@+id/tv_plant"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
                             android:text="Planting Time"
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
@@ -530,8 +537,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_toEndOf="@id/tv_plant"
+                            android:layout_marginStart="16dp"
+                            android:gravity="end|center_vertical"
+                            android:textAlignment="viewEnd"
                             android:textColor="@color/primary_green"
                             android:textSize="11sp"
+                            android:maxLines="3"
+                            android:ellipsize="end"
                             android:fontFamily="@font/inter_extrabold"
                             tools:text="Spring" />
                     </RelativeLayout>

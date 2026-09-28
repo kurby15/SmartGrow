@@ -19,7 +19,7 @@ public class ProblemDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_problem_detail);
 
         // Bind XML views
-        ImageButton ibBack = findViewById(R.id.ib_back);
+        ImageView ibBack = findViewById(R.id.ib_back);
         ImageView ivHeader = findViewById(R.id.iv_header);
         TextView tvTitle = findViewById(R.id.tv_title);
         TextView tvDesc = findViewById(R.id.tv_desc);
