@@ -215,7 +215,6 @@ public class HomeFragment extends Fragment {
         if (text == null || text.isEmpty()) return false;
         String lower = text.toLowerCase().trim();
 
-        // Return false if it matches any common "clean" or "no pest" messages
         if (lower.equals("none detected") ||
                 lower.equals("n/a") ||
                 lower.equals("none") ||
@@ -248,8 +247,6 @@ public class HomeFragment extends Fragment {
 
             boolean hasPest = false;
 
-            // VALIDATION RULE: If health percentage is 20 or above, do not count as pest alert.
-            // Only count if health percentage is strictly below 20.
             if (p.getHealthPercentage() < 20) {
                 hasPest = true;
             } else {
@@ -308,7 +305,6 @@ public class HomeFragment extends Fragment {
                     countedForWater = true;
                 }
 
-                // Handle Fertilizer Task
                 if (fertFreq != null && !"None".equalsIgnoreCase(fertFreq)) {
                     if (isTaskDue(fertFreq, p.getLastFertilizedDate())) {
                         boolean isDone = todayDate.equals(p.getLastFertilizedDate());
@@ -319,7 +315,6 @@ public class HomeFragment extends Fragment {
                     }
                 }
 
-                // Handle Sunlight/Check Task
                 if (sunFreq != null && !"None".equalsIgnoreCase(sunFreq)) {
                     if (isTaskDue(sunFreq, p.getLastCheckedDate())) {
                         boolean isDone = todayDate.equals(p.getLastCheckedDate());
@@ -336,9 +331,7 @@ public class HomeFragment extends Fragment {
                 }
             }
 
-            // Health-based triggers (Health below 50) - Automatically add Water, Fertilizer, and Sunlight tasks
             if (p.getHealthPercentage() < 50) {
-                // 1. Water Task
                 if (!isWateredToday && !waterTaskAdded) {
                     CareTaskModel waterTask = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "⚠️ Low Health: needs water", "Water Now", plantBitmap, "Water");
                     waterTask.setDone(false);
@@ -349,7 +342,6 @@ public class HomeFragment extends Fragment {
                     }
                 }
 
-                // 2. Fertilizer Task
                 if (!todayDate.equals(p.getLastFertilizedDate()) && !fertTaskAdded) {
                     CareTaskModel fertTask = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "⚠️ Low Health: needs nutrients", "Feed Now", plantBitmap, "Fertilize");
                     fertTask.setDone(false);
@@ -357,7 +349,6 @@ public class HomeFragment extends Fragment {
                     fertTaskAdded = true;
                 }
 
-                // 3. Sunlight (Check) Task
                 if (!todayDate.equals(p.getLastCheckedDate()) && !checkTaskAdded) {
                     CareTaskModel sunTask = new CareTaskModel(p.getId(), "Sunlight for " + p.getPlantName(), "⚠️ Low Health: needs sunlight", "Inspect", plantBitmap, "Check");
                     sunTask.setDone(false);
@@ -443,7 +434,6 @@ public class HomeFragment extends Fragment {
             @Override
             public void run() {
                 updateLiveDateTimeAndGreeting();
-                // Check once a minute for midnight reset and preferred time triggers
                 TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
                 Calendar cal = Calendar.getInstance(phTimeZone);
                 if (cal.get(Calendar.SECOND) == 0) {
@@ -478,21 +468,35 @@ public class HomeFragment extends Fragment {
     private void updateMockWeatherEngine() {
         if (!isAdded()) return;
 
-        // 5 Weather Options: Sunny, Cloudy, Partly Cloudy, Light Rain, at Thunderstorm
-        String[] conditions = {"Sunny", "Cloudy", "Partly Cloudy", "Light Rain", "Thunderstorm"};
-        int[] icons = {
-                R.drawable.ic_sunny,
-                R.drawable.ic_cloudy,
-                R.drawable.ic_partly_cloudy,
-                R.drawable.ic_light_rain,
-                R.drawable.ic_thunderstorm
-        };
-
         Random r = new Random();
-        int idx = r.nextInt(conditions.length);
-        String selectedCondition = conditions[idx];
-        int temp = 27 + r.nextInt(6); // 27°C - 32°C
-        int humidity = 50 + r.nextInt(25); // 50% - 74%
+        // Generate a dynamic mock temperature first (ranging from 16°C to 36°C)
+        int temp = 16 + r.nextInt(21); 
+        int humidity;
+        String selectedCondition;
+        int iconResId;
+
+        // Choose condition, icon image, and humidity dynamically based on the temperature
+        if (temp >= 32) {
+            selectedCondition = "Sunny";
+            iconResId = R.drawable.ic_sunny;
+            humidity = 45 + r.nextInt(10); // 45% - 54%
+        } else if (temp >= 27) {
+            selectedCondition = "Partly Cloudy";
+            iconResId = R.drawable.ic_partly_cloudy;
+            humidity = 55 + r.nextInt(10); // 55% - 64%
+        } else if (temp >= 22) {
+            selectedCondition = "Cloudy";
+            iconResId = R.drawable.ic_cloudy;
+            humidity = 65 + r.nextInt(10); // 65% - 74%
+        } else if (temp >= 18) {
+            selectedCondition = "Light Rain";
+            iconResId = R.drawable.ic_light_rain;
+            humidity = 75 + r.nextInt(10); // 75% - 84%
+        } else {
+            selectedCondition = "Thunderstorm";
+            iconResId = R.drawable.ic_thunderstorm;
+            humidity = 85 + r.nextInt(11); // 85% - 95%
+        }
 
         View view = getView();
         if (view != null) {
@@ -503,7 +507,7 @@ public class HomeFragment extends Fragment {
 
             if (tvTemp != null) tvTemp.setText(temp + "°C");
             if (tvDesc != null) tvDesc.setText(selectedCondition + " • Humidity " + humidity + "%");
-            if (ivIcon != null) ivIcon.setImageResource(icons[idx]);
+            if (ivIcon != null) ivIcon.setImageResource(iconResId);
 
             if (tvAdvice != null) {
                 if (selectedCondition.equals("Light Rain") || selectedCondition.equals("Thunderstorm")) {

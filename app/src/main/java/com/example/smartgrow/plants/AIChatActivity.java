@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
@@ -38,6 +39,7 @@ import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
 import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
@@ -67,6 +69,10 @@ public class AIChatActivity extends AppCompatActivity {
     private RecyclerView rvChatMessagesList;
     private EditText etChatInput;
     private ImageButton ibSendMessage;
+
+    // Welcome layout views
+    private LinearLayout layoutCenterWelcome;
+    private MaterialButton btnWelcomeWalkthrough, btnWelcomeScan;
 
     // Preview image views & pending bitmap state
     private View layoutImagePreviewContainer;
@@ -102,12 +108,11 @@ public class AIChatActivity extends AppCompatActivity {
         setupLaunchers();
         setupChatFunctionality();
 
-        // Start a new session or load last one if desired
+        // Start a new session
         startNewChatSession();
 
         // Check for incoming data
         if (getIntent() != null) {
-            // Check for incoming image path
             if (getIntent().hasExtra(EXTRA_IMAGE_PATH)) {
                 String imagePath = getIntent().getStringExtra(EXTRA_IMAGE_PATH);
                 if (imagePath != null && new File(imagePath).exists()) {
@@ -118,7 +123,6 @@ public class AIChatActivity extends AppCompatActivity {
                 }
             }
 
-            // Check for incoming image base64
             if (getIntent().hasExtra(EXTRA_IMAGE_BASE64)) {
                 String base64 = getIntent().getStringExtra(EXTRA_IMAGE_BASE64);
                 if (base64 != null && !base64.isEmpty()) {
@@ -129,8 +133,8 @@ public class AIChatActivity extends AppCompatActivity {
                 }
             }
         }
+        
         ImageView ivPlantBot = findViewById(R.id.ivSproutAI);
-
         int[] botFrames = {
                 R.drawable.bot_welcoming,
                 R.drawable.bot_smiling,
@@ -146,8 +150,10 @@ public class AIChatActivity extends AppCompatActivity {
         Runnable animateMascotTask = new Runnable() {
             @Override
             public void run() {
-                currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
-                ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
+                    currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
+                    ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                }
                 handler.postDelayed(this, 2500);
             }
         };
@@ -162,6 +168,11 @@ public class AIChatActivity extends AppCompatActivity {
         ImageView ibChatAttach = findViewById(R.id.ib_chat_attach);
         ImageView ibBackArrow = findViewById(R.id.ib_back_arrow);
         ImageView ibChatMenu = findViewById(R.id.ib_chat_menu);
+
+        // Welcome layout views
+        layoutCenterWelcome = findViewById(R.id.layout_center_welcome);
+        btnWelcomeWalkthrough = findViewById(R.id.btn_welcome_walkthrough);
+        btnWelcomeScan = findViewById(R.id.btn_welcome_scan);
 
         layoutImagePreviewContainer = findViewById(R.id.layout_image_preview_container);
         ivPreviewSelectedImage = findViewById(R.id.iv_preview_selected_image);
@@ -181,6 +192,14 @@ public class AIChatActivity extends AppCompatActivity {
 
         if (ibChatAttach != null) {
             ibChatAttach.setOnClickListener(this::showAttachMenu);
+        }
+
+        // Welcome layout button actions
+        if (btnWelcomeWalkthrough != null) {
+            btnWelcomeWalkthrough.setOnClickListener(v -> sendChatMessageWithMedia("Walk through into SmartGrow", null));
+        }
+        if (btnWelcomeScan != null) {
+            btnWelcomeScan.setOnClickListener(v -> sendChatMessageWithMedia("How do I scan a plant?", null));
         }
 
         chatList = new ArrayList<>();
@@ -307,7 +326,23 @@ public class AIChatActivity extends AppCompatActivity {
         }
     }
 
+    private void updateUiState() {
+        if (chatList.isEmpty()) {
+            layoutCenterWelcome.setVisibility(View.VISIBLE);
+            rvChatMessagesList.setVisibility(View.GONE);
+        } else {
+            layoutCenterWelcome.setVisibility(View.GONE);
+            rvChatMessagesList.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
+        // Hide welcome layout as soon as interaction starts
+        if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
+            layoutCenterWelcome.setVisibility(View.GONE);
+            rvChatMessagesList.setVisibility(View.VISIBLE);
+        }
+
         if (currentSessionId == null) {
             String title = (messageText != null && !messageText.isEmpty()) ? messageText : "Scanned Plant Image";
             saveSessionToHistory(title);
@@ -519,20 +554,23 @@ public class AIChatActivity extends AppCompatActivity {
 
     private void startNewChatSession() {
         currentSessionId = String.valueOf(System.currentTimeMillis());
-        chatList.clear();
+        if (chatList != null) chatList.clear();
         lastAnalyzedPlantProfile = "";
         clearPendingImage();
-        addDefaultWelcomeMessage();
-        chatAdapter.notifyDataSetChanged();
+        
+        // Show welcome layout
+        if (layoutCenterWelcome != null) {
+            layoutCenterWelcome.setVisibility(View.VISIBLE);
+        }
+        if (rvChatMessagesList != null) {
+            rvChatMessagesList.setVisibility(View.GONE);
+        }
+        
+        if (chatAdapter != null) chatAdapter.notifyDataSetChanged();
     }
 
     private void addDefaultWelcomeMessage() {
-        ArrayList<String> welcomeSuggestions = new ArrayList<>();
-        welcomeSuggestions.add("Walk through into SmartGrow");
-        welcomeSuggestions.add("How do I scan a plant?");
-        ChatMessageModel welcomeMessage = new ChatMessageModel("Hi! I'm SproutAI. How can I help you today?", getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-        welcomeMessage.setFollowUpSuggestions(welcomeSuggestions);
-        chatList.add(welcomeMessage);
+        // Not used now since we show the welcome layout instead
     }
 
     private void showHistoryBottomSheetDialog() {
@@ -567,7 +605,10 @@ public class AIChatActivity extends AppCompatActivity {
                     }
                 }
             }
-            if (chatList.isEmpty()) addDefaultWelcomeMessage();
+            
+            // Toggle visibility based on content
+            updateUiState();
+            
             chatAdapter.notifyDataSetChanged();
             rvChatMessagesList.scrollToPosition(chatList.size() - 1);
         });

@@ -308,7 +308,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 String content = etContent != null ? etContent.getText().toString().trim() : "";
                 if (content.isEmpty() && selectedImageUri == null) return;
                 if (ProfanityFilter.hasProfanity(content)) {
-                    Toast.makeText(getContext(), "Prohibited words detected.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Prohibited words detected in your post.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -566,6 +566,11 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                     return;
                 }
 
+                if (ProfanityFilter.hasProfanity(newContent)) {
+                    Toast.makeText(getContext(), "Prohibited words detected in your update.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 btnUpdate.setEnabled(false);
                 btnUpdate.setText("Updating...");
 
@@ -663,6 +668,11 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             btnSend.setOnClickListener(view -> {
                 String content = etComment != null ? etComment.getText().toString().trim() : "";
                 if (content.isEmpty()) return;
+                
+                if (ProfanityFilter.hasProfanity(content)) {
+                    Toast.makeText(getContext(), "Prohibited words detected in your comment.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 DocumentReference newCommentRef = db.collection("posts").document(post.getPostId()).collection("comments").document();
                 // Fixed argument order: username (currentUsername) should be 2nd, userId (currentUid) should be 3rd
