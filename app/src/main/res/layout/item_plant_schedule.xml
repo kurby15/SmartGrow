@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="16dp"
+    android:paddingTop="15dp"
+    android:id="@+id/rvSchedule">
+
+    <View
+        android:id="@+id/schedule_timeline_line"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="#CCCCCC"
+        app:layout_constraintTop_toBottomOf="@id/iv_schedule_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/iv_schedule_icon"
+        app:layout_constraintEnd_toEndOf="@id/iv_schedule_icon" />
+
+    <ImageView
+        android:id="@+id/iv_schedule_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="14dp"
+        android:src="@drawable/ic_water"
+        app:tint="@color/text_secondary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_schedule_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="Water"
+        android:textSize="13sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/inter_extrabold"
+        app:layout_constraintBottom_toBottomOf="@id/iv_schedule_icon"
+        app:layout_constraintStart_toEndOf="@id/iv_schedule_icon"
+        app:layout_constraintTop_toTopOf="@id/iv_schedule_icon" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_schedule_content"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true"
+        app:cardBackgroundColor="@color/card_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/schedule_timeline_line"
+        app:layout_constraintTop_toBottomOf="@id/iv_schedule_icon">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_schedule_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Today, 6 PM"
+                android:textSize="11sp"
+                android:fontFamily="@font/inter_extrabold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tv_schedule_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Not necessary in Sept"
+                android:textSize="10sp"
+                android:fontFamily="@font/inter_extrabold"
+                android:textColor="@color/text_secondary" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

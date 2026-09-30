@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/layout_contact_us"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/app_background"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+
+    <!-- FIXED HEADER -->
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+
+        app:cardBackgroundColor="@color/card_background"
+        app:cardElevation="10dp"
+        app:cardCornerRadius="0dp"
+        app:strokeWidth="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <!-- BACK BUTTON -->
+
+            <ImageView
+                android:id="@+id/btn_back_contact"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:padding="12dp"
+
+                android:src="@drawable/ic_back"
+
+                app:tint="@color/primary_green"
+
+                android:contentDescription="Go back" />
+
+
+            <!-- HEADER TITLE -->
+
+            <TextView
+                android:id="@+id/tv_contact_title"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_centerInParent="true"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Contact Us"
+
+                android:textColor="@color/primary_green"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- SCROLLABLE CONTENT -->
+
+    <androidx.core.widget.NestedScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+
+        android:fillViewport="true"
+        android:overScrollMode="never"
+
+        android:clipToPadding="false">
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:paddingHorizontal="20dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="40dp"
+
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+
+            <!-- HEADER TEXT -->
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="6dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Get in touch with us"
+
+                android:textColor="@color/text_primary"
+
+                android:textSize="22sp"
+
+                android:textStyle="bold" />
+
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="24dp"
+
+                android:fontFamily="@font/inter_medium"
+
+                android:text="We'd love to hear from you. Choose a channel below."
+
+                android:textColor="@color/text_secondary"
+
+                android:textSize="14sp" />
+
+
+            <!-- SUPPORT CHANNELS TITLE -->
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="16dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Support Channels"
+
+                android:textColor="@color/text_primary"
+
+                android:textSize="16sp"
+
+                android:textStyle="bold" />
+
+
+            <!-- EMAIL SUPPORT CARD -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="32dp"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <LinearLayout
+
+                    android:id="@+id/btn_contact_email"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:minHeight="64dp"
+
+                    android:background="?attr/selectableItemBackground"
+
+                    android:clickable="true"
+                    android:focusable="true"
+
+                    android:gravity="center_vertical"
+
+                    android:orientation="horizontal"
+
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="12dp">
+
+
+                    <RelativeLayout
+
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+
+                        android:layout_weight="1">
+
+
+                        <TextView
+
+                            android:id="@+id/tv_email_title"
+
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:fontFamily="@font/inter_semibold"
+
+                            android:text="Email Support"
+
+                            android:textColor="@color/text_primary"
+
+                            android:textSize="14sp"
+
+                            android:textStyle="bold" />
+
+
+                        <TextView
+
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:layout_below="@id/tv_email_title"
+
+                            android:layout_marginTop="2dp"
+
+                            android:fontFamily="@font/inter_medium"
+
+                            android:text="supportsmartgrow@gmail.com"
+
+                            android:textColor="@color/text_secondary"
+
+                            android:textSize="11sp" />
+
+                    </RelativeLayout>
+
+
+                    <!-- NEXT ICON -->
+
+                    <ImageView
+
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+
+                        android:contentDescription="Open email"
+
+                        android:src="@drawable/ic_next"
+
+                        app:tint="@color/text_primary" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- SEND FEEDBACK TITLE -->
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="16dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Send Feedback"
+
+                android:textColor="@color/text_primary"
+
+                android:textSize="16sp"
+
+                android:textStyle="bold" />
+
+
+            <!-- FEEDBACK INPUT CARD -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="24dp"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <EditText
+
+                    android:id="@+id/et_feedback_message"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+
+                    android:background="@android:color/transparent"
+
+                    android:fontFamily="@font/inter_medium"
+
+                    android:gravity="top|start"
+
+                    android:hint="Tell us how we can improve SmartGrow..."
+
+                    android:importantForAutofill="no"
+
+                    android:inputType="textMultiLine"
+
+                    android:padding="20dp"
+
+                    android:textColor="@color/text_primary"
+
+                    android:textColorHint="@color/text_secondary"
+
+                    android:textSize="14sp" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- SUBMIT BUTTON -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+
+                app:cardBackgroundColor="@color/primary_green"
+
+                app:cardCornerRadius="16dp"
+
+                app:cardElevation="4dp"
+
+                app:strokeWidth="0dp">
+
+
+                <TextView
+
+                    android:id="@+id/btn_submit_feedback"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:background="?attr/selectableItemBackground"
+
+                    android:clickable="true"
+                    android:focusable="true"
+
+                    android:fontFamily="@font/inter_extrabold"
+
+                    android:gravity="center"
+
+                    android:text="Submit Feedback"
+
+                    android:textColor="@color/card_background"
+
+                    android:textSize="14sp"
+
+                    android:textStyle="bold" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

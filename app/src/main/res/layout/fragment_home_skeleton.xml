@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.shimmer.ShimmerFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/shimmer_home"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    app:shimmer_auto_start="true"
+    app:shimmer_base_alpha="0.7"
+    app:shimmer_duration="1200"
+    app:shimmer_highlight_alpha="0.2">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:paddingBottom="40dp">
+
+            <!-- Greeting -->
+            <View
+                android:layout_width="240dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="20dp"
+                android:background="@drawable/bg_skeleton"/>
+
+            <!-- Date -->
+            <View
+                android:layout_width="180dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_skeleton"/>
+
+
+            <!-- Weather -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_skeleton_card"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <View
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_skeleton_circle"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="80dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_skeleton"/>
+
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="12dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_skeleton"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="100dp"
+                    android:layout_height="35dp"
+                    android:background="@drawable/bg_skeleton"/>
+
+            </LinearLayout>
+
+
+            <!-- Stats Row 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="15dp"
+                android:orientation="horizontal">
+
+                <!-- Card 1 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="95dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_skeleton_card"
+                    android:padding="14dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="35dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="75dp"
+                            android:layout_height="11dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+
+                <!-- Card 2 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="95dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_skeleton_card"
+                    android:padding="14dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="35dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="75dp"
+                            android:layout_height="11dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- Stats Row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <!-- Card 3 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="95dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_skeleton_card"
+                    android:padding="14dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="45dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="75dp"
+                            android:layout_height="11dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+
+                <!-- Card 4 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="95dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_skeleton_card"
+                    android:padding="14dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="35dp"
+                            android:layout_height="20dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="75dp"
+                            android:layout_height="11dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- Care Tasks -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_skeleton_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Title -->
+                <View
+                    android:layout_width="120dp"
+                    android:layout_height="20dp"
+                    android:background="@drawable/bg_skeleton"/>
+
+
+                <!-- Task 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="150dp"
+                            android:layout_height="14dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="110dp"
+                            android:layout_height="10dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+
+                <!-- Task 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_skeleton_circle"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
+
+                        <View
+                            android:layout_width="180dp"
+                            android:layout_height="14dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                        <View
+                            android:layout_width="100dp"
+                            android:layout_height="10dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_skeleton"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

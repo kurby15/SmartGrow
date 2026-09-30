@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+
+    android:background="@color/app_background"
+
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+
+    <!-- FIXED HEADER -->
+
+    <com.google.android.material.card.MaterialCardView
+
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+
+        app:cardBackgroundColor="@color/card_background"
+        app:cardElevation="10dp"
+        app:cardCornerRadius="0dp"
+        app:strokeWidth="0dp">
+
+        <RelativeLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <!-- BACK BUTTON -->
+
+            <ImageView
+
+                android:id="@+id/btn_back_account_security"
+
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+
+                android:layout_marginStart="8dp"
+
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:padding="12dp"
+
+                android:src="@drawable/ic_back"
+
+                app:tint="@color/primary_green"
+
+                android:contentDescription="Go back" />
+
+
+            <!-- HEADER TITLE -->
+
+            <TextView
+
+                android:id="@+id/tv_account_security_title"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_centerInParent="true"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Account &amp; Security"
+
+                android:textColor="@color/primary_green"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- CONTENT -->
+
+    <androidx.core.widget.NestedScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+
+        android:layout_weight="1"
+
+        android:fillViewport="true"
+        android:overScrollMode="never"
+
+        android:clipToPadding="false">
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:paddingHorizontal="20dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="40dp"
+
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+
+            <!-- EDIT PROFILE -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:id="@+id/btn_security_edit_profile"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="12dp"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:foreground="?attr/selectableItemBackground"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <RelativeLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:minHeight="64dp"
+
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="12dp">
+
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_centerVertical="true"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Edit Profile"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="14sp" />
+
+
+                    <ImageView
+
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+
+                        android:src="@drawable/ic_next"
+
+                        app:tint="@color/text_primary"
+
+                        android:contentDescription="Open Edit Profile" />
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- PRIVACY & DATA -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:id="@+id/btn_security_privacy"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="12dp"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:foreground="?attr/selectableItemBackground"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <RelativeLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:minHeight="64dp"
+
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="12dp">
+
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_centerVertical="true"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Privacy &amp; Data"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="14sp" />
+
+
+                    <ImageView
+
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+
+                        android:src="@drawable/ic_next"
+
+                        app:tint="@color/text_primary"
+
+                        android:contentDescription="Open Privacy and Data" />
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- CHANGE PASSWORD -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:id="@+id/btn_security_password"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="12dp"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:foreground="?attr/selectableItemBackground"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <RelativeLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:minHeight="64dp"
+
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="12dp">
+
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_centerVertical="true"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Change Password"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="14sp" />
+
+
+                    <ImageView
+
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+
+                        android:src="@drawable/ic_next"
+
+                        app:tint="@color/text_primary"
+
+                        android:contentDescription="Open Change Password" />
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
+

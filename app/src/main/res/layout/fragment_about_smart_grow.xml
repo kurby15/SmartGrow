@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/layout_about_smartgrow"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+
+    android:background="@color/app_background"
+
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+
+    <!-- FIXED HEADER -->
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+
+        app:cardBackgroundColor="@color/card_background"
+        app:cardElevation="8dp"
+        app:cardCornerRadius="0dp"
+        app:strokeWidth="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <!-- BACK BUTTON -->
+
+            <ImageView
+                android:id="@+id/btn_back_about"
+
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+
+                android:layout_marginStart="8dp"
+
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:padding="12dp"
+
+                android:src="@drawable/ic_back"
+
+                app:tint="@color/primary_green"
+
+                android:contentDescription="Go back" />
+
+
+            <!-- HEADER TITLE -->
+
+            <TextView
+                android:id="@+id/tv_about_title"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_centerInParent="true"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="About SmartGrow"
+
+                android:textColor="@color/primary_green"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- SCROLLABLE CONTENT -->
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+
+        android:fillViewport="true"
+        android:scrollbars="none"
+
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="28dp">
+
+
+            <!-- APP LOGO -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_app_logo"
+
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+
+                android:layout_gravity="center_horizontal"
+
+                app:cardBackgroundColor="@color/profile_card_bg"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:background="@color/profile_title_color"
+
+                    android:padding="20dp"
+
+                    android:src="@drawable/smartgrow_logo"
+
+                    app:tint="@color/app_background"
+
+                    android:contentDescription="SmartGrow Logo" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- APP NAME -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_gravity="center_horizontal"
+
+                android:layout_marginTop="14dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="SmartGrow"
+
+                android:textColor="@color/profile_title_color"
+
+                android:textSize="22sp"
+
+                android:textStyle="bold" />
+
+
+            <!-- VERSION -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_gravity="center_horizontal"
+
+                android:layout_marginTop="3dp"
+
+                android:fontFamily="@font/inter_semibold"
+
+                android:text="Version 1.0.0"
+
+                android:textColor="@color/text_secondary"
+
+                android:textSize="12sp" />
+
+
+            <!-- SECTION LABEL -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="28dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="About the Application"
+
+                android:textColor="@color/profile_title_color"
+
+                android:textSize="16sp" />
+
+
+            <!-- DESCRIPTION CARD -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:padding="18dp"
+
+                    android:fontFamily="@font/inter_medium"
+
+                    android:lineSpacingExtra="4dp"
+
+                    android:text="SmartGrow is an AI-powered mobile application developed as an academic capstone project by 4th-year Information Technology students at Bulacan State University. Designed to assist plant enthusiasts, home gardeners, and urban growers, the platform simplifies plant care by combining image recognition technology with intelligent digital tools. Through the app, users can upload photos of plant leaves to receive instant health assessments, pest or disease detections, and tailored treatment plans. SmartGrow also features an interactive AI Chat Assistant for real-time guidance, a Digital Plant Diary (&quot;My Garden&quot;) to monitor plant recovery and progress over time, customizable push notifications for watering and fertilizing schedules, and a collaborative Community Forum where growers can share insights, post updates, and connect with fellow plant owners."
+
+                    android:textColor="@color/text_primary"
+
+                    android:textSize="13sp"
+
+                    android:justificationMode="inter_word"
+
+                    android:includeFontPadding="false" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- APP FEATURES -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="24dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="What SmartGrow Offers"
+
+                android:textColor="@color/profile_title_color"
+
+                android:textSize="16sp" />
+
+
+            <!-- FEATURES CARD -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="10dp"
+
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+
+                    <!-- FEATURE 1 -->
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:fontFamily="@font/inter_semibold"
+
+                        android:text="• AI Plant Health Assessment"
+
+                        android:textColor="@color/profile_title_color"
+
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="3dp"
+
+                        android:fontFamily="@font/inter_medium"
+
+                        android:text="Upload a plant image to receive an AI-based health assessment and possible plant issues."
+
+                        android:textColor="@color/text_secondary"
+
+                        android:textSize="12sp"
+
+                        android:lineSpacingExtra="2dp" />
+
+
+                    <!-- FEATURE 2 -->
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="16dp"
+
+                        android:fontFamily="@font/inter_semibold"
+
+                        android:text="• AI Chat Assistant"
+
+                        android:textColor="@color/profile_title_color"
+
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="3dp"
+
+                        android:fontFamily="@font/inter_medium"
+
+                        android:text="Get real-time plant care guidance through the SmartGrow AI Chat Assistant."
+
+                        android:textColor="@color/text_secondary"
+
+                        android:textSize="12sp"
+
+                        android:lineSpacingExtra="2dp" />
+
+
+                    <!-- FEATURE 3 -->
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="16dp"
+
+                        android:fontFamily="@font/inter_semibold"
+
+                        android:text="• My Garden Plant Diary"
+
+                        android:textColor="@color/profile_title_color"
+
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="3dp"
+
+                        android:fontFamily="@font/inter_medium"
+
+                        android:text="Track plant recovery, care activities, and progress over time."
+
+                        android:textColor="@color/text_secondary"
+
+                        android:textSize="12sp"
+
+                        android:lineSpacingExtra="2dp" />
+
+
+                    <!-- FEATURE 4 -->
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="16dp"
+
+                        android:fontFamily="@font/inter_semibold"
+
+                        android:text="• Smart Reminders"
+
+                        android:textColor="@color/profile_title_color"
+
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="3dp"
+
+                        android:fontFamily="@font/inter_medium"
+
+                        android:text="Set reminders for important plant care activities such as watering and fertilizing."
+
+                        android:textColor="@color/text_secondary"
+
+                        android:textSize="12sp"
+
+                        android:lineSpacingExtra="2dp" />
+
+
+                    <!-- FEATURE 5 -->
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="16dp"
+
+                        android:fontFamily="@font/inter_semibold"
+
+                        android:text="• Community Forum"
+
+                        android:textColor="@color/profile_title_color"
+
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="3dp"
+
+                        android:fontFamily="@font/inter_medium"
+
+                        android:text="Share plant updates, exchange insights, and connect with fellow plant owners."
+
+                        android:textColor="@color/text_secondary"
+
+                        android:textSize="12sp"
+
+                        android:lineSpacingExtra="2dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+    <!-- COPYRIGHT -->
+
+    <TextView
+        android:id="@+id/tv_copyright"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="center_horizontal"
+
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="14dp"
+
+        android:fontFamily="@font/inter_semibold"
+
+        android:text="© 2026 SmartGrow. All Rights Reserved."
+
+        android:textColor="@color/text_secondary"
+
+        android:textSize="11sp" />
+
+</LinearLayout>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/card_background"
+    android:paddingTop="16dp"
+    android:paddingHorizontal="24dp">
+
+    <!-- Drag Handle Indicator -->
+    <View
+        android:id="@+id/view_log_drag_handle"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:background="@color/divider"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Scrollable content area optimized for Bottom Sheet mechanics -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view_log"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="true"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/view_log_drag_handle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Daily Observation Log"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:fontFamily="@font/poppins" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Date Block -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Date:"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/background"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="16dp">
+                    <EditText
+                        android:id="@+id/et_log_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toStartOf="@id/img_log_calendar_icon"
+                        android:background="@android:color/transparent"
+                        android:hint="dd/mm/yyyy"
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:fontFamily="@font/poppins"
+                        android:importantForAutofill="no"
+                        android:inputType="none" />
+                    <ImageView
+                        android:id="@+id/img_log_calendar_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_calendar_gray"
+                        app:tint="@color/text_secondary"
+                        android:contentDescription="Select Date" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Watered Question -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Did you water the plant? (watered)"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_log_watered"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+                <RadioButton
+                    android:id="@+id/rb_water_yes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yes"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="24dp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_water_no"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+            </RadioGroup>
+
+            <!-- Fertilizer Question -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Did you apply fertilizer? (fertilized)"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_log_fertilized"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+                <RadioButton
+                    android:id="@+id/rb_fertilizer_yes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yes"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="24dp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_fertilizer_no"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+            </RadioGroup>
+
+            <!-- Sunlight Exposure -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sunlight Exposure: (sunlight_exposure)"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_log_sunlight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp">
+                <RadioButton
+                    android:id="@+id/rb_sun_full"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Full Sun (6+ hours)"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_sun_partial"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Partial Sun (3-5 hours)"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_sun_shade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Shade (less than 3 hours)"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+            </RadioGroup>
+
+            <!-- Health Status -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Health Status: (health_status)"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_log_health"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp">
+                <RadioButton
+                    android:id="@+id/rb_health_healthy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Healthy"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_health_fair"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Fair"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_health_attention"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Needs Attention"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+                <RadioButton
+                    android:id="@+id/rb_health_critical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Critical"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/poppins"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/primary_green" />
+            </RadioGroup>
+
+            <!-- Notes -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Notes (Optional): (notes)"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="16dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/background"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider">
+                <EditText
+                    android:id="@+id/et_log_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Any observations about your plant..."
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/poppins"
+                    android:padding="12dp"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:importantForAutofill="no" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_submit_log"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="24dp"
+                android:text="Add Log"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins"
+                app:backgroundTint="@color/primary_green"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

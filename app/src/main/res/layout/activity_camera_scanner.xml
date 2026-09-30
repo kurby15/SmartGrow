@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- 1. Live CameraX Viewfinder Stream -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 2. Frozen Image Overlay (For captured/uploaded photos) -->
+    <ImageView
+        android:id="@+id/iv_frozen_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Captured photo preview"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+
+
+    <!-- 4. Top Action Bar Controls -->
+    <RelativeLayout
+        android:id="@+id/layout_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:id="@+id/btn_close_scanner"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_x"
+            app:tint="#FFFFFF" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/btn_help"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:contentDescription="Help"
+                android:padding="6dp"
+                android:src="@drawable/ic_tips"
+                app:tint="#FFFFFF" />
+
+            <ImageView
+                android:id="@+id/btn_flash"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:contentDescription="Flash"
+                android:padding="6dp"
+                android:src="@drawable/ic_flash"
+                app:tint="#FFFFFF" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+
+
+    <RelativeLayout
+        android:id="@+id/layout_slider_container"
+        android:layout_width="48dp"
+        android:layout_height="180dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="4dp"
+        android:clipChildren="false">
+
+        <!-- Track Line -->
+        <View
+            android:id="@+id/slider_track"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:background="#FFFFFF" />
+
+        <!-- Draggable Thumb Circle -->
+        <View
+            android:id="@+id/slider_thumb"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/bg_circle_translucent"
+            android:backgroundTint="#FFFFFF" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:paddingHorizontal="40dp">
+
+        <ImageView
+            android:id="@+id/btn_gallery_shortcut"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Gallery"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_scan_upload"
+            app:tint="#FFFFFF" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_capture_photo"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_centerInParent="true"
+            app:cardBackgroundColor="#26892B"
+            app:cardCornerRadius="36dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="5dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

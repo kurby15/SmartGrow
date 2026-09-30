@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/layout_edit_info"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+
+    android:background="@color/app_background"
+
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+
+    <!-- FIXED HEADER -->
+
+    <com.google.android.material.card.MaterialCardView
+
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+
+        app:cardBackgroundColor="@color/card_background"
+        app:cardElevation="10dp"
+        app:cardCornerRadius="0dp"
+        app:strokeWidth="0dp">
+
+        <RelativeLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <!-- BACK BUTTON -->
+
+            <ImageView
+
+                android:id="@+id/btn_back_faq"
+
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+
+                android:layout_marginStart="8dp"
+
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:padding="12dp"
+
+                android:src="@drawable/ic_back"
+
+                app:tint="@color/primary_green"
+
+                android:contentDescription="Go back" />
+
+
+            <!-- HEADER TITLE -->
+
+            <TextView
+
+                android:id="@+id/tv_edit_info_title"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_centerInParent="true"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Edit Information"
+
+                android:textColor="@color/primary_green"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- SCROLLABLE CONTENT -->
+
+    <androidx.core.widget.NestedScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+
+        android:layout_weight="1"
+
+        android:fillViewport="true"
+        android:overScrollMode="never"
+
+        android:clipToPadding="false">
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:paddingHorizontal="20dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="40dp"
+
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+
+            <!-- INTRODUCTION -->
+
+            <TextView
+                android:id="@+id/tv_faq_title_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="4dp"
+
+                android:fontFamily="@font/inter_extrabold"
+
+                android:text="Update your details"
+
+                android:textColor="@color/text_primary"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/tv_faq_desc_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="20dp"
+
+                android:fontFamily="@font/inter_medium"
+
+                android:text="Update your personal information to personalize your account."
+
+                android:textColor="@color/text_secondary"
+
+                android:textSize="12sp" />
+
+
+            <!-- FORM CONTAINER -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="24dp"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="8dp"
+
+                app:strokeWidth="0dp">
+
+
+                <LinearLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:orientation="vertical"
+
+                    android:padding="20dp">
+
+
+                    <!-- FULL NAME -->
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginBottom="6dp"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Full Name"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="12sp" />
+
+
+                    <com.google.android.material.card.MaterialCardView
+
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+
+                        android:layout_marginBottom="16dp"
+
+                        app:cardBackgroundColor="@color/app_background"
+
+                        app:cardCornerRadius="12dp"
+
+                        app:cardElevation="2dp"
+
+                        app:strokeWidth="0dp">
+
+
+                        <EditText
+
+                            android:id="@+id/et_fullname"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="@font/inter_semibold"
+
+                            android:hint="Enter your full name"
+
+                            android:imeOptions="actionNext"
+
+                            android:importantForAutofill="no"
+
+                            android:inputType="textPersonName"
+
+                            android:maxLines="1"
+
+                            android:paddingHorizontal="12dp"
+
+                            android:textColor="@color/text_primary"
+
+                            android:textColorHint="@color/text_secondary"
+
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                    <!-- EMAIL -->
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginBottom="6dp"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Email Address"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="12sp" />
+
+
+                    <com.google.android.material.card.MaterialCardView
+
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+
+                        android:layout_marginBottom="16dp"
+
+                        app:cardBackgroundColor="@color/app_background"
+
+                        app:cardCornerRadius="12dp"
+
+                        app:cardElevation="2dp"
+
+                        app:strokeWidth="0dp">
+
+
+                        <EditText
+
+                            android:id="@+id/et_email"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="@font/inter_semibold"
+
+                            android:hint="Enter your email address"
+
+                            android:imeOptions="actionNext"
+
+                            android:importantForAutofill="no"
+
+                            android:inputType="textEmailAddress"
+
+                            android:maxLines="1"
+
+                            android:paddingHorizontal="12dp"
+
+                            android:textColor="@color/text_primary"
+
+                            android:textColorHint="@color/text_secondary"
+
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                    <!-- ADDRESS -->
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginBottom="6dp"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Address"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="12sp" />
+
+
+                    <com.google.android.material.card.MaterialCardView
+
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+
+                        android:layout_marginBottom="16dp"
+
+                        app:cardBackgroundColor="@color/app_background"
+
+                        app:cardCornerRadius="12dp"
+
+                        app:cardElevation="2dp"
+
+                        app:strokeWidth="0dp">
+
+
+                        <EditText
+
+                            android:id="@+id/et_address"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="@font/inter_semibold"
+
+                            android:hint="Enter your address"
+
+                            android:imeOptions="actionNext"
+
+                            android:importantForAutofill="no"
+
+                            android:inputType="textPostalAddress"
+
+                            android:maxLines="1"
+
+                            android:paddingHorizontal="12dp"
+
+                            android:textColor="@color/text_primary"
+
+                            android:textColorHint="@color/text_secondary"
+
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                    <!-- CONTACT NUMBER -->
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginBottom="6dp"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Contact Number"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="12sp" />
+
+
+                    <com.google.android.material.card.MaterialCardView
+
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+
+                        app:cardBackgroundColor="@color/app_background"
+
+                        app:cardCornerRadius="12dp"
+
+                        app:cardElevation="2dp"
+
+                        app:strokeWidth="0dp">
+
+
+                        <EditText
+
+                            android:id="@+id/et_phone"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="@font/inter_semibold"
+
+                            android:hint="Enter your contact number"
+
+                            android:imeOptions="actionDone"
+
+                            android:importantForAutofill="no"
+
+                            android:inputType="phone"
+
+                            android:maxLines="1"
+
+                            android:paddingHorizontal="12dp"
+
+                            android:textColor="@color/text_primary"
+
+                            android:textColorHint="@color/text_secondary"
+
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- SAVE BUTTON -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+
+                app:cardBackgroundColor="@color/primary_green"
+
+                app:cardCornerRadius="16dp"
+
+                app:cardElevation="4dp"
+
+                app:strokeWidth="0dp">
+
+
+                <TextView
+
+                    android:id="@+id/btn_save_edit_info"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:background="?attr/selectableItemBackground"
+
+                    android:clickable="true"
+                    android:focusable="true"
+
+                    android:fontFamily="@font/inter_extrabold"
+
+                    android:gravity="center"
+
+                    android:text="Save Changes"
+
+                    android:textColor="@color/card_background"
+
+                    android:textSize="13sp"
+
+                    android:textStyle="bold" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
