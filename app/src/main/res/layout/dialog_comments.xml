@@ -46,7 +46,7 @@
         android:clipToPadding="false"
         android:paddingBottom="16dp"
         android:minHeight="200dp"
-        app:layout_constraintBottom_toTopOf="@id/layout_input_comment"
+        app:layout_constraintBottom_toTopOf="@id/bottom_container"
         app:layout_constraintTop_toBottomOf="@id/header_divider"
         tools:listitem="@layout/item_comment" />
 
@@ -56,7 +56,7 @@
         android:layout_height="30dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/header_divider"
-        app:layout_constraintBottom_toTopOf="@id/layout_input_comment"
+        app:layout_constraintBottom_toTopOf="@id/bottom_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -70,57 +70,108 @@
         android:fontFamily="@font/inter_medium"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/header_divider"
-        app:layout_constraintBottom_toTopOf="@id/layout_input_comment"
+        app:layout_constraintBottom_toTopOf="@id/bottom_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <LinearLayout
-        android:id="@+id/layout_input_comment"
+        android:id="@+id/bottom_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:background="@color/profile_card_bg"
         android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/iv_comment_input_avatar"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_user"
-            app:shapeAppearanceOverlay="@style/CircleImageView" />
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_comment_preview_container"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider">
 
-        <EditText
-            android:id="@+id/et_comment_input"
-            android:layout_width="0dp"
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/iv_comment_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Comment Image Preview" />
+                <ImageView
+                    android:id="@+id/btn_remove_comment_photo"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="4dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_x"
+                    app:tint="@color/profile_title_color"
+                    android:contentDescription="Remove Photo" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/layout_input_comment"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_sheet_rounded"
-            android:backgroundTint="@color/app_background"
-            android:fontFamily="@font/inter_medium"
-            android:hint="Write a comment..."
-            android:textColorHint="@color/text_secondary"
-            android:textColor="@color/profile_title_color"
-            android:inputType="textMultiLine"
-            android:maxLines="4"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:textSize="11sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
 
-        <ImageButton
-            android:id="@+id/btn_send_comment"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_comment"
-            app:tint="@color/profile_title_color"
-            android:contentDescription="Send Comment" />
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_comment_input_avatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_user"
+                app:shapeAppearanceOverlay="@style/CircleImageView" />
+
+            <EditText
+                android:id="@+id/et_comment_input"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bottom_sheet_rounded"
+                android:backgroundTint="@color/app_background"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Write a comment..."
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/profile_title_color"
+                android:inputType="textMultiLine"
+                android:maxLines="4"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:textSize="11sp" />
+
+            <ImageView
+                android:id="@+id/btn_comment_add_photo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:src="@drawable/ic_photo"
+                app:tint="@color/profile_title_color"
+                android:contentDescription="Add Photo" />
+
+            <ImageButton
+                android:id="@+id/btn_send_comment"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_comment"
+                app:tint="@color/profile_title_color"
+                android:contentDescription="Send Comment" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

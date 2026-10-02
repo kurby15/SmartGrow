@@ -56,7 +56,14 @@ public class CommunityPostAdapter extends RecyclerView.Adapter<CommunityPostAdap
         CommunityPostModel post = postList.get(position);
 
         holder.tvUsername.setText(post.getUsername());
-        holder.tvContent.setText(post.getContent());
+        
+        if (post.getContent() != null && !post.getContent().trim().isEmpty()) {
+            holder.tvContent.setVisibility(View.VISIBLE);
+            holder.tvContent.setText(post.getContent());
+        } else {
+            holder.tvContent.setVisibility(View.GONE);
+        }
+
         holder.tvLikeCount.setText(String.valueOf(post.getLikesCount()));
         holder.tvCommentCount.setText(String.valueOf(post.getCommentsCount()));
 

@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
+import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -41,9 +42,9 @@ import java.util.UUID;
 public class CreatePostBottomSheet extends BottomSheetDialogFragment {
 
     private ShapeableImageView imgUserAvatar;
-    private TextView tvUsername, tvLocationTag;
+    private TextView tvUsername;
     private EditText etPostBox;
-    private LinearLayout btnAddPhoto, layoutLocation;
+    private LinearLayout btnAddPhoto;
     private MaterialButton btnSubmitPost;
     private MaterialCardView cardPreview;
     private ImageView ivPostPreview;
@@ -51,7 +52,6 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
 
     private DatabaseReference postsRef;
     private StorageReference storageRef;
-    private FusedLocationProviderClient fusedLocationClient;
 
     private Uri selectedImageUri = null;
     private String currentUserId, currentUserFullName, currentUserProfilePic;
@@ -59,6 +59,7 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
 
     private ActivityResultLauncher<String> imagePickerLauncher;
     private SharedPrefManager prefManager;
+    private PlantAnalyzer plantAnalyzer;
 
     public static CreatePostBottomSheet newInstance() {
         return new CreatePostBottomSheet();
@@ -69,7 +70,7 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
         super.onCreate(savedInstanceState);
         postsRef = FirebaseDatabase.getInstance().getReference("posts");
         storageRef = FirebaseStorage.getInstance().getReference("post_images");
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        plantAnalyzer = new PlantAnalyzer();
 
         prefManager = SharedPrefManager.getInstance(requireContext());
         currentUserId = prefManager.getUsername();
@@ -95,7 +96,6 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
         super.onViewCreated(view, savedInstanceState);
         imgUserAvatar = view.findViewById(R.id.img_create_post);
         tvUsername = view.findViewById(R.id.tv_identity_user_name);
-        layoutLocation = view.findViewById(R.id.layout_location_tag);
         etPostBox = view.findViewById(R.id.et_create_post_box);
         btnAddPhoto = view.findViewById(R.id.btn_add_photo);
         btnSubmitPost = view.findViewById(R.id.btn_submit_post);
@@ -123,15 +123,45 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
 
             btnSubmitPost.setEnabled(false);
             btnSubmitPost.setText("Posting...");
-            if (selectedImageUri != null) uploadImageAndPost(content);
-            else savePostToDatabase(content, null);
+
+            if (selectedImageUri != null) {
+                validateAndUpload(content);
+            } else {
+                savePostToDatabase(content, null);
+            }
         });
     }
 
-    private void uploadImageAndPost(String content) {
+    private void validateAndUpload(String content) {
         try {
             InputStream inputStream = requireContext().getContentResolver().openInputStream(selectedImageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            
+            plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
+                @Override
+                public void onResult(boolean isPlant) {
+                    if (isPlant) {
+                        uploadImageAndPost(content, bitmap);
+                    } else {
+                        Toast.makeText(getContext(), "Only plant-related images are allowed in this community.", Toast.LENGTH_LONG).show();
+                        resetButton();
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Image validation error: " + error, Toast.LENGTH_SHORT).show();
+                    resetButton();
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Image processing error", Toast.LENGTH_SHORT).show();
+            resetButton();
+        }
+    }
+
+    private void uploadImageAndPost(String content, Bitmap bitmap) {
+        try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
             byte[] data = baos.toByteArray();

@@ -69,6 +69,11 @@ public class PlantAnalyzer {
         void onError(String error);
     }
 
+    public interface ValidationCallback {
+        void onResult(boolean isPlant);
+        void onError(String error);
+    }
+
     public PlantAnalyzer() {
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
@@ -102,14 +107,96 @@ public class PlantAnalyzer {
         askAI(question, imageBitmap, null, null, detailedCallback);
     }
 
+    public void validatePlantImage(Bitmap imageBitmap, ValidationCallback callback) {
+        try {
+            Bitmap scaledBitmap = scaleBitmap(imageBitmap, 800);
+            
+            JSONObject body = new JSONObject();
+            JSONArray contents = new JSONArray();
+            JSONObject contentObj = new JSONObject();
+            JSONArray partsArray = new JSONArray();
+
+            JSONObject textPart = new JSONObject();
+            textPart.put("text", "Check if this image contains a plant (real, artificial, or part of a plant). Return ONLY a JSON object: {\"is_plant\": true} or {\"is_plant\": false}.");
+            partsArray.put(textPart);
+
+            JSONObject imagePart = new JSONObject();
+            JSONObject inlineData = new JSONObject();
+            inlineData.put("mimeType", "image/jpeg");
+            inlineData.put("data", bitmapToBase64(scaledBitmap));
+            imagePart.put("inlineData", inlineData);
+            partsArray.put(imagePart);
+
+            contentObj.put("parts", partsArray);
+            contents.put(contentObj);
+            body.put("contents", contents);
+
+            JSONObject generationConfig = new JSONObject();
+            generationConfig.put("responseMimeType", "application/json");
+            body.put("generationConfig", generationConfig);
+
+            String jsonBody = body.toString();
+            String geminiKey = BuildConfig.GEMINI_API_KEY;
+            String url = GEMINI_API_URL + "?key=" + geminiKey;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(RequestBody.create(jsonBody, MediaType.get("application/json; charset=utf-8")))
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    mainHandler.post(() -> callback.onError(e.getMessage()));
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    try (Response res = response) {
+                        String responseStr = res.body() != null ? res.body().string() : "";
+                        if (!res.isSuccessful()) {
+                            mainHandler.post(() -> callback.onError("API Error: " + res.code()));
+                            return;
+                        }
+
+                        JSONObject jsonResponse = new JSONObject(responseStr);
+                        JSONArray candidates = jsonResponse.optJSONArray("candidates");
+                        if (candidates != null && candidates.length() > 0) {
+                            JSONObject content = candidates.getJSONObject(0).optJSONObject("content");
+                            if (content != null) {
+                                JSONArray parts = content.optJSONArray("parts");
+                                if (parts != null && parts.length() > 0) {
+                                    String replyText = parts.getJSONObject(0).optString("text", "");
+                                    String rawJsonBlock = extractJsonBlock(replyText);
+                                    JSONObject parsed = new JSONObject(rawJsonBlock);
+                                    boolean isPlant = parsed.optBoolean("is_plant", false);
+                                    mainHandler.post(() -> callback.onResult(isPlant));
+                                    return;
+                                }
+                            }
+                        }
+                        mainHandler.post(() -> callback.onResult(false));
+                    } catch (Exception e) {
+                        mainHandler.post(() -> callback.onError(e.getMessage()));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
     private void askAI(String question, Bitmap imageBitmap, String contextHistory,
                        PlantCallback callback, PlantAnalysisCallback detailedCallback) {
         try {
             boolean isVisionRequest = (imageBitmap != null);
 
             if (isVisionRequest) {
-                String bodyStr = buildGeminiPayload(question, imageBitmap, contextHistory);
-                sendApiRequest(bodyStr, true, true, question, imageBitmap, contextHistory, callback, detailedCallback);
+                // Scale down bitmap to prevent huge payloads and API rejections
+                Bitmap scaledBitmap = scaleBitmap(imageBitmap, 800);
+                String bodyStr = buildGeminiPayload(question, scaledBitmap, contextHistory);
+                sendApiRequest(bodyStr, true, true, question, scaledBitmap, contextHistory, callback, detailedCallback);
             } else {
                 String bodyStr = buildSambaNovaPayload(question, contextHistory);
                 sendApiRequest(bodyStr, false, false, question, imageBitmap, contextHistory, callback, detailedCallback);
@@ -119,6 +206,22 @@ public class PlantAnalyzer {
             if (callback != null) mainHandler.post(() -> callback.onError("Error constructing AI request: " + e.getMessage()));
             if (detailedCallback != null) mainHandler.post(() -> detailedCallback.onError("Error constructing AI request: " + e.getMessage()));
         }
+    }
+
+    private Bitmap scaleBitmap(Bitmap bitmap, int maxDimension) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        if (width <= maxDimension && height <= maxDimension) return bitmap;
+
+        float ratio = (float) width / height;
+        if (width > height) {
+            width = maxDimension;
+            height = (int) (maxDimension / ratio);
+        } else {
+            height = maxDimension;
+            width = (int) (maxDimension * ratio);
+        }
+        return Bitmap.createScaledBitmap(bitmap, width, height, true);
     }
 
     private String buildSambaNovaPayload(String question, String contextHistory) throws JSONException {
@@ -171,7 +274,7 @@ public class PlantAnalyzer {
             boolean isConversationalQuestion = (question != null && !question.trim().isEmpty()) && (contextHistory == null || contextHistory.trim().isEmpty());
 
             if (isConversationalQuestion) {
-                basePromptBuilder.append("You are SmartGrow Assistant, an expert AI plant care assistant.\n")
+                basePromptBuilder.append("You are SproutAI, an expert AI plant care assistant.\n")
                         .append("The user has attached an image of their plant along with a specific question.\n\n")
                         .append("USER QUESTION: \"").append(question.trim()).append("\"\n\n")
                         .append("INSTRUCTIONS:\n")
@@ -512,9 +615,6 @@ public class PlantAnalyzer {
         });
     }
 
-    /**
-     * Extracts plant name suggestions and aliases from the raw JSON string generated by Gemini
-     */
     public static List<String> extractPlantSuggestionsFromRawJson(String rawJson) {
         List<String> suggestions = new ArrayList<>();
         if (rawJson == null || rawJson.trim().isEmpty()) return suggestions;
@@ -591,7 +691,6 @@ public class PlantAnalyzer {
                 sb.append("Artificial / Fake Plant Detected\n\n");
             }
 
-            // Plant Profile Section
             sb.append("🌿 Plant Profile\n\n");
             sb.append("  Name: ").append(nameString).append("\n\n");
             sb.append("  Sci Name: ").append(scientificName).append("\n\n");
@@ -599,7 +698,6 @@ public class PlantAnalyzer {
                 sb.append("  Local Name: ").append(localPhName).append("\n\n");
             }
 
-            // Health Assessment Section
             if (health != null) {
                 sb.append("🩺 Health Assessment\n\n");
                 String status = isArtificial ? "Artificial / Plastic Plant" : health.optString("status", "N/A");
@@ -607,7 +705,6 @@ public class PlantAnalyzer {
                 sb.append("  Confidence: ").append(health.optString("confidence", "N/A")).append("\n\n");
             }
 
-            // Care Guide Section
             if (care != null) {
                 sb.append("💧 Care Guide\n\n");
                 if (!isArtificial) {
@@ -617,7 +714,6 @@ public class PlantAnalyzer {
                 sb.append("  Temperature: ").append(care.optString("temperature", "N/A")).append("\n\n");
             }
 
-            // Problems Detected Section
             sb.append("⚠️ Problems Detected\n\n");
             boolean hasProblems = false;
             if (!isArtificial && problems != null && problems.length() > 0) {
@@ -633,9 +729,7 @@ public class PlantAnalyzer {
                 sb.append("  None detected\n\n");
             }
 
-            // Pest Information Sections
             if (pestInfo != null) {
-                // Common Pests Section
                 sb.append("🐛 Common Pests\n\n");
                 String detected = pestInfo.optString("possible_pest_detected", "no pest detected");
                 JSONArray commonPests = pestInfo.optJSONArray("common_pests");
@@ -650,16 +744,13 @@ public class PlantAnalyzer {
                     }
                 }
                 
-                // How to Avoid Pest section
                 sb.append("🛡️ How to Avoid Pest\n\n");
                 sb.append("  ").append(pestInfo.optString("how_to_avoid_pest", "N/A")).append("\n\n");
             }
 
-            // Recommendations Section
             sb.append("✅ Recommendations\n\n");
             sb.append("  ").append(recommendations).append("\n\n");
 
-            // SmartGrow Lesson Section
             if (!lesson.trim().isEmpty()) {
                 sb.append("💡 SmartGrow Lesson\n\n");
                 sb.append("  ").append(lesson).append("\n\n");

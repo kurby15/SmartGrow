@@ -37,6 +37,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
+import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
@@ -81,14 +82,19 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     private FusedLocationProviderClient fusedLocationClient;
 
     private ActivityResultLauncher<String> imagePickerLauncher;
+    private ActivityResultLauncher<String> commentImagePickerLauncher;
     private Uri selectedImageUri = null;
+    private Uri selectedCommentImageUri = null;
     private String currentUid, currentUsername, currentUserFullName, currentUserProfilePic;
     private String detectedLocation = "";
     private String savedDraftContent = "";
-    // I-add mo itong tatlo sa taas kasama ng ibang variables mo
+    private CommunityPostModel currentCommentingPost = null;
+
     private androidx.core.widget.NestedScrollView forumContent;
     private com.facebook.shimmer.ShimmerFrameLayout shimmerSkeleton;
     private boolean isInitialLoad = true;
+    private PlantAnalyzer plantAnalyzer;
+
     public CommunityForumFragment() {}
 
     @Override
@@ -96,6 +102,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        plantAnalyzer = new PlantAnalyzer();
 
         if (mAuth.getCurrentUser() != null) {
             currentUid = mAuth.getCurrentUser().getUid();
@@ -108,6 +115,13 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             if (uri != null) {
                 selectedImageUri = uri;
                 showCreatePostDialog();
+            }
+        });
+
+        commentImagePickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri != null && currentCommentingPost != null) {
+                selectedCommentImageUri = uri;
+                showCommentsDialog(currentCommentingPost);
             }
         });
     }
@@ -148,10 +162,8 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_community_forum, container, false);
 
-        // --- DAGDAG PARA SA SKELETON LOADING ---
         forumContent = view.findViewById(R.id.forum_content);
-        // PALITAN NITO:
-        shimmerSkeleton = view.findViewById(R.id.include_forum_skeleton); // Ito yung ID mula sa layout_forum_skeleton.xml
+        shimmerSkeleton = view.findViewById(R.id.include_forum_skeleton);
 
         if (shimmerSkeleton != null) {
             shimmerSkeleton.startShimmer();
@@ -160,9 +172,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         if (forumContent != null) {
             forumContent.setVisibility(View.GONE);
         }
-        // ----------------------------------------
 
-        // --- ORIGINAL CODE MO (WALANG BINAGO) ---
         cardMind = view.findViewById(R.id.card_mind);
         imgUserAvatar = view.findViewById(R.id.img_user);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_forum);
@@ -227,7 +237,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     }
 
     private void hideSkeletonLoading() {
-        if (!isInitialLoad) return; // Para hindi mag-skeleton kapag nag-swipe refresh lang
+        if (!isInitialLoad) return;
 
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             if (isAdded() && getContext() != null) {
@@ -238,21 +248,20 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 if (forumContent != null) {
                     forumContent.setVisibility(View.VISIBLE);
                 }
-                isInitialLoad = false; // Tapos na ang unang load
+                isInitialLoad = false;
             }
-        }, 1500); // 1.5 seconds delay (1500ms)
+        }, 1500);
     }
     private void listenForPosts() {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
         if (currentUid == null) {
             if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-            hideSkeletonLoading(); // <- DAGDAG 1: Itago ang skeleton kung walang naka-login
+            hideSkeletonLoading();
             return;
         }
 
         String userDocId = getUserDocId();
 
-        // Retrieve hidden posts for the active user
         db.collection("users").document(userDocId).collection("hiddenPosts")
                 .get()
                 .addOnCompleteListener(task -> {
@@ -270,7 +279,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                             .addSnapshotListener((querySnapshot, error) -> {
                                 if (!isAdded() || error != null || querySnapshot == null) {
                                     if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-                                    hideSkeletonLoading(); // <- DAGDAG 2: Itago ang skeleton kung nag-error o wala na sa fragment
+                                    hideSkeletonLoading();
                                     return;
                                 }
 
@@ -280,7 +289,6 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                                     if (post != null) {
                                         post.setPostId(snap.getId());
 
-                                        // Decrypt username if it's encrypted
                                         if (post.getUsername() != null && post.getUserId() != null) {
                                             String decryptedName = FirebaseCryptoUtils.decrypt(post.getUsername(), post.getUserId());
                                             post.setUsername(decryptedName);
@@ -294,7 +302,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                                 adapter.notifyDataSetChanged();
                                 if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
 
-                                hideSkeletonLoading(); // <- DAGDAG 3: Itago ang skeleton dahil success at nandito na ang data!
+                                hideSkeletonLoading();
                             });
                 });
     }
@@ -332,9 +340,9 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         View btnRemovePhoto = v.findViewById(R.id.btn_remove_photo);
         if (btnRemovePhoto != null) {
             btnRemovePhoto.setOnClickListener(view -> {
-                selectedImageUri = null; // I-clear ang uri
+                selectedImageUri = null;
                 if (ivPostPreview != null) ivPostPreview.setImageURI(null);
-                if (cardPreview != null) cardPreview.setVisibility(View.GONE); // Itago ang preview box
+                if (cardPreview != null) cardPreview.setVisibility(View.GONE);
             });
         }
 
@@ -348,35 +356,66 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 }
 
                 btnPost.setEnabled(false);
-                btnPost.setText("Posting...");
-                processAndPost(content, dialog);
+                btnPost.setText("Validating...");
+
+                if (selectedImageUri != null) {
+                    validatePostImage(content, btnPost, dialog);
+                } else {
+                    btnPost.setText("Posting...");
+                    processAndPost(content, "", dialog);
+                }
             });
         }
 
         dialog.show();
     }
 
-    private void processAndPost(String content, BottomSheetDialog dialog) {
-        String base64Image = "";
-        if (selectedImageUri != null) {
-            try {
-                InputStream is = requireContext().getContentResolver().openInputStream(selectedImageUri);
-                Bitmap bitmap = BitmapFactory.decodeStream(is);
-                Bitmap resized = Bitmap.createScaledBitmap(bitmap, 600, (int)(600 * ((double)bitmap.getHeight()/bitmap.getWidth())), true);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                resized.compress(Bitmap.CompressFormat.JPEG, 60, baos);
-                base64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-            } catch (Exception e) {
-                Toast.makeText(getContext(), "Image error, posting without photo.", Toast.LENGTH_SHORT).show();
-            }
+    private void validatePostImage(String content, Button btnPost, BottomSheetDialog dialog) {
+        try {
+            InputStream is = requireContext().getContentResolver().openInputStream(selectedImageUri);
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
+                @Override
+                public void onResult(boolean isPlant) {
+                    if (isPlant) {
+                        btnPost.setText("Posting...");
+                        String base64Image = bitmapToBase64(bitmap);
+                        processAndPost(content, base64Image, dialog);
+                    } else {
+                        Toast.makeText(getContext(), "Only plant-related images are allowed in the community forum.", Toast.LENGTH_LONG).show();
+                        btnPost.setEnabled(true);
+                        btnPost.setText("Post");
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Validation Error: " + error, Toast.LENGTH_SHORT).show();
+                    btnPost.setEnabled(true);
+                    btnPost.setText("Post");
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error processing image", Toast.LENGTH_SHORT).show();
+            btnPost.setEnabled(true);
+            btnPost.setText("Post");
         }
+    }
+
+    private String bitmapToBase64(Bitmap bitmap) {
+        Bitmap resized = Bitmap.createScaledBitmap(bitmap, 600, (int)(600 * ((double)bitmap.getHeight()/bitmap.getWidth())), true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+    }
+
+    private void processAndPost(String content, String base64Image, BottomSheetDialog dialog) {
         savePostToDatabase(content, base64Image, dialog);
     }
 
     private void savePostToDatabase(String content, String imageBase64, BottomSheetDialog dialog) {
         DocumentReference newPostRef = db.collection("posts").document();
 
-        // Kunin muna natin ang totoong pangalan mula sa 'users' collection sa Firestore gamit ang currentUid
         if (currentUid == null) {
             Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
             return;
@@ -385,23 +424,20 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         db.collection("users").document(currentUid).get().addOnSuccessListener(documentSnapshot -> {
             String rawName = documentSnapshot.getString("fullName");
             if (rawName == null || rawName.isEmpty()) {
-                rawName = documentSnapshot.getString("username"); // Fallback kung username ang ginamit
+                rawName = documentSnapshot.getString("username");
             }
 
-            // Decrypt the name before saving it to the post for better readability/performance
             String realName = FirebaseCryptoUtils.decrypt(rawName, currentUid);
             if (realName == null || realName.isEmpty()) {
-                realName = "SmartGrow User"; // Safety fallback
+                realName = "SmartGrow User";
             }
 
             String finalRealName = realName;
 
-            // Correct mapping to match constructor parameters:
-            // 1. postId, 2. username, 3. userId, 4. profileImageUri, 5. timestamp, 6. content, 7. postImageUri, 8. location
             CommunityPostModel post = new CommunityPostModel(
                     newPostRef.getId(),
-                    finalRealName,    // username (storing fullname here)
-                    currentUid,       // userId (the actual user ID string)
+                    finalRealName,
+                    currentUid,
                     currentUserProfilePic,
                     System.currentTimeMillis(),
                     content,
@@ -471,6 +507,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     @Override
     public void onCommentClick(CommunityPostModel post) {
+        selectedCommentImageUri = null;
         showCommentsDialog(post);
     }
 
@@ -510,8 +547,6 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 showEditPostDialog(post);
             });
         }
-
-
 
         View itemMoveTrash = sheetView.findViewById(R.id.item_move_trash);
         if (itemMoveTrash != null) {
@@ -624,6 +659,7 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     private void showCommentsDialog(CommunityPostModel post) {
         refreshUserInfo();
+        currentCommentingPost = post;
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         View v = LayoutInflater.from(getContext()).inflate(R.layout.dialog_comments, null);
         dialog.setContentView(v);
@@ -652,9 +688,29 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         EditText etComment = v.findViewById(R.id.et_comment_input);
         ImageButton btnSend = v.findViewById(R.id.btn_send_comment);
         ImageView imgAvatar = v.findViewById(R.id.iv_comment_input_avatar);
+        
+        MaterialCardView cardCommentPreview = v.findViewById(R.id.card_comment_preview_container);
+        ImageView ivCommentPreview = v.findViewById(R.id.iv_comment_preview);
+        ImageView btnRemoveCommentPhoto = v.findViewById(R.id.btn_remove_comment_photo);
+        ImageView btnAddCommentPhoto = v.findViewById(R.id.btn_comment_add_photo);
 
         if (pb != null) pb.setVisibility(View.VISIBLE);
         if (imgAvatar != null) loadProfileImage(currentUserProfilePic, imgAvatar);
+
+        if (selectedCommentImageUri != null) {
+            ivCommentPreview.setImageURI(selectedCommentImageUri);
+            cardCommentPreview.setVisibility(View.VISIBLE);
+        }
+
+        btnAddCommentPhoto.setOnClickListener(view -> {
+            commentImagePickerLauncher.launch("image/*");
+            dialog.dismiss();
+        });
+
+        btnRemoveCommentPhoto.setOnClickListener(view -> {
+            selectedCommentImageUri = null;
+            cardCommentPreview.setVisibility(View.GONE);
+        });
 
         List<CommentModel> commentList = new ArrayList<>();
         CommentAdapter commentAdapter = new CommentAdapter(commentList);
@@ -664,7 +720,6 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
             rvComments.setAdapter(commentAdapter);
         }
 
-        // Realtime listener for post comments subcollection
         db.collection("posts").document(post.getPostId()).collection("comments")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((querySnapshot, error) -> {
@@ -676,7 +731,6 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                         CommentModel c = snap.toObject(CommentModel.class);
                         if (c != null) {
                             c.setCommentId(snap.getId());
-                            // Decrypt comment username if it's encrypted
                             if (c.getUsername() != null && c.getUserId() != null) {
                                 String decryptedName = FirebaseCryptoUtils.decrypt(c.getUsername(), c.getUserId());
                                 c.setUsername(decryptedName);
@@ -694,24 +748,67 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         if (btnSend != null) {
             btnSend.setOnClickListener(view -> {
                 String content = etComment != null ? etComment.getText().toString().trim() : "";
-                if (content.isEmpty()) return;
+                if (content.isEmpty() && selectedCommentImageUri == null) return;
                 
                 if (ProfanityFilter.hasProfanity(content)) {
                     Toast.makeText(getContext(), "Prohibited words detected in your comment.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                DocumentReference newCommentRef = db.collection("posts").document(post.getPostId()).collection("comments").document();
-                // Fixed argument order: username (currentUsername) should be 2nd, userId (currentUid) should be 3rd
-                CommentModel cm = new CommentModel(newCommentRef.getId(), currentUsername, currentUid, currentUserProfilePic, content, System.currentTimeMillis());
-
-                newCommentRef.set(cm).addOnSuccessListener(aVoid -> {
-                    if (etComment != null) etComment.setText("");
-                    db.collection("posts").document(post.getPostId()).update("commentsCount", FieldValue.increment(1));
-                });
+                btnSend.setEnabled(false);
+                
+                if (selectedCommentImageUri != null) {
+                    validateCommentImage(content, post, btnSend, dialog);
+                } else {
+                    saveCommentToDatabase(content, "", post, dialog);
+                }
             });
         }
         dialog.show();
+    }
+
+    private void validateCommentImage(String content, CommunityPostModel post, ImageButton btnSend, BottomSheetDialog dialog) {
+        try {
+            InputStream is = requireContext().getContentResolver().openInputStream(selectedCommentImageUri);
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
+                @Override
+                public void onResult(boolean isPlant) {
+                    if (isPlant) {
+                        String base64Image = bitmapToBase64(bitmap);
+                        saveCommentToDatabase(content, base64Image, post, dialog);
+                    } else {
+                        Toast.makeText(getContext(), "Only plant-related images are allowed in comments.", Toast.LENGTH_LONG).show();
+                        btnSend.setEnabled(true);
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getContext(), "Validation Error: " + error, Toast.LENGTH_SHORT).show();
+                    btnSend.setEnabled(true);
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error processing image", Toast.LENGTH_SHORT).show();
+            btnSend.setEnabled(true);
+        }
+    }
+
+    private void saveCommentToDatabase(String content, String base64Image, CommunityPostModel post, BottomSheetDialog dialog) {
+        DocumentReference newCommentRef = db.collection("posts").document(post.getPostId()).collection("comments").document();
+        CommentModel cm = new CommentModel(newCommentRef.getId(), currentUsername, currentUid, currentUserProfilePic, content, base64Image, System.currentTimeMillis());
+
+        newCommentRef.set(cm).addOnSuccessListener(aVoid -> {
+            selectedCommentImageUri = null;
+            db.collection("posts").document(post.getPostId()).update("commentsCount", FieldValue.increment(1));
+            dialog.dismiss();
+            showCommentsDialog(post); // Refresh dialog
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Comment failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            ImageButton btnSend = dialog.findViewById(R.id.btn_send_comment);
+            if (btnSend != null) btnSend.setEnabled(true);
+        });
     }
 
 }

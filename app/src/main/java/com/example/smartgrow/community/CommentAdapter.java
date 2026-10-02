@@ -50,8 +50,22 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         
         // Apply profanity filter to displayed content
         if (holder.tvContent != null) {
-            String filteredContent = ProfanityFilter.filterText(comment.getContent());
-            holder.tvContent.setText(filteredContent);
+            if (comment.getContent() == null || comment.getContent().isEmpty()) {
+                holder.tvContent.setVisibility(View.GONE);
+            } else {
+                holder.tvContent.setVisibility(View.VISIBLE);
+                String filteredContent = ProfanityFilter.filterText(comment.getContent());
+                holder.tvContent.setText(filteredContent);
+            }
+        }
+
+        if (holder.ivCommentImage != null) {
+            if (comment.getCommentImageUri() != null && !comment.getCommentImageUri().isEmpty()) {
+                holder.ivCommentImage.setVisibility(View.VISIBLE);
+                loadImage(comment.getCommentImageUri(), holder.ivCommentImage);
+            } else {
+                holder.ivCommentImage.setVisibility(View.GONE);
+            }
         }
 
         View.OnClickListener clickListener = v -> {
@@ -80,6 +94,20 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         }
     }
 
+    private void loadImage(String imageData, ImageView imageView) {
+        try {
+            if (imageData.startsWith("http")) {
+                Glide.with(imageView.getContext()).load(imageData).into(imageView);
+            } else if (imageData.length() > 500) {
+                byte[] decodedString = Base64.decode(imageData, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                Glide.with(imageView.getContext()).load(decodedByte).into(imageView);
+            }
+        } catch (Exception e) {
+            imageView.setVisibility(View.GONE);
+        }
+    }
+
     private void loadProfileImage(String profileData, ImageView imageView) {
         if (profileData == null || profileData.isEmpty()) {
             imageView.setImageResource(R.drawable.ic_user);
@@ -105,7 +133,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
-        ShapeableImageView ivAvatar;
+        ShapeableImageView ivAvatar, ivCommentImage;
         TextView tvUsername, tvContent, tvTime;
 
         public CommentViewHolder(@NonNull View itemView) {
@@ -114,6 +142,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             tvUsername = itemView.findViewById(R.id.tv_comment_username);
             tvContent = itemView.findViewById(R.id.tv_comment_content);
             tvTime = itemView.findViewById(R.id.tv_comment_time);
+            ivCommentImage = itemView.findViewById(R.id.iv_comment_image);
         }
     }
 }
