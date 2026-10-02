@@ -140,7 +140,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="@font/inter_medium"
-                            android:text="sproutAI says:\nBetter weather for watering"
+                            android:text="SproutAI says:\nBetter weather for watering"
                             android:textColor="@color/primary_green"
                             android:textSize="12sp" />
 

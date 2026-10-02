@@ -40,10 +40,11 @@ public class PlantAnalyzer {
     private static final String GEMINI_API_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
-    private static final String CHAT_MODEL = "DeepSeek-V3.1";
+    private static final String CHAT_MODEL = "DeepSeek-V3";
 
     public static final String REJECT_MESSAGE = "The image does not appear to contain a plant. Please scan a clear plant image.";
     public static final String ERROR_NON_PLANT = "NON_PLANT_DETECTED";
+    public static final String ERROR_MULTIPLE_PLANTS = "MULTIPLE_PLANTS_DETECTED";
 
     private final OkHttpClient client;
     private final Handler mainHandler;
@@ -287,8 +288,12 @@ public class PlantAnalyzer {
             } else {
                 basePromptBuilder.append("You are an expert botanical computer vision engine.\n\n")
                         .append("TASK INSTRUCTIONS:\n")
-                        .append("1. First, check if the image contains a plant (real or artificial/fake/plastic).\n")
-                        .append("   - If NO plant or botanical element is present, return JSON: {\"is_plant\": false}\n\n")
+                        .append("1. SPECIES CONSISTENCY MANDATE:\n")
+                        .append("   - You can identify multiple individual plants in a single image ONLY IF they all belong to the EXACT SAME species (e.g., several pots of the same plant type).\n")
+                        .append("   - If the image contains multiple DIFFERENT plant species clearly visible (e.g., a Cactus and a Rose in the same frame), you MUST reject the scan.\n")
+                        .append("   - For mixed species, return JSON: {\"is_plant\": false, \"multiple_plants\": true}.\n")
+                        .append("   - For a single species (even if multiple plants of that species), proceed with: {\"is_plant\": true, \"multiple_plants\": false} and provide the plant profile for that species.\n")
+                        .append("   - If no plant is detected at all, return: {\"is_plant\": false, \"multiple_plants\": false}.\n\n")
                         .append("2. ARTIFICIAL PLANT INSPECTION:\n")
                         .append("   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n")
                         .append("   - Set \"is_artificial\" to true if artificial, otherwise false.\n\n")
@@ -304,6 +309,7 @@ public class PlantAnalyzer {
                         .append("5. Return ONLY pure JSON matching EXACTLY this structure:\n")
                         .append("{\n")
                         .append("  \"is_plant\": true,\n")
+                        .append("  \"multiple_plants\": false,\n")
                         .append("  \"is_artificial\": false,\n")
                         .append("  \"plant_profile\": {\n")
                         .append("    \"name\": \"Common Name\",\n")
@@ -563,9 +569,10 @@ public class PlantAnalyzer {
                                 try {
                                     JSONObject parsedRoot = new JSONObject(rawJsonBlock);
                                     if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
+                                        boolean isMultiple = parsedRoot.optBoolean("multiple_plants", false);
                                         mainHandler.post(() -> {
-                                            if (callback != null) callback.onError(REJECT_MESSAGE);
-                                            if (detailedCallback != null) detailedCallback.onError(ERROR_NON_PLANT);
+                                            if (callback != null) callback.onError(isMultiple ? "Multiple different species detected." : REJECT_MESSAGE);
+                                            if (detailedCallback != null) detailedCallback.onError(isMultiple ? ERROR_MULTIPLE_PLANTS : ERROR_NON_PLANT);
                                         });
                                         return;
                                     }
@@ -661,6 +668,9 @@ public class PlantAnalyzer {
             JSONObject root = new JSONObject(cleanedJson);
 
             if (root.has("is_plant") && !root.getBoolean("is_plant")) {
+                if (root.optBoolean("multiple_plants", false)) {
+                    return "Multiple different species detected. Please scan plants of the same species.";
+                }
                 return REJECT_MESSAGE;
             }
 

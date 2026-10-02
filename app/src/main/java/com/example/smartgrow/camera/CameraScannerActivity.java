@@ -474,12 +474,26 @@ public class CameraScannerActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String formattedResult, String rawJson) {
                 runOnUiThread(() -> {
-                    if (rawJson == null || rawJson.isEmpty() || rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false")) {
+                    boolean isPlant = true;
+                    boolean isMultiple = false;
+                    try {
+                        if (rawJson != null && !rawJson.isEmpty()) {
+                            JSONObject root = new JSONObject(rawJson);
+                            isPlant = root.optBoolean("is_plant", true);
+                            isMultiple = root.optBoolean("multiple_plants", false);
+                        }
+                    } catch (Exception ignored) {}
+
+                    if (!isPlant || isMultiple) {
                         showLoading(false);
                         unfreezeScreen();
-                        Toast.makeText(CameraScannerActivity.this,
-                                "The image does not appear to contain a plant. Please scan a clear plant image.",
-                                Toast.LENGTH_LONG).show();
+                        
+                        String title = isMultiple ? "Mixed Species Detected" : "Plant Not Detected";
+                        String message = isMultiple ? 
+                                "Multiple different plant species detected. Please scan plants of the same species for accurate identification." : 
+                                "The image does not appear to contain a plant. Please scan a clear plant image.";
+                        
+                        showScanErrorDialog(title, message);
                         return;
                     }
 
@@ -529,15 +543,41 @@ public class CameraScannerActivity extends AppCompatActivity {
                     showLoading(false);
                     unfreezeScreen();
                     if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
-                        Toast.makeText(CameraScannerActivity.this,
-                                "The image does not appear to contain a plant. Please scan a clear plant image.",
-                                Toast.LENGTH_LONG).show();
+                        showScanErrorDialog("Plant Not Detected", "The image does not appear to contain a plant. Please scan a clear plant image.");
+                    } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
+                        showScanErrorDialog("Mixed Species Detected", "Multiple different plant species detected. Please scan plants of the same species for accurate identification.");
                     } else {
                         Toast.makeText(CameraScannerActivity.this, "Analysis Error: " + error, Toast.LENGTH_LONG).show();
                     }
                 });
             }
         });
+    }
+
+    private void showScanErrorDialog(String title, String message) {
+        Dialog errorDialog = new Dialog(this);
+        errorDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        errorDialog.setContentView(R.layout.dialog_scan_error);
+        errorDialog.setCancelable(true);
+
+        if (errorDialog.getWindow() != null) {
+            errorDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            errorDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            errorDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        }
+
+        TextView tvTitle = errorDialog.findViewById(R.id.tv_error_title);
+        TextView tvMessage = errorDialog.findViewById(R.id.tv_error_message);
+        View btnClose = errorDialog.findViewById(R.id.btn_error_close);
+
+        if (tvTitle != null) tvTitle.setText(title);
+        if (tvMessage != null) tvMessage.setText(message);
+        if (btnClose != null) btnClose.setOnClickListener(v -> {
+            errorDialog.dismiss();
+            unfreezeScreen();
+        });
+
+        errorDialog.show();
     }
 
     private void checkDuplicateAndProceed(Bitmap bitmap, String rawJson) {

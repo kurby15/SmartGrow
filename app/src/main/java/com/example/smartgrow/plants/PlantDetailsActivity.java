@@ -868,7 +868,7 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
                 tvHealthState.setText(healthStatus);
             } else {
                 // Show status along with percentage for real plants
-                tvHealthState.setText(healthStatus + " (" + healthPercentage + "%)");
+                tvHealthState.setText(healthStatus);
             }
             tvHealthState.setTextColor(Color.parseColor(getHealthColorHex()));
         }

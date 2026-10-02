@@ -372,7 +372,7 @@ public class ProfileFragment extends Fragment {
                     if (!isAdded() || error != null || querySnapshot == null) return;
                     int count = querySnapshot.size();
                     if (tvPlantCount != null) {
-                        tvPlantCount.setText(count + (count == 1 ? " Plant" : " Plants"));
+                        tvPlantCount.setText(count + (count == 1 ? " My Plant" : " My Plants"));
                     }
                 });
 

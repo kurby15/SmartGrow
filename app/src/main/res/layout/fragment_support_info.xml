@@ -12,7 +12,7 @@
     <!-- 🏷️ FIXED HEADER -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="55dp"
         app:cardBackgroundColor="@color/header_background"
         app:cardElevation="10dp"
         app:cardCornerRadius="0dp"
@@ -24,8 +24,8 @@
 
             <ImageView
                 android:id="@+id/btn_back_support"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
@@ -45,7 +45,7 @@
                 android:fontFamily="@font/inter_extrabold"
                 android:text="Support &amp; Information"
                 android:textColor="@color/primary_green"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
         </RelativeLayout>
@@ -95,15 +95,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
+                        android:fontFamily="@font/inter_extrabold"
                         android:text="Help Center / FAQ"
                         android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/inter_semibold" />
+                        android:textSize="13sp" />
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_next"
@@ -140,12 +139,12 @@
                         android:layout_centerVertical="true"
                         android:text="Contact Us / Feedback"
                         android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/inter_semibold" />
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_extrabold" />
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_next"
@@ -182,12 +181,12 @@
                         android:layout_centerVertical="true"
                         android:text="Privacy Policy"
                         android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/inter_semibold" />
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_next"
@@ -224,12 +223,12 @@
                         android:layout_centerVertical="true"
                         android:text="Terms of Service"
                         android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/inter_semibold" />
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_extrabold"/>
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_next"
@@ -266,12 +265,12 @@
                         android:layout_centerVertical="true"
                         android:text="About SmartGrow"
                         android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:fontFamily="@font/inter_semibold" />
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_extrabold" />
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_next"

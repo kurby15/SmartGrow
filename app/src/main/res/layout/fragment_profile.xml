@@ -164,7 +164,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:fontFamily="@font/inter_bold"
-                                android:text="0 Plants"
+                                android:text="0 My Garden"
                                 android:textColor="@color/primary_green"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
