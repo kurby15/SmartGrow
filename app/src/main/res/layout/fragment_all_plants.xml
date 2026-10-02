@@ -66,7 +66,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Header row para sa My Plants at View Less -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

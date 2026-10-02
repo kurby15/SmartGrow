@@ -47,7 +47,12 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         if (holder.tvUsername != null) {
             holder.tvUsername.setText(comment.getUsername());
         }
-        if (holder.tvContent != null) holder.tvContent.setText(comment.getContent());
+        
+        // Apply profanity filter to displayed content
+        if (holder.tvContent != null) {
+            String filteredContent = ProfanityFilter.filterText(comment.getContent());
+            holder.tvContent.setText(filteredContent);
+        }
 
         View.OnClickListener clickListener = v -> {
             if (userClickListener != null) {

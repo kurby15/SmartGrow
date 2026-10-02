@@ -214,7 +214,8 @@ public class MainActivity extends AppCompatActivity {
                 || current instanceof com.example.smartgrow.settings.TermOfServiceFragment
                 || current instanceof com.example.smartgrow.settings.AboutSmartGrowFragment
                 || current instanceof com.example.smartgrow.plants.AllPlantsFragment
-                || current instanceof com.example.smartgrow.plants.SetReminderFragment) {
+                || current instanceof com.example.smartgrow.plants.SetReminderFragment
+                || current instanceof com.example.smartgrow.FaqDetailFragment) {
 
             if (bottomNav != null) bottomNav.setVisibility(View.GONE);
             if (mainHeaderBar != null) mainHeaderBar.setVisibility(View.GONE);

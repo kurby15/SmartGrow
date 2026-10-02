@@ -1,11 +1,13 @@
 package com.example.smartgrow.camera;
 
+import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -31,6 +33,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -82,7 +86,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private PreviewView viewFinder;
     private ScannerOverlayView overlayView;
-    private ImageView ivFrozenPreview; // Freeze frame preview overlay
+    private ImageView ivFrozenPreview; 
 
     private ProcessCameraProvider cameraProvider;
     private ImageCapture imageCapture;
@@ -96,10 +100,8 @@ public class CameraScannerActivity extends AppCompatActivity {
     private RelativeLayout sliderContainer;
     private View sliderThumb;
 
-
     private ExecutorService cameraExecutor;
 
-    // Custom Glassmorphism Dialog & Animation Controllers
     private Dialog loadingDialog;
     private TextView tvProgressPercentage;
     private TextView tvLoadingMessage;
@@ -113,12 +115,21 @@ public class CameraScannerActivity extends AppCompatActivity {
     private String diaryPlantId = null;
     private String diaryPlantName = null;
 
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    startCameraX();
+                } else {
+                    Toast.makeText(this, "Camera permission is required to use this feature", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        // Check if launched specifically from AI Chat or Diagnose
         if (getIntent() != null) {
             if (MODE_CHAT_ATTACHMENT.equals(getIntent().getStringExtra(EXTRA_MODE))) {
                 isChatMode = true;
@@ -172,7 +183,12 @@ public class CameraScannerActivity extends AppCompatActivity {
         }
 
         setupZoomSliderTouchListener();
-        startCameraX();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCameraX();
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
     }
 
     private void initCustomLoadingDialog() {
@@ -184,7 +200,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         if (loadingDialog.getWindow() != null) {
             loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             loadingDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            // Apply entry animation to loading dialog as well
             loadingDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         }
 
@@ -227,9 +242,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Display frozen image overlay & unbind/pause camera live feed.
-     */
     private void freezeScreenWithBitmap(Bitmap bitmap) {
         runOnUiThread(() -> {
             if (ivFrozenPreview != null) {
@@ -245,9 +257,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Unfreeze screen and restart live camera preview if scanning fails or restarts.
-     */
     private void unfreezeScreen() {
         runOnUiThread(() -> {
             if (ivFrozenPreview != null) {
@@ -313,7 +322,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.dialog_snap_tips);
 
-        // Apply smooth transition animation
         if (dialog.getWindow() != null) {
             dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         }
@@ -364,6 +372,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to bind camera", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void takePhotoSafe() {
         if (imageCapture == null) {
             Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show();
@@ -443,9 +452,6 @@ public class CameraScannerActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Directs result back to MainActivity/Chat for attachment without calling PlantAnalyzer.
-     */
     private void returnResultToCaller() {
         runOnUiThread(() -> {
             showLoading(false);
@@ -468,9 +474,8 @@ public class CameraScannerActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String formattedResult, String rawJson) {
                 runOnUiThread(() -> {
-                    showLoading(false);
-
                     if (rawJson == null || rawJson.isEmpty() || rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false")) {
+                        showLoading(false);
                         unfreezeScreen();
                         Toast.makeText(CameraScannerActivity.this,
                                 "The image does not appear to contain a plant. Please scan a clear plant image.",
@@ -479,7 +484,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                     }
 
                     if (diaryPlantId != null) {
-                        // Extract scanned plant name to verify it's the same species/plant
+                        showLoading(false);
                         String scannedPlantName = "";
                         try {
                             JSONObject root = new JSONObject(rawJson);
@@ -513,16 +518,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
                         updateDiaryPlant(bitmap, rawJson);
                     } else {
-                        // Auto-save the scanned details into 'diary_history' Firestore collection
-                        String plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
-
-                        PlantDetailsActivity.tempScannedBitmap = bitmap;
-
-                        Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
-                        intent.putExtra("raw_ai_json", rawJson);
-                        intent.putExtra("plant_uid", plantUid);
-                        startActivity(intent);
-                        finish();
+                        checkDuplicateAndProceed(bitmap, rawJson);
                     }
                 });
             }
@@ -544,6 +540,91 @@ public class CameraScannerActivity extends AppCompatActivity {
         });
     }
 
+    private void checkDuplicateAndProceed(Bitmap bitmap, String rawJson) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String scientificName = extractScientificName(rawJson);
+
+        if (currentUser == null || scientificName == null || scientificName.isEmpty() || scientificName.equalsIgnoreCase("N/A")) {
+            runOnUiThread(() -> {
+                showLoading(false);
+                String plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
+                navigateToDetails(bitmap, rawJson, plantUid);
+            });
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Check Garden (diary)
+        db.collection("diary")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("scientificName", scientificName)
+                .limit(1)
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    boolean inGarden = task1.isSuccessful() && !task1.getResult().isEmpty();
+
+                    // Check History (diary_history)
+                    db.collection("diary_history")
+                            .whereEqualTo("userId", userId)
+                            .whereEqualTo("scientificName", scientificName)
+                            .limit(1)
+                            .get()
+                            .addOnCompleteListener(task2 -> {
+                                boolean inHistory = task2.isSuccessful() && !task2.getResult().isEmpty();
+
+                                runOnUiThread(() -> {
+                                    String plantUid = null;
+                                    if (!inGarden && !inHistory) {
+                                        // Save to history if not found in either
+                                        plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
+                                    } else {
+                                        Log.d(TAG, "Duplicate plant found (" + scientificName + "). Skipping auto-save to history.");
+                                        if (inGarden) plantUid = task1.getResult().getDocuments().get(0).getId();
+                                        else if (inHistory) plantUid = task2.getResult().getDocuments().get(0).getId();
+                                    }
+
+                                    showLoading(false);
+                                    navigateToDetails(bitmap, rawJson, plantUid);
+                                });
+                            });
+                });
+    }
+
+    private void navigateToDetails(Bitmap bitmap, String rawJson, String plantUid) {
+        PlantDetailsActivity.tempScannedBitmap = bitmap;
+        Intent intent = new Intent(CameraScannerActivity.this, PlantDetailsActivity.class);
+        intent.putExtra("raw_ai_json", rawJson);
+        intent.putExtra("plant_uid", plantUid);
+        startActivity(intent);
+        finish();
+    }
+
+    private String extractScientificName(String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String scientificName = profile.optString("scientific_name", "");
+                if (!scientificName.isEmpty() && !scientificName.equalsIgnoreCase("N/A")) {
+                    return scientificName;
+                }
+
+                String fullTitle = profile.optString("name", "");
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    int close = fullTitle.indexOf(")");
+                    if (open < close) {
+                        return fullTitle.substring(open + 1, close).trim();
+                    }
+                }
+                return fullTitle.trim();
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
     private void updateDiaryPlant(Bitmap bitmap, String rawJson) {
         try {
             JSONObject root = new JSONObject(rawJson);
@@ -558,7 +639,6 @@ public class CameraScannerActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(CameraScannerActivity.this, "Diagnosis updated successfully", Toast.LENGTH_SHORT).show();
                         
-                        // Automatically set reminders if plant health is below 50%
                         Integer health = (Integer) updateMap.get("healthPercentage");
                         if (health != null && health < 50) {
                             PlantReminderBottomSheet sheet = PlantReminderBottomSheet.newInstance(diaryPlantId, true);
@@ -605,7 +685,6 @@ public class CameraScannerActivity extends AppCompatActivity {
 
             List<String> leafColorsList = new ArrayList<>();
 
-            // Parse plant profile
             JSONObject profile = root.optJSONObject("plant_profile");
             if (profile != null) {
                 String fullTitle = profile.optString("name", plantName);
@@ -653,7 +732,6 @@ public class CameraScannerActivity extends AppCompatActivity {
                 }
             }
 
-            // Parse physical characteristics
             JSONObject characteristics = root.optJSONObject("characteristics");
             String ultimateHeight = characteristics != null ? characteristics.optString("ultimate_height", "N/A") : "N/A";
             String ultimateSpread = characteristics != null ? characteristics.optString("ultimate_spread", "N/A") : "N/A";
@@ -680,20 +758,17 @@ public class CameraScannerActivity extends AppCompatActivity {
                 }
             }
 
-            // Parse environmental conditions
             JSONObject ecosystem = root.optJSONObject("ecosystem");
             String temperatureRange = ecosystem != null ? ecosystem.optString("temp_range", "N/A") : "N/A";
             String hardinessZones = ecosystem != null ? ecosystem.optString("hardiness_zones", "N/A") : "N/A";
             String sunlightText = ecosystem != null ? ecosystem.optString("sunlight", "Partial sun") : "Partial sun";
             String soilText = ecosystem != null ? ecosystem.optString("soil", "Loam, Sandy loam") : "Loam, Sandy loam";
 
-            // Parse care instructions
             JSONObject howTos = root.optJSONObject("how_tos");
             String pruningText = howTos != null ? howTos.optString("pruning", "N/A") : "N/A";
             String propagationText = howTos != null ? howTos.optString("propagation", "N/A") : "N/A";
             String repottingText = howTos != null ? howTos.optString("repotting", "N/A") : "N/A";
 
-            // Parse background and story information
             JSONObject extraDetails = root.optJSONObject("extra_details");
             String usesText = extraDetails != null ? extraDetails.optString("uses", "N/A") : "N/A";
             String adaptationText = extraDetails != null ? extraDetails.optString("adaptation_strategies", "N/A") : "N/A";
@@ -702,7 +777,6 @@ public class CameraScannerActivity extends AppCompatActivity {
             String nameStoryText = extraDetails != null ? extraDetails.optString("name_story", "N/A") : "N/A";
             String symbolismText = extraDetails != null ? extraDetails.optString("symbolism", "N/A") : "N/A";
 
-            // Parse health details
             JSONObject health = root.optJSONObject("health_scanner");
             if (health != null) {
                 healthStatus = health.optString("status", healthStatus);
@@ -741,7 +815,6 @@ public class CameraScannerActivity extends AppCompatActivity {
             dataMap.put("lifespan", lifespan);
             dataMap.put("isArtificial", isArtificial);
 
-            // Distribution Coordinates
             List<Map<String, Object>> distCoords = new ArrayList<>();
             if (profile != null) {
                 JSONArray locArray = profile.optJSONArray("distribution_coordinates");
@@ -782,13 +855,11 @@ public class CameraScannerActivity extends AppCompatActivity {
             dataMap.put("nameStoryText", nameStoryText);
             dataMap.put("symbolismText", symbolismText);
 
-            // Problems
             JSONArray commonProblemsArray = root.optJSONArray("common_problems");
             if (commonProblemsArray != null) {
                 dataMap.put("commonProblemsJson", commonProblemsArray.toString());
             }
 
-            // Pests
             JSONObject pestInfo = root.optJSONObject("pest_info");
             if (pestInfo != null) {
                 dataMap.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "no pest detected"));
@@ -853,7 +924,6 @@ public class CameraScannerActivity extends AppCompatActivity {
                 historyEntry.put("reminders", reminderData);
             }
 
-            // Save into Firestore under "diary_history"
             FirebaseFirestore.getInstance()
                     .collection("diary_history")
                     .document(docId)

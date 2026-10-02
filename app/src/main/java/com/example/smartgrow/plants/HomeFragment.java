@@ -451,8 +451,11 @@ public class HomeFragment extends Fragment {
                 updateLiveDateTimeAndGreeting();
                 TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
                 Calendar cal = Calendar.getInstance(phTimeZone);
+
+                // Update stats and weather every minute (at 00 seconds)
                 if (cal.get(Calendar.SECOND) == 0) {
                     updateDashboardStats();
+                    updateMockWeatherEngine();
                 }
                 clockHandler.postDelayed(this, 1000);
             }
@@ -523,17 +526,20 @@ public class HomeFragment extends Fragment {
             if (ivIcon != null) ivIcon.setImageResource(iconResId);
 
             if (tvAdvice != null) {
+                String prefix = getString(R.string.sprout_ai_prefix);
+                String advice;
                 if (selectedCondition.equals("Light Rain") || selectedCondition.equals("Thunderstorm")) {
-                    tvAdvice.setText("Not ideal for watering (Rain expected)");
+                    advice = getString(R.string.weather_advice_rain);
                 } else if (selectedCondition.equals("Cloudy")) {
-                    tvAdvice.setText("Good weather for watering (Low evaporation)");
+                    advice = getString(R.string.weather_advice_cloudy);
                 } else if (selectedCondition.equals("Partly Cloudy")) {
-                    tvAdvice.setText("Great conditions for general plant care");
+                    advice = getString(R.string.weather_advice_partly_cloudy);
                 } else if (selectedCondition.equals("Sunny") && temp > 30) {
-                    tvAdvice.setText("Water early morning or evening");
+                    advice = getString(R.string.weather_advice_sunny_hot);
                 } else {
-                    tvAdvice.setText("Better weather for watering");
+                    advice = getString(R.string.weather_advice_default);
                 }
+                tvAdvice.setText(prefix + advice);
             }
         }
     }

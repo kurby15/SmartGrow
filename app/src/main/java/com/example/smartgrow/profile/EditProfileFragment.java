@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,11 +72,14 @@ public class EditProfileFragment extends Fragment {
         btnSave = view.findViewById(R.id.btn_save_edit_info);
 
         // Back button listener
-        view.findViewById(R.id.btn_back_edit_info).setOnClickListener(v -> {
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().popBackStack();
-            }
-        });
+        View btnBack = view.findViewById(R.id.btn_back_edit_info);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> {
+                if (getParentFragmentManager() != null) {
+                    getParentFragmentManager().popBackStack();
+                }
+            });
+        }
 
         if (currentUid != null) {
             fetchUserData();
@@ -83,12 +87,17 @@ public class EditProfileFragment extends Fragment {
             Toast.makeText(getContext(), "User session not found.", Toast.LENGTH_SHORT).show();
         }
 
-        btnSave.setOnClickListener(v -> saveUserData());
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> saveUserData());
+        }
 
         return view;
     }
 
     private void fetchUserData() {
+        if (currentUid == null) return;
+
+        // Try to find the document by username first (legacy), then fallback to UID
         String docKey = (currentUsername != null && !currentUsername.trim().isEmpty() && !currentUsername.equals("unknown"))
                 ? currentUsername
                 : currentUid;
@@ -96,58 +105,68 @@ public class EditProfileFragment extends Fragment {
         userDocRef = db.collection("users").document(docKey);
 
         userDocRef.get().addOnSuccessListener(snapshot -> {
-            if (isAdded() && snapshot.exists()) {
-                populateFields(snapshot);
-            } else if (isAdded()) {
-                // Fallback query by UID if document key wasn't username
-                db.collection("users").whereEqualTo("uid", currentUid).get().addOnSuccessListener(querySnapshot -> {
-                    if (isAdded() && !querySnapshot.isEmpty()) {
-                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                        userDocRef = doc.getReference();
-                        populateFields(doc);
-                    }
-                });
+            if (isAdded()) {
+                if (snapshot.exists()) {
+                    populateFields(snapshot);
+                } else {
+                    // Fallback: Query by UID field if document ID is not UID/Username
+                    db.collection("users").whereEqualTo("uid", currentUid).get().addOnSuccessListener(querySnapshot -> {
+                        if (isAdded() && !querySnapshot.isEmpty()) {
+                            DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                            userDocRef = doc.getReference();
+                            populateFields(doc);
+                        } else {
+                            // If no document exists at all, ensure userDocRef uses currentUid for new record
+                            userDocRef = db.collection("users").document(currentUid);
+                            loadFromLocalPrefs();
+                        }
+                    });
+                }
             }
         }).addOnFailureListener(e -> {
             if (isAdded()) {
                 Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                loadFromLocalPrefs();
             }
         });
     }
 
+    private void loadFromLocalPrefs() {
+        User localUser = prefManager.getUser();
+        if (localUser != null) {
+            if (etFullName != null) etFullName.setText(localUser.getFullName());
+            if (etEmail != null) etEmail.setText(localUser.getEmail());
+            if (etAddress != null) etAddress.setText(localUser.getAddress());
+            if (etPhone != null) etPhone.setText(localUser.getPhone());
+        }
+    }
+
     private void populateFields(DocumentSnapshot snapshot) {
-        // DECRYPT ALL SENSITIVE FIELDS
+        // Retrieve and decrypt fields
         String encFullName = snapshot.getString("fullName");
         String encEmail = snapshot.getString("email");
         String encAddress = snapshot.getString("address");
         String encPhone = snapshot.getString("phone");
 
-        if (etFullName != null && encFullName != null) {
+        if (etFullName != null) {
             etFullName.setText(FirebaseCryptoUtils.decrypt(encFullName, currentUid));
         }
 
-        // Decrypt email if encrypted; fallback to raw value if unencrypted
-        if (etEmail != null && encEmail != null) {
-            String decryptedEmail = FirebaseCryptoUtils.decrypt(encEmail, currentUid);
-            // Fallback check in case older users stored plain text emails
-            if (decryptedEmail != null && !decryptedEmail.isEmpty()) {
-                etEmail.setText(decryptedEmail);
-            } else {
-                etEmail.setText(encEmail);
-            }
+        if (etEmail != null) {
+            etEmail.setText(FirebaseCryptoUtils.decrypt(encEmail, currentUid));
         }
 
-        if (etAddress != null && encAddress != null) {
+        if (etAddress != null) {
             etAddress.setText(FirebaseCryptoUtils.decrypt(encAddress, currentUid));
         }
-        if (etPhone != null && encPhone != null) {
+        if (etPhone != null) {
             etPhone.setText(FirebaseCryptoUtils.decrypt(encPhone, currentUid));
         }
     }
 
     private void saveUserData() {
         if (currentUid == null || userDocRef == null) {
-            Toast.makeText(getContext(), "Unable to save: Invalid user session", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Unable to save: Invalid session", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -175,22 +194,23 @@ public class EditProfileFragment extends Fragment {
             return;
         }
 
-        // Lock UI during process
         setFormEnabled(false);
 
-        // ENCRYPT ALL SENSITIVE FIELDS BEFORE SAVING TO FIRESTORE
+        // Encrypt sensitive fields before Firestore update
         Map<String, Object> updates = new HashMap<>();
         updates.put("fullName", FirebaseCryptoUtils.encrypt(name, currentUid));
         updates.put("email", FirebaseCryptoUtils.encrypt(email, currentUid));
         updates.put("address", FirebaseCryptoUtils.encrypt(address, currentUid));
         updates.put("phone", FirebaseCryptoUtils.encrypt(phone, currentUid));
+        updates.put("uid", currentUid);
 
-        userDocRef.update(updates).addOnCompleteListener(task -> {
+        // Use set with merge to ensure document exists
+        userDocRef.set(updates, SetOptions.merge()).addOnCompleteListener(task -> {
             if (isAdded()) {
                 setFormEnabled(true);
 
                 if (task.isSuccessful()) {
-                    // Update Local Preferences with unencrypted plain text data
+                    // Update Local Preferences (Save plain text for local use)
                     User currentUser = prefManager.getUser();
                     if (currentUser == null) {
                         currentUser = new User();
@@ -214,15 +234,14 @@ public class EditProfileFragment extends Fragment {
         });
     }
 
-    /**
-     * Helper to enable/disable form interactions during submission.
-     */
     private void setFormEnabled(boolean enabled) {
-        btnSave.setEnabled(enabled);
-        btnSave.setText(enabled ? "Save" : "Saving...");
-        etFullName.setEnabled(enabled);
-        etEmail.setEnabled(enabled);
-        etAddress.setEnabled(enabled);
-        etPhone.setEnabled(enabled);
+        if (btnSave != null) {
+            btnSave.setEnabled(enabled);
+            btnSave.setText(enabled ? "Save Changes" : "Saving...");
+        }
+        if (etFullName != null) etFullName.setEnabled(enabled);
+        if (etEmail != null) etEmail.setEnabled(enabled);
+        if (etAddress != null) etAddress.setEnabled(enabled);
+        if (etPhone != null) etPhone.setEnabled(enabled);
     }
 }

@@ -2,4 +2,10 @@
     <string name="app_name">SmartGrow</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sprout_ai_prefix">sproutAI says:\n</string>
+    <string name="weather_advice_default">Better weather for watering</string>
+    <string name="weather_advice_rain">Not ideal for watering (Rain expected)</string>
+    <string name="weather_advice_cloudy">Good weather for watering</string>
+    <string name="weather_advice_partly_cloudy">Great weather for general plant care</string>
+    <string name="weather_advice_sunny_hot">Water early or late in the day</string>
 </resources>

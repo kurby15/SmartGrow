@@ -397,6 +397,11 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
 
         plant_uid = getIntent().getStringExtra("plant_uid");
 
+        if (getIntent().getBooleanExtra("already_in_garden", false)) {
+            if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
+            if (btnInlineSave != null) btnInlineSave.setVisibility(View.GONE);
+        }
+
         String plantId = getIntent().getStringExtra("plant_id");
         if (plantId != null && !plantId.isEmpty()) {
             if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
@@ -1173,6 +1178,32 @@ public class PlantDetailsActivity extends AppCompatActivity implements OnMapRead
         }
 
         String userId = currentUser.getUid();
+
+        // Validation: Check if this plant is already in the Garden (diary collection)
+        if (scientificName != null && !scientificName.equals("N/A") && !scientificName.isEmpty()) {
+            db.collection("diary")
+                    .whereEqualTo("userId", userId)
+                    .whereEqualTo("scientificName", scientificName)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            Toast.makeText(this, "This plant is already in your Garden Diary!", Toast.LENGTH_LONG).show();
+                            if (btnSaveToGardenBottom != null) btnSaveToGardenBottom.setVisibility(View.GONE);
+                            if (btnInlineSave != null) btnInlineSave.setVisibility(View.GONE);
+                        } else {
+                            performSaveToDiary(userId);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error checking duplicates: " + e.getMessage());
+                        performSaveToDiary(userId); // Fallback to proceed if check fails
+                    });
+        } else {
+            performSaveToDiary(userId);
+        }
+    }
+
+    private void performSaveToDiary(String userId) {
         String docId = String.valueOf(System.currentTimeMillis());
 
         Map<String, Object> diaryEntry = new HashMap<>();

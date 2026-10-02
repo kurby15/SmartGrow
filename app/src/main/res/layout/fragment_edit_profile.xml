@@ -182,7 +182,78 @@
 
                     </com.google.android.material.card.MaterialCardView>
 
+                    <!-- ADDRESS -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="@font/inter_extrabold"
+                        android:text="Address"
+                        android:textColor="@color/profile_title_color"
+                        android:textSize="12sp" />
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="16dp"
+                        app:cardBackgroundColor="@color/app_background"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <EditText
+                            android:id="@+id/et_address"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:fontFamily="@font/inter_semibold"
+                            android:hint="Enter your address"
+                            android:imeOptions="actionNext"
+                            android:importantForAutofill="no"
+                            android:inputType="textPostalAddress"
+                            android:maxLines="1"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/profile_title_color"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- PHONE -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="@font/inter_extrabold"
+                        android:text="Contact Number"
+                        android:textColor="@color/profile_title_color"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="@color/app_background"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <EditText
+                            android:id="@+id/et_phone"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:fontFamily="@font/inter_semibold"
+                            android:hint="Enter your contact number"
+                            android:imeOptions="actionDone"
+                            android:importantForAutofill="no"
+                            android:inputType="phone"
+                            android:maxLines="1"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/profile_title_color"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 
