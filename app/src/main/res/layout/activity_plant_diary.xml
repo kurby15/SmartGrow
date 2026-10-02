@@ -198,6 +198,7 @@
                 android:fontFamily="@font/inter_medium"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
+                android:maxLines="3"
                 tools:text="Status: Healthy" />
 
             <TextView

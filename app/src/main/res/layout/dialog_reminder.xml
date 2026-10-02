@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/profile_card_bg">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <View
+            android:id="@+id/view_drag_handle"
+            android:layout_width="45dp"
+            android:layout_height="4dp"
+            android:background="@color/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/iv_plant_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="24dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img_9"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/view_drag_handle"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.MediumComponent" />
+
+        <TextView
+            android:id="@+id/tv_plant_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:fontFamily="@font/inter_extrabold"
+            android:text="Venus Flytrap"
+            android:textColor="@color/primary_green"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tv_pending_tasks"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_plant_image"
+            app:layout_constraintTop_toTopOf="@id/iv_plant_image"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tv_pending_tasks"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="3 Pending Tasks"
+            android:fontFamily="@font/inter_medium"
+            android:textColor="@color/primary_green"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/iv_plant_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@id/iv_plant_image"
+            app:layout_constraintTop_toBottomOf="@id/tv_plant_name" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_water_now"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/primary_green"
+            android:text="Water Now"
+            android:textColor="@color/app_background"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:fontFamily="@font/inter_extrabold"
+            app:cornerRadius="30dp"
+            app:icon="@drawable/ic_water"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
+            app:layout_constraintTop_toBottomOf="@id/iv_plant_image" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_feed_now"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:backgroundTint="@color/primary_green"
+            android:text="Feed Now"
+            android:textColor="@color/app_background"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:fontFamily="@font/inter_extrabold"
+            app:cornerRadius="30dp"
+            app:icon="@drawable/ic_soil"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
+            app:layout_constraintTop_toBottomOf="@id/btn_water_now" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_inspect"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/primary_green"
+            android:text="Inspect"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:fontFamily="@font/inter_extrabold"
+            app:cornerRadius="30dp"
+            app:icon="@drawable/ic_search"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_feed_now" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

@@ -48,6 +48,7 @@ import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartgrow.R;
+import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.PlantDetailsActivity;
 import com.example.smartgrow.plants.PlantDiaryActivity;
 import com.example.smartgrow.plants.PlantReminderBottomSheet;
@@ -119,6 +120,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     startCameraX();
+                    checkFirstTimeScan();
                 } else {
                     Toast.makeText(this, "Camera permission is required to use this feature", Toast.LENGTH_SHORT).show();
                     finish();
@@ -186,8 +188,17 @@ public class CameraScannerActivity extends AppCompatActivity {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCameraX();
+            checkFirstTimeScan();
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void checkFirstTimeScan() {
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+        if (prefManager.isFirstTimeScan()) {
+            showSnapTipsDialog();
+            prefManager.setFirstTimeScan(false);
         }
     }
 
@@ -319,10 +330,13 @@ public class CameraScannerActivity extends AppCompatActivity {
     }
 
     private void showSnapTipsDialog() {
-        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_snap_tips);
 
         if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         }
 

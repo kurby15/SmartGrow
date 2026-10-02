@@ -93,6 +93,16 @@ public class SharedPrefManager {
         return sharedPreferences.getBoolean("is_logged_in", false) && !username.equals("unknown");
     }
 
+    public boolean isFirstTimeScan() {
+        return sharedPreferences != null && sharedPreferences.getBoolean("first_time_scan", true);
+    }
+
+    public void setFirstTimeScan(boolean isFirstTime) {
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putBoolean("first_time_scan", isFirstTime).apply();
+        }
+    }
+
     public void logout(Context context) {
         try {
             if (sharedPreferences != null) {

@@ -948,20 +948,23 @@
         </com.google.android.material.card.MaterialCardView>
 
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="@color/card_background"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
+
+            <!-- SECTION: USES -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_uses"
-                    app:tint="@color/primary_green" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/tv_uses_title"
@@ -969,19 +972,8 @@
                     android:layout_height="wrap_content"
                     android:text="Uses"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold"/>
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_uses_content"
@@ -993,23 +985,12 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- SECTION: ADAPTATION STRATEGIES -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_adaptation"
-                    app:tint="@color/primary_green" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/divider" />
 
                 <TextView
                     android:id="@+id/tv_adaptation_title"
@@ -1017,19 +998,8 @@
                     android:layout_height="wrap_content"
                     android:text="Adaptation Strategies"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold" />
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_adaptation_content"
@@ -1041,23 +1011,12 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- SECTION: ECOLOGICAL APPLICATION -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_ecological"
-                    app:tint="@color/primary_green" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/divider" />
 
                 <TextView
                     android:id="@+id/tv_ecological_title"
@@ -1065,19 +1024,8 @@
                     android:layout_height="wrap_content"
                     android:text="Ecological Application"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold"/>
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_ecological_content"
@@ -1089,23 +1037,12 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- SECTION: HISTORY & LEGENDS -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_history"
-                    app:tint="@color/primary_green" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/divider" />
 
                 <TextView
                     android:id="@+id/tv_history_title"
@@ -1113,19 +1050,8 @@
                     android:layout_height="wrap_content"
                     android:text="History &amp; Legends"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold" />
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_history_content"
@@ -1137,23 +1063,12 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- SECTION: NAME STORY -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_namestory"
-                    app:tint="@color/primary_green" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/divider" />
 
                 <TextView
                     android:id="@+id/tv_namestory_title"
@@ -1161,19 +1076,8 @@
                     android:layout_height="wrap_content"
                     android:text="Name Story"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold" />
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_namestory_content"
@@ -1185,23 +1089,12 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- SECTION: SYMBOLISM -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="24dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_symbolism"
-                    app:tint="@color/primary_green" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/divider" />
 
                 <TextView
                     android:id="@+id/tv_symbolism_title"
@@ -1209,20 +1102,8 @@
                     android:layout_height="wrap_content"
                     android:text="Symbolism"
                     android:textColor="@color/primary_green"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:fontFamily="@font/inter_extrabold" />
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/tv_symbolism_content"
@@ -1233,7 +1114,11 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/inter_extrabold"
                     tools:text="N/A" />
-            </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+
+        </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
