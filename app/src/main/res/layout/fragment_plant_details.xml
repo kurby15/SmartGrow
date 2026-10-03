@@ -1,6 +1,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -13,6 +14,7 @@
 
         <!-- BASIC INFO SECTION -->
         <TextView
+            android:id="@+id/section_basic_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
@@ -554,6 +556,7 @@
 
         <!-- SECTION: CARE CONDITION -->
         <TextView
+            android:id="@+id/section_care"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
@@ -949,6 +952,7 @@
 
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/section_explore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
@@ -1122,4 +1126,3 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
-
