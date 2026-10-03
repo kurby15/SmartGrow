@@ -39,8 +39,8 @@
 
                 android:id="@+id/btn_back_account_security"
 
-                android:layout_width="35dp"
-                android:layout_height="35dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
 
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"

@@ -12,7 +12,7 @@
     <!-- Header -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="55dp"
         app:cardBackgroundColor="@color/card_background"
         app:cardCornerRadius="0dp"
         app:cardElevation="10dp"
@@ -25,8 +25,8 @@
             <!-- Back Button -->
             <ImageView
                 android:id="@+id/btn_back_terms"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
@@ -47,7 +47,7 @@
                 android:fontFamily="@font/inter_extrabold"
                 android:text="Terms of Service"
                 android:textColor="@color/primary_green"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
         </RelativeLayout>
@@ -168,7 +168,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/inter_semibold"
-                android:text="Last Updated: June 2026"
+                android:text="Last Updated: September 2026"
                 android:textAlignment="center"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
