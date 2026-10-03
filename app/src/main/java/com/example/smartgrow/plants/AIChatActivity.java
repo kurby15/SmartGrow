@@ -336,6 +336,13 @@ public class AIChatActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isRecipeRequest(String msg) {
+        if (msg == null) return false;
+        String m = msg.toLowerCase().trim();
+        return m.contains("recipe") || m.contains("cook") || m.contains("how to make") || 
+               m.contains("ingredients") || m.contains("delicious") || m.contains("dish");
+    }
+
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
         // Hide welcome layout as soon as interaction starts
         if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
@@ -357,6 +364,19 @@ public class AIChatActivity extends AppCompatActivity {
         rvChatMessagesList.scrollToPosition(chatList.size() - 1);
 
         appendMessageToFirestore(userMsg);
+
+        // Client-side recipe check
+        if (isRecipeRequest(messageText)) {
+            ChatMessageModel recipeReject = new ChatMessageModel(
+                    "I am sorry, but I can only assist with plant care, identification, and SmartGrow app features. I cannot provide food recipes or cooking instructions.",
+                    getCurrentPhTime(),
+                    ChatMessageModel.TYPE_AI);
+            chatList.add(recipeReject);
+            chatAdapter.notifyItemInserted(chatList.size() - 1);
+            rvChatMessagesList.scrollToPosition(chatList.size() - 1);
+            appendMessageToFirestore(recipeReject);
+            return;
+        }
 
         String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
         if (imageBitmap == null && isAppRelatedQuestion(lowerMsg)) {
@@ -382,7 +402,7 @@ public class AIChatActivity extends AppCompatActivity {
                                 || rawJson.contains("plant_not_detected"))) {
 
                             ChatMessageModel notPlantMsg = new ChatMessageModel(
-                                    "We couldn't detect a plant in the provided image. Please make sure the photo is clear, well-lit, and focused on a plant.",
+                                    "We couldn't detect a plant in the provided image. Please make sure the photo is focused on a plant.",
                                     getCurrentPhTime(),
                                     ChatMessageModel.TYPE_AI);
 
@@ -408,9 +428,17 @@ public class AIChatActivity extends AppCompatActivity {
                 public void onError(String error) {
                     runOnUiThread(() -> {
                         removeLoadingIndicator();
-                        ChatMessageModel errorMsg = new ChatMessageModel("I encountered an issue. Please check your connection.", getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                        String displayError = "I encountered an issue. Please check your connection.";
+                        if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
+                            displayError = "No plant detected. If people or pets are in the photo, please ensure the plant is clearly visible and in focus.";
+                        } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
+                            displayError = "Multiple different plant species detected. Please focus on one species at a time.";
+                        }
+
+                        ChatMessageModel errorMsg = new ChatMessageModel(displayError, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
                         chatList.add(errorMsg);
                         chatAdapter.notifyItemInserted(chatList.size() - 1);
+                        rvChatMessagesList.scrollToPosition(chatList.size() - 1);
                         appendMessageToFirestore(errorMsg);
                     });
                 }
@@ -430,8 +458,7 @@ public class AIChatActivity extends AppCompatActivity {
                         String cleanedReply = cleanAiResponseText(rawAiReply);
                         ArrayList<String> suggestions = new ArrayList<>();
 
-                        if (cleanedReply.contains("only answer questions related to plants")) {
-                            cleanedReply = "I can only assist with plant-related topics. Ask me about plant care or identification!";
+                        if (cleanedReply.contains("only answer questions related to plants") || cleanedReply.toLowerCase().contains("cannot provide recipes")) {
                             suggestions.add("Give me care tips for a Monstera.");
                         } else {
                             suggestions.add("Tell me about ideal humidity.");

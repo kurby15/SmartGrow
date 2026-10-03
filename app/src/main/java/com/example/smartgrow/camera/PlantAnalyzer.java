@@ -58,7 +58,10 @@ public class PlantAnalyzer {
             "5. Reminders: Set schedules for watering, fertilizing, or repotting with custom notifications.\n\n" +
             "6. Community Forum: Connect with other gardeners, share tips, and post your plant journey.\n\n" +
             "7. History: Access all your past plant scans and chat sessions anytime.\n\n" +
-            "8. Profile & Settings: Manage account info, security, and app preferences.";
+            "8. Profile & Settings: Manage account info, security, and app preferences.\n\n" +
+            "STRICT POLICY: SmartGrow is exclusively for plant care, identification, and app support. " +
+            "Do NOT provide food recipes, cooking instructions, or culinary advice. " +
+            "If the user asks for a recipe, politely decline and steer back to plant care.";
 
     public interface PlantCallback {
         void onSuccess(String result);
@@ -118,7 +121,7 @@ public class PlantAnalyzer {
             JSONArray partsArray = new JSONArray();
 
             JSONObject textPart = new JSONObject();
-            textPart.put("text", "Check if this image contains a plant (real, artificial, or part of a plant). Return ONLY a JSON object: {\"is_plant\": true} or {\"is_plant\": false}.");
+            textPart.put("text", "Verify if this image contains a plant. If the image contains people, pets, or non-botanical objects ONLY, return false. If there is a plant visible, even if people are in the background, return true. Return ONLY a JSON object: {\"is_plant\": true} or {\"is_plant\": false}.");
             partsArray.put(textPart);
 
             JSONObject imagePart = new JSONObject();
@@ -237,7 +240,8 @@ public class PlantAnalyzer {
         String baseSystemPrompt = "You are SmartGrow Assistant, powered by DeepSeek. You help users with plant care and navigating the SmartGrow app.\n\n" +
                 APP_DETAILS_CONTEXT + "\n\n" +
                 "Answer questions related to plants, gardening, and how to use the SmartGrow app features listed above.\n" +
-                "IMPORTANT: Do not use asterisks (*) for formatting. Use plain text and double newlines for spacing.\n";
+                "IMPORTANT: Do not use asterisks (*) for formatting. Use plain text and double newlines for spacing. " +
+                "NEVER provide food recipes or culinary instructions.\n";
 
         if (contextHistory != null && !contextHistory.trim().isEmpty()) {
             systemMsg.put("content", baseSystemPrompt +
@@ -246,10 +250,10 @@ public class PlantAnalyzer {
                     contextHistory + "\n" +
                     "---------------------------------------------\n\n" +
                     "Answer ONLY questions related to plants (health, pests, care) or the SmartGrow app.\n" +
-                    "If the user asks something completely unrelated, politely decline.");
+                    "If the user asks something completely unrelated or asks for a recipe, politely decline.");
         } else {
             systemMsg.put("content", baseSystemPrompt +
-                    "If the user's question is NOT related to plants or the SmartGrow app, politely state you can only assist with plant-related topics.");
+                    "If the user's question is NOT related to plants or the SmartGrow app, or if they ask for a food recipe, politely state you can only assist with plant-related topics.");
         }
         messages.put(systemMsg);
 
@@ -276,37 +280,32 @@ public class PlantAnalyzer {
 
             if (isConversationalQuestion) {
                 basePromptBuilder.append("You are SproutAI, an expert AI plant care assistant.\n")
-                        .append("The user has attached an image of their plant along with a specific question.\n\n")
+                        .append("The user has attached an image and a specific question.\n\n")
                         .append("USER QUESTION: \"").append(question.trim()).append("\"\n\n")
                         .append("INSTRUCTIONS:\n")
-                        .append("1. First, verify if the image contains a plant or botanical element.\n")
-                        .append("2. If NO plant is found, state politely that no plant was detected.\n")
-                        .append("3. Identify the plant and directly, naturally answer the user's question based on what you observe.\n")
-                        .append("4. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
-                        .append("5. Do NOT use asterisks (*) for bold or lists. Use double newlines for spacing.\n")
-                        .append("6. Do NOT output raw JSON or structured Plant Profiles unless specifically asked.");
+                        .append("1. First, verify if the image contains a plant. If the image is focused on people, animals, or non-plant items with no visible plant, state that you cannot identify a plant.\n")
+                        .append("2. If both a plant and people/other objects are present, IGNORE the people and FOCUS exclusively on the plant.\n")
+                        .append("3. Identify the plant and answer the user's question directly based on what you observe.\n")
+                        .append("4. IMPORTANT: Do NOT provide food recipes or culinary advice, even if the plant is edible. Focus ONLY on its growth and care.\n")
+                        .append("5. Keep the answer helpful, concise, friendly, and directly addressing their question.\n")
+                        .append("6. Do NOT use asterisks (*) for formatting. Use double newlines for spacing.\n")
+                        .append("7. Do NOT output raw JSON or structured profiles.");
             } else {
                 basePromptBuilder.append("You are an expert botanical computer vision engine.\n\n")
                         .append("TASK INSTRUCTIONS:\n")
-                        .append("1. SPECIES CONSISTENCY MANDATE:\n")
-                        .append("   - You can identify multiple individual plants in a single image ONLY IF they all belong to the EXACT SAME species (e.g., several pots of the same plant type).\n")
-                        .append("   - If the image contains multiple DIFFERENT plant species clearly visible (e.g., a Cactus and a Rose in the same frame), you MUST reject the scan.\n")
-                        .append("   - For mixed species, return JSON: {\"is_plant\": false, \"multiple_plants\": true}.\n")
-                        .append("   - For a single species (even if multiple plants of that species), proceed with: {\"is_plant\": true, \"multiple_plants\": false} and provide the plant profile for that species.\n")
-                        .append("   - If no plant is detected at all, return: {\"is_plant\": false, \"multiple_plants\": false}.\n\n")
-                        .append("2. ARTIFICIAL PLANT INSPECTION:\n")
-                        .append("   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC / SYNTHETIC / SILK.\n")
-                        .append("   - Set \"is_artificial\" to true if artificial, otherwise false.\n\n")
-                        .append("3. HEALTH & PEST ASSESSMENT:\n")
-                        .append("   - Assess the plant's health status and identify any problems or diseases.\n")
-                        .append("   - Identify any pests that have damaged or could damage the uploaded plant.\n")
-                        .append("   - Check specifically for signs of pest damage like chew marks (ngatngat), spots, or actual insects.\n")
-                        .append("   - Provide details on what pests were detected (if any). If no pests are detected, set \"possible_pest_detected\" to \"no pest detected\".\n")
-                        .append("   - Provide specific steps to avoid pests, including recommendations for organic or chemical sprays (e.g., Neem oil).\n\n")
-                        .append("4. CARE GUIDE MANDATE AND GEOGRAPHICAL DISTRIBUTION MAP PINPOINTS:\n")
-                        .append("   - Detail the essential care conditions (sunlight, watering, temperature).\n")
-                        .append("   - Identify multiple realistic locations across the globe or regions where this plant can be found, and map them to their distribution type (Native, Cultivated, Introduced, Invasive) so they can be accurately pinned on the habitat map.\n\n")
-                        .append("5. Return ONLY pure JSON matching EXACTLY this structure:\n")
+                        .append("1. PLANT FOCUS & VALIDATION:\n")
+                        .append("   - Verify if the image contains a plant. If the image contains ONLY people, pets, or objects without a plant, return: {\"is_plant\": false}.\n")
+                        .append("   - If a plant is present alongside people or other objects, focus ONLY on the plant.\n")
+                        .append("   - SPECIES CONSISTENCY: Reject if multiple DIFFERENT plant species are clearly visible: {\"is_plant\": false, \"multiple_plants\": true}.\n\n")
+                        .append("2. RECIPE PROHIBITION:\n")
+                        .append("   - Do NOT include food recipes, cooking tips, or culinary uses. Focus ONLY on botanical characteristics and care.\n\n")
+                        .append("3. ARTIFICIAL PLANT INSPECTION:\n")
+                        .append("   - Inspect if the plant is ARTIFICIAL / FAUX / PLASTIC.\n\n")
+                        .append("4. HEALTH & PEST ASSESSMENT:\n")
+                        .append("   - Assess health and identify pests. Check for signs like chew marks (ngatngat).\n\n")
+                        .append("5. CARE GUIDE & DISTRIBUTION:\n")
+                        .append("   - Detail essential care and geographical habitat map pinpoints.\n\n")
+                        .append("6. Return ONLY pure JSON matching EXACTLY this structure:\n")
                         .append("{\n")
                         .append("  \"is_plant\": true,\n")
                         .append("  \"multiple_plants\": false,\n")
@@ -337,36 +336,15 @@ public class PlantAnalyzer {
                         .append("        \"title\": \"Region/City Name\",\n")
                         .append("        \"snippet\": \"Short status info text\",\n")
                         .append("        \"distribution_type\": \"Native\"\n")
-                        .append("      },\n")
-                        .append("      {\n")
-                        .append("        \"latitude\": 35.6762,\n")
-                        .append("        \"longitude\": 139.6503,\n")
-                        .append("        \"title\": \"Region/City Name\",\n")
-                        .append("        \"snippet\": \"Short status info text\",\n")
-                        .append("        \"distribution_type\": \"Cultivated\"\n")
-                        .append("      },\n")
-                        .append("      {\n")
-                        .append("        \"latitude\": -33.8688,\n")
-                        .append("        \"longitude\": 151.2093,\n")
-                        .append("        \"title\": \"Region/City Name\",\n")
-                        .append("        \"snippet\": \"Short status info text\",\n")
-                        .append("        \"distribution_type\": \"Introduced\"\n")
-                        .append("      },\n")
-                        .append("      {\n")
-                        .append("        \"latitude\": 25.7617,\n")
-                        .append("        \"longitude\": -80.1918,\n")
-                        .append("        \"title\": \"Region/City Name\",\n")
-                        .append("        \"snippet\": \"Short status info text\",\n")
-                        .append("        \"distribution_type\": \"Invasive\"\n")
                         .append("      }\n")
                         .append("    ]\n")
                         .append("  },\n")
                         .append("  \"health_assessment\": {\n")
-                        .append("    \"status\": \"Healthy / Diseased / etc.\",\n")
+                        .append("    \"status\": \"Healthy / Diseased\",\n")
                         .append("    \"confidence\": \"95%\"\n")
                         .append("  },\n")
                         .append("  \"health_scanner\": {\n")
-                        .append("    \"status\": \"Healthy / Diseased / etc.\",\n")
+                        .append("    \"status\": \"Healthy\",\n")
                         .append("    \"health_score\": 95,\n")
                         .append("    \"confidence\": 95\n")
                         .append("  },\n")
@@ -375,62 +353,54 @@ public class PlantAnalyzer {
                         .append("    \"sunlight\": \"Sunlight needs\",\n")
                         .append("    \"temperature\": \"Ideal temperature range\"\n")
                         .append("  },\n")
-                        .append("  \"problems_detected\": [\n")
-                        .append("    \"Problem 1\",\n")
-                        .append("    \"Problem 2\"\n")
-                        .append("  ],\n")
+                        .append("  \"problems_detected\": [\"Problem 1\"],\n")
                         .append("  \"common_problems\": [\n")
                         .append("    {\n")
                         .append("      \"title\": \"Problem Name\",\n")
                         .append("      \"likelihood_percentage\": 20,\n")
-                        .append("      \"description\": \"Description of the issue\",\n")
-                        .append("      \"symptom_analysis\": \"What symptoms to look for\",\n")
-                        .append("      \"disease_cause\": \"What causes this disease\",\n")
-                        .append("      \"solutions\": \"How to treat it\",\n")
-                        .append("      \"prevention\": \"How to prevent it\"\n")
+                        .append("      \"description\": \"Description\",\n")
+                        .append("      \"symptom_analysis\": \"Symptoms\",\n")
+                        .append("      \"disease_cause\": \"Cause\",\n")
+                        .append("      \"solutions\": \"Solutions\",\n")
+                        .append("      \"prevention\": \"Prevention\"\n")
                         .append("    }\n")
                         .append("  ],\n")
                         .append("  \"characteristics\": {\n")
-                        .append("    \"ultimate_height\": \"e.g. 1-2 meters\",\n")
-                        .append("    \"ultimate_spread\": \"e.g. 0.5-1 meter\",\n")
-                        .append("    \"leaf_type\": \"e.g. Broadleaf\",\n")
-                        .append("    \"planting_time\": \"e.g. Spring\",\n")
+                        .append("    \"ultimate_height\": \"e.g. 1m\",\n")
+                        .append("    \"ultimate_spread\": \"e.g. 0.5m\",\n")
+                        .append("    \"leaf_type\": \"Broadleaf\",\n")
+                        .append("    \"planting_time\": \"Spring\",\n")
                         .append("    \"leaf_colors\": [\"#4CAF50\"],\n")
                         .append("    \"leaf_color_hex\": \"#4CAF50\"\n")
                         .append("  },\n")
                         .append("  \"ecosystem\": {\n")
-                        .append("    \"temp_range\": \"e.g. 20-30°C\",\n")
-                        .append("    \"hardiness_zones\": \"e.g. 9-11\",\n")
-                        .append("    \"sunlight\": \"Full sun to partial shade\",\n")
-                        .append("    \"soil\": \"Well-draining loam\"\n")
+                        .append("    \"temp_range\": \"20-30°C\",\n")
+                        .append("    \"hardiness_zones\": \"9-11\",\n")
+                        .append("    \"sunlight\": \"Full sun\",\n")
+                        .append("    \"soil\": \"Well-draining\"\n")
                         .append("  },\n")
                         .append("  \"how_tos\": {\n")
-                        .append("    \"pruning\": \"Pruning instructions\",\n")
-                        .append("    \"propagation\": \"Propagation instructions\",\n")
-                        .append("    \"repotting\": \"Repotting instructions\"\n")
+                        .append("    \"pruning\": \"Pruning\",\n")
+                        .append("    \"propagation\": \"Propagation\",\n")
+                        .append("    \"repotting\": \"Repotting\"\n")
                         .append("  },\n")
                         .append("  \"extra_details\": {\n")
-                        .append("    \"uses\": \"Common uses\",\n")
-                        .append("    \"adaptation_strategies\": \"How it adapts\",\n")
-                        .append("    \"ecological_application\": \"Ecological role\",\n")
-                        .append("    \"history_and_legends\": \"Historical background\",\n")
-                        .append("    \"name_story\": \"Origin of its name\",\n")
-                        .append("    \"symbolism\": \"What it symbolizes\"\n")
+                        .append("    \"uses\": \"Botanical uses\",\n")
+                        .append("    \"adaptation_strategies\": \"Adaptations\",\n")
+                        .append("    \"ecological_application\": \"Role\",\n")
+                        .append("    \"history_and_legends\": \"History\",\n")
+                        .append("    \"name_story\": \"Name origin\",\n")
+                        .append("    \"symbolism\": \"Symbolism\"\n")
                         .append("  },\n")
                         .append("  \"pest_info\": {\n")
-                        .append("    \"possible_pest_detected\": \"Describe any pests detected or damage like chew marks (ngatngat) observed. If none, say 'no pest detected'.\",\n")
-                        .append("    \"common_pests\": [\n")
-                        .append("      {\n")
-                        .append("        \"name\": \"Pest Name\",\n")
-                        .append("        \"description\": \"Short description of the pest and its impact\"\n")
-                        .append("      }\n")
-                        .append("    ],\n")
-                        .append("    \"how_to_avoid_pest\": \"Prevention steps and spray recommendations (e.g. Neem oil) to avoid/prevent pests\"\n")
+                        .append("    \"possible_pest_detected\": \"no pest detected\",\n")
+                        .append("    \"common_pests\": [{\"name\": \"Pest\", \"description\": \"Info\"}],\n")
+                        .append("    \"how_to_avoid_pest\": \"Prevention steps\"\n")
                         .append("  },\n")
-                        .append("  \"recommendations\": \"Immediate and long-term care actions\",\n")
-                        .append("  \"smartqrow_lesson\": \"Short educational note\"\n")
+                        .append("  \"recommendations\": \"Actions\",\n")
+                        .append("  \"smartqrow_lesson\": \"Lesson\"\n")
                         .append("}\n\n")
-                        .append("OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. Do not include introductory text or markdown commentary outside the JSON block.");
+                        .append("OUTPUT REQUIREMENTS: Output ONLY pure valid JSON. No markdown outside the JSON block.");
 
                 JSONObject generationConfig = new JSONObject();
                 generationConfig.put("responseMimeType", "application/json");
@@ -452,7 +422,8 @@ public class PlantAnalyzer {
             String systemInstructions = "You are SmartGrow Assistant, backed up by Gemini. You help users with plant care and the SmartGrow app.\n\n" +
                     APP_DETAILS_CONTEXT + "\n\n" +
                     "Answer questions about plants or the SmartGrow app features listed above.\n" +
-                    "IMPORTANT: Do NOT use asterisks (*) in your response. Use double newlines for clarity.";
+                    "IMPORTANT: Do NOT use asterisks (*) in your response. Use double newlines for clarity. " +
+                    "NEVER provide food recipes or culinary advice.";
 
             if (contextHistory != null && !contextHistory.trim().isEmpty()) {
                 systemInstructions += "\n\nPrevious conversation & historical plant profile context:\n" + contextHistory;
