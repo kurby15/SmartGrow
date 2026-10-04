@@ -67,8 +67,6 @@ public class EditProfileFragment extends Fragment {
         // Bind views
         etFullName = view.findViewById(R.id.et_fullname);
         etEmail = view.findViewById(R.id.et_email);
-        etAddress = view.findViewById(R.id.et_address);
-        etPhone = view.findViewById(R.id.et_phone);
         btnSave = view.findViewById(R.id.btn_save_edit_info);
 
         // Back button listener

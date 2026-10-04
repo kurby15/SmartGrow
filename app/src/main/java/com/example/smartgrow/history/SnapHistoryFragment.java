@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
 import com.example.smartgrow.camera.PlantAnalyzer;
+import com.example.smartgrow.core.NotificationHelper;
 import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.plants.PlantNameBottomSheetFragment;
 import com.google.android.material.card.MaterialCardView;
@@ -30,7 +31,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SnapHistoryFragment extends Fragment {
 
@@ -78,6 +81,7 @@ public class SnapHistoryFragment extends Fragment {
 
         setupSearchFilter();
         fetchSnapHistoryData();
+        fetchGardenPlantNames();
 
         return view;
     }
@@ -91,7 +95,9 @@ public class SnapHistoryFragment extends Fragment {
 
             @Override
             public void onAddToGardenClick(SnapHistoryModel snap) {
-                // This fragment usually just shows history, but we can add save logic if needed
+                if (snap != null) {
+                    saveSnapToGarden(snap);
+                }
             }
 
             @Override
@@ -122,6 +128,106 @@ public class SnapHistoryFragment extends Fragment {
             }
         });
         rvSnapHistory.setAdapter(snapAdapter);
+    }
+
+    private void saveSnapToGarden(SnapHistoryModel snap) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            if (getContext() != null) Toast.makeText(getContext(), "Login to save", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String docId = String.valueOf(System.currentTimeMillis());
+        Map<String, Object> diaryEntry = new HashMap<>();
+        diaryEntry.put("id", docId);
+        diaryEntry.put("userId", user.getUid());
+        diaryEntry.put("plant_uid", snap.getPlantUid() != null ? snap.getPlantUid() : docId);
+        diaryEntry.put("plantName", snap.getPlantName());
+        diaryEntry.put("scientificName", snap.getScientificName());
+        diaryEntry.put("healthStatus", snap.getHealthStatus());
+        diaryEntry.put("healthPercentage", snap.getHealthPercentage());
+        diaryEntry.put("healthColor", snap.getHealthColor());
+        diaryEntry.put("matchConfidencePercentage", snap.getMatchConfidencePercentage());
+        diaryEntry.put("aliases", snap.getAliases());
+        diaryEntry.put("isArtificial", snap.isArtificial());
+        diaryEntry.put("timestamp", System.currentTimeMillis());
+        diaryEntry.put("rawAnalysisJson", snap.getRawAnalysisJson());
+        diaryEntry.put("imageBase64", snap.getImageBase64());
+        
+        diaryEntry.put("distribution", snap.getDistribution());
+        diaryEntry.put("habitat", snap.getHabitat());
+        diaryEntry.put("petToxicity", snap.getPetToxicity());
+        diaryEntry.put("weedPotential", snap.getWeedPotential());
+        diaryEntry.put("plantType", snap.getPlantType());
+        diaryEntry.put("lifespan", snap.getLifespan());
+        diaryEntry.put("careDifficultyText", snap.getCareDifficultyText());
+
+        // Automatic care reminders based on health percentage
+        Map<String, String> schedule = getAutoSchedule(snap.getHealthPercentage());
+        Map<String, Object> reminderData = new HashMap<>();
+        reminderData.put("wateringSchedule", schedule.get("water"));
+        reminderData.put("fertilizerSchedule", schedule.get("fertilizer"));
+        reminderData.put("sunlightSchedule", schedule.get("sunlight"));
+        reminderData.put("preferredTime", "08:00 AM");
+        diaryEntry.put("reminders", reminderData);
+
+        db.collection("diary").document(docId).set(diaryEntry)
+            .addOnSuccessListener(aVoid -> {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Added to My Garden with automatic reminders!", Toast.LENGTH_SHORT).show();
+                    
+                    try {
+                        NotificationHelper.createNotificationChannel(getContext());
+                        NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Water", "08:00 AM", schedule.get("water"));
+                        NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Fertilizer", "08:00 AM", schedule.get("fertilizer"));
+                        NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Sunlight", "08:00 AM", schedule.get("sunlight"));
+                    } catch (Exception e) {
+                        Log.e("SnapHistoryFragment", "Error scheduling reminders", e);
+                    }
+                    
+                    fetchGardenPlantNames();
+                }
+            })
+            .addOnFailureListener(e -> {
+                if (getContext() != null) Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private Map<String, String> getAutoSchedule(int health) {
+        Map<String, String> schedule = new HashMap<>();
+        if (health >= 80) {
+            schedule.put("water", "Every 3 Days");
+            schedule.put("fertilizer", "Every 2 Weeks");
+            schedule.put("sunlight", "Every Day");
+        } else if (health >= 50) {
+            schedule.put("water", "Every 2 Days");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        } else {
+            schedule.put("water", "Every Day");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        }
+        return schedule;
+    }
+
+    private void fetchGardenPlantNames() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        db.collection("diary")
+                .whereEqualTo("userId", currentUser.getUid())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> gardenNames = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String name = doc.getString("plantName");
+                        if (name != null) gardenNames.add(name.trim());
+                    }
+                    if (snapAdapter != null) {
+                        snapAdapter.setGardenPlantNames(gardenNames);
+                    }
+                });
     }
 
     private void showNamePlantBottomSheet(String currentName, List<String> suggestions, PlantNameBottomSheetFragment.OnPlantNameUpdatedListener updateListener) {

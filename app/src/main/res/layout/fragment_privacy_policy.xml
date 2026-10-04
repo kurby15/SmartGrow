@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
-    android:id="@+id/layout_terms_service"
+    android:id="@+id/layout_privacy_policy"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -71,7 +70,7 @@
 
                 android:fontFamily="@font/inter_extrabold"
 
-                android:text="Terms of Service"
+                android:text="Privacy Policy"
 
                 android:textColor="@color/primary_green"
 
@@ -114,7 +113,7 @@
             android:clipToPadding="false">
 
 
-            <!-- 1. ACCEPTANCE OF AGREEMENT -->
+            <!-- 1. INFORMATION COLLECTION -->
 
             <TextView
 
@@ -125,7 +124,7 @@
 
                 android:fontFamily="@font/inter_extrabold"
 
-                android:text="1. Acceptance of Agreement"
+                android:text="1. Information We Collect"
 
                 android:textColor="@color/profile_title_color"
 
@@ -145,14 +144,14 @@
 
                 android:lineSpacingMultiplier="1.3"
 
-                android:text="By accessing or using this system, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use the application or any related platform features."
+                android:text="We collect information you provide directly to us when you create an account, such as your name, email address, and profile details. We also collect data automatically, including device information, location data (to provide localized agricultural insights), and images you upload for plant disease identification."
 
                 android:textColor="@color/text_secondary"
 
                 android:textSize="12sp" />
 
 
-            <!-- 2. USER OBLIGATIONS & CONDUCT -->
+            <!-- 2. USE OF INFORMATION -->
 
             <TextView
 
@@ -163,7 +162,7 @@
 
                 android:fontFamily="@font/inter_extrabold"
 
-                android:text="2. User Obligations &amp; Conduct"
+                android:text="2. How We Use Your Information"
 
                 android:textColor="@color/profile_title_color"
 
@@ -183,14 +182,14 @@
 
                 android:lineSpacingMultiplier="1.3"
 
-                android:text="Users agree to use the services solely for constructive purposes. Any form of misuse, distribution of unlawful content within collaborative spaces, or attempts to disrupt system servers will lead to immediate account limitation or termination."
+                android:text="The information we collect is used to provide, maintain, and improve the SmartGrow services. This includes processing AI plant analysis, providing weather-based recommendations, managing your community interactions, and communicating important system updates or security alerts."
 
                 android:textColor="@color/text_secondary"
 
                 android:textSize="12sp" />
 
 
-            <!-- 3. INTELLECTUAL PROPERTY RIGHTS -->
+            <!-- 3. DATA STORAGE & SECURITY -->
 
             <TextView
 
@@ -201,7 +200,7 @@
 
                 android:fontFamily="@font/inter_extrabold"
 
-                android:text="3. Intellectual Property Rights"
+                android:text="3. Data Storage and Security"
 
                 android:textColor="@color/profile_title_color"
 
@@ -221,14 +220,14 @@
 
                 android:lineSpacingMultiplier="1.3"
 
-                android:text="All branding layout materials, computational assets, application architectures, and underlying detection models are the direct property of the developers and are protected under state copyright and proprietary laws."
+                android:text="We prioritize the security of your data. We use industry-standard encryption and secure cloud infrastructure to store your personal information and agricultural data. We implement reasonable measures to protect against unauthorized access, alteration, or disclosure of your data."
 
                 android:textColor="@color/text_secondary"
 
                 android:textSize="12sp" />
 
 
-            <!-- 4. DISCLAIMER & LIMITATIONS -->
+            <!-- 4. THIRD-PARTY SERVICES -->
 
             <TextView
 
@@ -239,7 +238,7 @@
 
                 android:fontFamily="@font/inter_extrabold"
 
-                android:text="4. Disclaimer &amp; Limitations"
+                android:text="4. Third-Party Services"
 
                 android:textColor="@color/profile_title_color"
 
@@ -259,7 +258,7 @@
 
                 android:lineSpacingMultiplier="1.3"
 
-                android:text="The application interface features and identification assessments are served on an 'as-is' standard. While we prioritize extreme reliability, we make no explicit warranties that processes will operate completely error-free over continuous periods."
+                android:text="SmartGrow utilizes third-party services such as Google Play Services, Firebase, and Mapbox. These providers may collect information used to identify you in accordance with their own privacy policies. We do not sell your personal data to third parties for marketing purposes."
 
                 android:textColor="@color/text_secondary"
 
@@ -287,7 +286,7 @@
 
                 android:fontFamily="@font/inter_semibold"
 
-                android:text="Last Updated: Septmber 2026"
+                android:text="Last Updated: September 2026"
 
                 android:textAlignment="center"
 

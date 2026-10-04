@@ -45,6 +45,7 @@ public class PlantAnalyzer {
     public static final String REJECT_MESSAGE = "The image does not appear to contain a plant. Please scan a clear plant image.";
     public static final String ERROR_NON_PLANT = "NON_PLANT_DETECTED";
     public static final String ERROR_MULTIPLE_PLANTS = "MULTIPLE_PLANTS_DETECTED";
+    public static final String ERROR_TEXT_DETECTED = "TEXT_DETECTED_IN_IMAGE";
 
     private final OkHttpClient client;
     private final Handler mainHandler;
@@ -295,6 +296,7 @@ public class PlantAnalyzer {
                         .append("TASK INSTRUCTIONS:\n")
                         .append("1. PLANT FOCUS & VALIDATION:\n")
                         .append("   - Verify if the image contains a plant. If the image contains ONLY people, pets, or objects without a plant, return: {\"is_plant\": false}.\n")
+                        .append("   - TEXT DETECTION: Inspect the image for significant text, watermarks, digital overlays, or prominent written content. If detected, return: {\"is_plant\": false, \"contains_text\": true}.\n")
                         .append("   - If a plant is present alongside people or other objects, focus ONLY on the plant.\n")
                         .append("   - SPECIES CONSISTENCY: Reject if multiple DIFFERENT plant species are clearly visible: {\"is_plant\": false, \"multiple_plants\": true}.\n\n")
                         .append("2. RECIPE PROHIBITION:\n")
@@ -309,6 +311,7 @@ public class PlantAnalyzer {
                         .append("{\n")
                         .append("  \"is_plant\": true,\n")
                         .append("  \"multiple_plants\": false,\n")
+                        .append("  \"contains_text\": false,\n")
                         .append("  \"is_artificial\": false,\n")
                         .append("  \"plant_profile\": {\n")
                         .append("    \"name\": \"Common Name\",\n")
@@ -541,9 +544,19 @@ public class PlantAnalyzer {
                                     JSONObject parsedRoot = new JSONObject(rawJsonBlock);
                                     if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
                                         boolean isMultiple = parsedRoot.optBoolean("multiple_plants", false);
+                                        boolean hasText = parsedRoot.optBoolean("contains_text", false);
+                                        
                                         mainHandler.post(() -> {
-                                            if (callback != null) callback.onError(isMultiple ? "Multiple different species detected." : REJECT_MESSAGE);
-                                            if (detailedCallback != null) detailedCallback.onError(isMultiple ? ERROR_MULTIPLE_PLANTS : ERROR_NON_PLANT);
+                                            if (hasText) {
+                                                if (callback != null) callback.onError("Image contains text content.");
+                                                if (detailedCallback != null) detailedCallback.onError(ERROR_TEXT_DETECTED);
+                                            } else if (isMultiple) {
+                                                if (callback != null) callback.onError("Multiple different species detected.");
+                                                if (detailedCallback != null) detailedCallback.onError(ERROR_MULTIPLE_PLANTS);
+                                            } else {
+                                                if (callback != null) callback.onError(REJECT_MESSAGE);
+                                                if (detailedCallback != null) detailedCallback.onError(ERROR_NON_PLANT);
+                                            }
                                         });
                                         return;
                                     }
@@ -639,6 +652,9 @@ public class PlantAnalyzer {
             JSONObject root = new JSONObject(cleanedJson);
 
             if (root.has("is_plant") && !root.getBoolean("is_plant")) {
+                if (root.optBoolean("contains_text", false)) {
+                    return "Image contains text content. Please scan a clear plant image without text.";
+                }
                 if (root.optBoolean("multiple_plants", false)) {
                     return "Multiple different species detected. Please scan plants of the same species.";
                 }

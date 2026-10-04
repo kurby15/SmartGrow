@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +12,8 @@ import android.speech.tts.TextToSpeech;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -400,7 +403,10 @@ public class PlantDetailsActivity extends AppCompatActivity {
 
     private void savePlantToDiary() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) { Toast.makeText(this, "Login to save", Toast.LENGTH_SHORT).show(); return; }
+        if (user == null) {
+            showErrorDialog("Login Required", "Please sign in to save plants to your garden.");
+            return;
+        }
         performSave(user.getUid());
     }
 
@@ -439,26 +445,67 @@ public class PlantDetailsActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
 
-        if (healthPercentage < 50) {
-            Map<String, Object> reminderData = new HashMap<>();
-            reminderData.put("wateringSchedule", "Every Day");
-            reminderData.put("fertilizerSchedule", "Every Week");
-            reminderData.put("sunlightSchedule", "Every Day");
-            reminderData.put("preferredTime", "08:00 AM");
-            diaryEntry.put("reminders", reminderData);
-        }
+        // Automatic care reminders based on health percentage
+        Map<String, String> schedule = getAutoSchedule(healthPercentage);
+        Map<String, Object> reminderData = new HashMap<>();
+        reminderData.put("wateringSchedule", schedule.get("water"));
+        reminderData.put("fertilizerSchedule", schedule.get("fertilizer"));
+        reminderData.put("sunlightSchedule", schedule.get("sunlight"));
+        reminderData.put("preferredTime", "08:00 AM");
+        diaryEntry.put("reminders", reminderData);
 
         db.collection("diary").document(docId).set(diaryEntry).addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Saved to My Garden Diary!", Toast.LENGTH_SHORT).show();
-            if (healthPercentage < 50) {
-                try {
-                    NotificationHelper.createNotificationChannel(this);
-                    NotificationHelper.scheduleReminder(this, docId, plantName, "Water", "08:00 AM", "Every Day");
-                } catch (Exception ignored) {}
-            }
+            try {
+                NotificationHelper.createNotificationChannel(this);
+                NotificationHelper.scheduleReminder(this, docId, plantName, "Water", "08:00 AM", schedule.get("water"));
+                NotificationHelper.scheduleReminder(this, docId, plantName, "Fertilizer", "08:00 AM", schedule.get("fertilizer"));
+                NotificationHelper.scheduleReminder(this, docId, plantName, "Sunlight", "08:00 AM", schedule.get("sunlight"));
+            } catch (Exception ignored) {}
             startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
             finish();
-        }).addOnFailureListener(e -> Toast.makeText(this, "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }).addOnFailureListener(e -> showErrorDialog("Save Error", "Failed to save to your garden: " + e.getMessage()));
+    }
+
+    private void showErrorDialog(String title, String message) {
+        Dialog errorDialog = new Dialog(this);
+        errorDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        errorDialog.setContentView(R.layout.dialog_scan_error);
+        errorDialog.setCancelable(true);
+
+        if (errorDialog.getWindow() != null) {
+            errorDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            errorDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            errorDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        }
+
+        TextView tvTitle = errorDialog.findViewById(R.id.tv_error_title);
+        TextView tvMessage = errorDialog.findViewById(R.id.tv_error_message);
+        View btnClose = errorDialog.findViewById(R.id.btn_error_close);
+
+        if (tvTitle != null) tvTitle.setText(title);
+        if (tvMessage != null) tvMessage.setText(message);
+        if (btnClose != null) btnClose.setOnClickListener(v -> errorDialog.dismiss());
+
+        errorDialog.show();
+    }
+
+    private Map<String, String> getAutoSchedule(int health) {
+        Map<String, String> schedule = new HashMap<>();
+        if (health >= 80) {
+            schedule.put("water", "Every 3 Days");
+            schedule.put("fertilizer", "Every 2 Weeks");
+            schedule.put("sunlight", "Every Day");
+        } else if (health >= 50) {
+            schedule.put("water", "Every 2 Days");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        } else {
+            schedule.put("water", "Every Day");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        }
+        return schedule;
     }
 
     @Override

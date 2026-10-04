@@ -1,9 +1,13 @@
 package com.example.smartgrow.plants;
 
+ import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,15 +19,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.smartgrow.BuildConfig;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.NotificationHelper;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.profile.User;
 import com.facebook.shimmer.ShimmerFrameLayout;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,6 +44,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,12 +54,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.TimeZone;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
     private ShimmerFrameLayout shimmerFrameLayout;
     private View mainContentContainer;
@@ -77,6 +95,9 @@ public class HomeFragment extends Fragment {
     private final Handler clockHandler = new Handler();
     private Runnable clockRunnable;
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private OkHttpClient httpClient;
+
     public HomeFragment() {}
 
     @Nullable
@@ -90,6 +111,9 @@ public class HomeFragment extends Fragment {
         currentUsername = prefManager.getUsername();
         userFullName = prefManager.getFullName();
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        httpClient = new OkHttpClient();
+
         initViews(view);
         startShimmer();
 
@@ -100,13 +124,12 @@ public class HomeFragment extends Fragment {
 
         listenToDiaryData();
         startRealTimeClock();
-        updateMockWeatherEngine();
+        checkLocationPermissionAndFetchWeather();
 
         return view;
     }
 
     private void initViews(View view) {
-        // Corrected ID mappings from fragment_home.xml
         shimmerFrameLayout = view.findViewById(R.id.home_skeleton);
         mainContentContainer = view.findViewById(R.id.home_content);
 
@@ -145,6 +168,115 @@ public class HomeFragment extends Fragment {
             });
         }
     }
+
+    private void checkLocationPermissionAndFetchWeather() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            fetchLocationAndWeather();
+        }
+    }
+
+    private void fetchLocationAndWeather() {
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        fetchRealWeather(location.getLatitude(), location.getLongitude());
+                    } else {
+                        Log.e(TAG, "Location is null, using default weather display");
+                        updateWeatherUI("N/A", "Location unavailable", 0, "Cloudy");
+                    }
+                }
+            });
+        } catch (SecurityException e) {
+            Log.e(TAG, "Location permission not granted", e);
+        }
+    }
+
+    private void fetchRealWeather(double lat, double lon) {
+        String apiKey = BuildConfig.WEATHER_API_KEY;
+        String url = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + apiKey + "&units=metric";
+
+        Request request = new Request.Builder().url(url).build();
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(TAG, "Weather API call failed", e);
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String jsonData = response.body().string();
+                        JSONObject jsonObject = new JSONObject(jsonData);
+                        JSONObject main = jsonObject.getJSONObject("main");
+                        double temp = main.getDouble("temp");
+                        int humidity = main.getInt("humidity");
+                        String condition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
+
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            updateWeatherUI(String.format(Locale.getDefault(), "%.0f°C", temp), condition, humidity, condition);
+                        });
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing weather data", e);
+                    }
+                }
+            }
+        });
+    }
+
+    private void updateWeatherUI(String temp, String condition, int humidity, String conditionKey) {
+        if (!isAdded()) return;
+        View view = getView();
+        if (view == null) return;
+
+        TextView tvTemp = view.findViewById(R.id.tv_weather_temp);
+        TextView tvDesc = view.findViewById(R.id.tv_weather_desc);
+        TextView tvAdvice = view.findViewById(R.id.tv_watering_advice);
+        ImageView ivIcon = view.findViewById(R.id.iv_weather_icon);
+
+        if (tvTemp != null) tvTemp.setText(temp);
+        if (tvDesc != null) tvDesc.setText(condition + " • Humidity " + humidity + "%");
+
+        int iconResId = R.drawable.ic_cloudy;
+        String advice = getString(R.string.weather_advice_default);
+
+        if (conditionKey.equalsIgnoreCase("Clear")) {
+            iconResId = R.drawable.ic_sunny;
+            advice = getString(R.string.weather_advice_sunny_hot);
+        } else if (conditionKey.equalsIgnoreCase("Clouds")) {
+            iconResId = R.drawable.ic_partly_cloudy;
+            advice = getString(R.string.weather_advice_partly_cloudy);
+        } else if (conditionKey.contains("Rain") || conditionKey.contains("Drizzle")) {
+            iconResId = R.drawable.ic_light_rain;
+            advice = getString(R.string.weather_advice_rain);
+        } else if (conditionKey.contains("Thunderstorm")) {
+            iconResId = R.drawable.ic_thunderstorm;
+            advice = getString(R.string.weather_advice_rain);
+        }
+
+        if (ivIcon != null) ivIcon.setImageResource(iconResId);
+        if (tvAdvice != null) {
+            String prefix = getString(R.string.sprout_ai_prefix);
+            tvAdvice.setText(prefix + advice);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchLocationAndWeather();
+            } else {
+                Toast.makeText(getContext(), "Location permission denied. Weather will not be updated.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void startShimmer() {
         if (shimmerFrameLayout != null) {
             shimmerFrameLayout.setVisibility(View.VISIBLE);
@@ -156,7 +288,6 @@ public class HomeFragment extends Fragment {
     }
 
     private void stopShimmer() {
-        // Nagdagdag tayo ng 1-second delay (1000 milliseconds) bago itago ang skeleton
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             if (shimmerFrameLayout != null) {
                 shimmerFrameLayout.stopShimmer();
@@ -166,11 +297,10 @@ public class HomeFragment extends Fragment {
                 mainContentContainer.setVisibility(View.VISIBLE);
             }
             isDataLoaded = true;
-        }, 1000); // Pwede mong palitan ang 1000 kung gusto mo mas mabilis o mas matagal
+        }, 1000);
     }
 
     private void listenToDiaryData() {
-        // Siguraduhing naka-start ang shimmer bago mag-fetch
         startShimmer();
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -199,8 +329,6 @@ public class HomeFragment extends Fragment {
                         }
                         updateDashboardStats();
                     }
-
-                    // Hide skeleton shimmer and display content on first fetch completion
                     stopShimmer();
                 });
     }
@@ -452,10 +580,12 @@ public class HomeFragment extends Fragment {
                 TimeZone phTimeZone = TimeZone.getTimeZone("Asia/Manila");
                 Calendar cal = Calendar.getInstance(phTimeZone);
 
-                // Update stats and weather every minute (at 00 seconds)
                 if (cal.get(Calendar.SECOND) == 0) {
                     updateDashboardStats();
-                    updateMockWeatherEngine();
+                    // Fetch real weather every 30 minutes instead of every minute to save API calls
+                    if (cal.get(Calendar.MINUTE) % 30 == 0) {
+                        checkLocationPermissionAndFetchWeather();
+                    }
                 }
                 clockHandler.postDelayed(this, 1000);
             }
@@ -483,67 +613,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void updateMockWeatherEngine() {
-        if (!isAdded()) return;
-
-        Random r = new Random();
-        int temp = 16 + r.nextInt(21);
-        int humidity;
-        String selectedCondition;
-        int iconResId;
-
-        if (temp >= 32) {
-            selectedCondition = "Sunny";
-            iconResId = R.drawable.ic_sunny;
-            humidity = 45 + r.nextInt(10);
-        } else if (temp >= 27) {
-            selectedCondition = "Partly Cloudy";
-            iconResId = R.drawable.ic_partly_cloudy;
-            humidity = 55 + r.nextInt(10);
-        } else if (temp >= 22) {
-            selectedCondition = "Cloudy";
-            iconResId = R.drawable.ic_cloudy;
-            humidity = 65 + r.nextInt(10);
-        } else if (temp >= 18) {
-            selectedCondition = "Light Rain";
-            iconResId = R.drawable.ic_light_rain;
-            humidity = 75 + r.nextInt(10);
-        } else {
-            selectedCondition = "Thunderstorm";
-            iconResId = R.drawable.ic_thunderstorm;
-            humidity = 85 + r.nextInt(11);
-        }
-
-        View view = getView();
-        if (view != null) {
-            TextView tvTemp = view.findViewById(R.id.tv_weather_temp);
-            TextView tvDesc = view.findViewById(R.id.tv_weather_desc);
-            TextView tvAdvice = view.findViewById(R.id.tv_watering_advice);
-            ImageView ivIcon = view.findViewById(R.id.iv_weather_icon);
-
-            if (tvTemp != null) tvTemp.setText(temp + "°C");
-            if (tvDesc != null) tvDesc.setText(selectedCondition + " • Humidity " + humidity + "%");
-            if (ivIcon != null) ivIcon.setImageResource(iconResId);
-
-            if (tvAdvice != null) {
-                String prefix = getString(R.string.sprout_ai_prefix);
-                String advice;
-                if (selectedCondition.equals("Light Rain") || selectedCondition.equals("Thunderstorm")) {
-                    advice = getString(R.string.weather_advice_rain);
-                } else if (selectedCondition.equals("Cloudy")) {
-                    advice = getString(R.string.weather_advice_cloudy);
-                } else if (selectedCondition.equals("Partly Cloudy")) {
-                    advice = getString(R.string.weather_advice_partly_cloudy);
-                } else if (selectedCondition.equals("Sunny") && temp > 30) {
-                    advice = getString(R.string.weather_advice_sunny_hot);
-                } else {
-                    advice = getString(R.string.weather_advice_default);
-                }
-                tvAdvice.setText(prefix + advice);
-            }
-        }
-    }
-
     @Override
     public void onPause() {
         super.onPause();
@@ -558,6 +627,7 @@ public class HomeFragment extends Fragment {
         super.onResume();
         clockHandler.post(clockRunnable);
         updateDashboardStats();
+        checkLocationPermissionAndFetchWeather();
         if (shimmerFrameLayout != null && !isDataLoaded) {
             shimmerFrameLayout.startShimmer();
         }

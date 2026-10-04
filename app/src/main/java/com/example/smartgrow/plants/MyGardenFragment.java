@@ -839,15 +839,14 @@ public class MyGardenFragment extends Fragment {
             diaryEntry.put("rawAnalysisJson", snap.getRawAnalysisJson());
         }
 
-        // Automatically set default reminders for sick plant (< 50% health)
-        if (snap.getHealthPercentage() < 50) {
-            Map<String, Object> reminderData = new HashMap<>();
-            reminderData.put("wateringSchedule", "Every Day");
-            reminderData.put("fertilizerSchedule", "Every Week");
-            reminderData.put("sunlightSchedule", "Every Day");
-            reminderData.put("preferredTime", "08:00 AM");
-            diaryEntry.put("reminders", reminderData);
-        }
+        // Automatic care reminders based on health percentage
+        Map<String, String> autoSchedule = getAutoSchedule(snap.getHealthPercentage());
+        Map<String, Object> reminderData = new HashMap<>();
+        reminderData.put("wateringSchedule", autoSchedule.get("water"));
+        reminderData.put("fertilizerSchedule", autoSchedule.get("fertilizer"));
+        reminderData.put("sunlightSchedule", autoSchedule.get("sunlight"));
+        reminderData.put("preferredTime", "08:00 AM");
+        diaryEntry.put("reminders", reminderData);
 
         db.collection("diary")
                 .document(docId)
@@ -856,16 +855,14 @@ public class MyGardenFragment extends Fragment {
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Added " + snap.getPlantName() + " to My Garden!", Toast.LENGTH_SHORT).show();
 
-                        if (snap.getHealthPercentage() < 50) {
-                            try {
-                                com.example.smartgrow.core.NotificationHelper.createNotificationChannel(getContext());
-                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Water", "08:00 AM", "Every Day");
-                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Sunlight", "08:00 AM", "Every Day");
-                                com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Fertilize", "08:00 AM", "Every Week");
-                                Toast.makeText(getContext(), "Automatic reminders scheduled for your sick plant! 🌿", Toast.LENGTH_LONG).show();
-                            } catch (Exception e) {
-                                Log.e("MyGardenFragment", "Error triggering auto-schedule notifications", e);
-                            }
+                        try {
+                            com.example.smartgrow.core.NotificationHelper.createNotificationChannel(getContext());
+                            com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Water", "08:00 AM", autoSchedule.get("water"));
+                            com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Sunlight", "08:00 AM", autoSchedule.get("sunlight"));
+                            com.example.smartgrow.core.NotificationHelper.scheduleReminder(getContext(), docId, snap.getPlantName(), "Fertilizer", "08:00 AM", autoSchedule.get("fertilizer"));
+                            Toast.makeText(getContext(), "Automatic reminders scheduled! 🌿", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Log.e("MyGardenFragment", "Error triggering auto-schedule notifications", e);
                         }
                     }
                 })
@@ -874,6 +871,25 @@ public class MyGardenFragment extends Fragment {
                         Toast.makeText(getContext(), "Failed to add plant: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private Map<String, String> getAutoSchedule(int health) {
+        Map<String, String> schedule = new HashMap<>();
+        if (health >= 80) {
+            schedule.put("water", "Every 3 Days");
+            schedule.put("fertilizer", "Every 2 Weeks");
+            schedule.put("sunlight", "Every Day");
+        } else if (health >= 50) {
+            schedule.put("water", "Every 2 Days");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        } else {
+            // Priority care for unhealthy plants
+            schedule.put("water", "Every Day");
+            schedule.put("fertilizer", "Every Week");
+            schedule.put("sunlight", "Every Day");
+        }
+        return schedule;
     }
 
     private void showTopPopupMenu(View view) {

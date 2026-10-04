@@ -49,6 +49,10 @@ android {
         val mapboxDownloadsToken = properties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
         buildConfigField("String", "MAPBOX_DOWNLOADS_TOKEN", "\"$mapboxDownloadsToken\"")
 
+        // Weather API Key
+        val weatherApiKey = properties.getProperty("WEATHER_API_KEY") ?: "70e43a6113de3666e6d247ef57a82344"
+        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+
         // Injects keys into AndroidManifest.xml
         manifestPlaceholders["mapsApiKey"] = mapsApiKey
         manifestPlaceholders["mapboxAccessToken"] = mapboxAccessToken

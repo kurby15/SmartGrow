@@ -67,6 +67,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
 
     // UI Elements - Images & Map
     private ImageView ivPlantMain, ivPlantMatch1, ivPlantMatch2, ivHealthPreview, ibSpeaker, ivPlantBot;
+    private View layoutThoughtBubble;
     private MapView mapView;
     private GoogleMap googleMap;
 
@@ -121,6 +122,9 @@ public class PlantDiaryActivity extends AppCompatActivity {
     private double mapLng = 120.9842;
 
     private String plantImageBase64 = null;
+
+    private final Handler bubbleHandler = new Handler(Looper.getMainLooper());
+    private Runnable showBubbleRunnable, hideBubbleRunnable;
 
     private static class MapLocation {
         double lat;
@@ -207,7 +211,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
             });
         }
 
-        ImageView ivPlantBot = findViewById(R.id.btn_plant_ai_chat);
+        ivPlantBot = findViewById(R.id.btn_plant_ai_chat);
 
         int[] botFrames = {
                 R.drawable.bot_welcoming,
@@ -242,6 +246,14 @@ public class PlantDiaryActivity extends AppCompatActivity {
             }
             startActivity(intent);
         });
+
+        if (layoutThoughtBubble != null) {
+            layoutThoughtBubble.setOnClickListener(v -> {
+                if (ivPlantBot != null) ivPlantBot.performClick();
+            });
+        }
+
+        startBubbleCycle();
     }
 
     private void initViews() {
@@ -258,6 +270,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
         ibBack = findViewById(R.id.ib_back);
         ibSpeaker = findViewById(R.id.ib_speaker);
         ivPlantBot = findViewById(R.id.btn_plant_ai_chat);
+        layoutThoughtBubble = findViewById(R.id.layout_thought_bubble);
 
         // Map View
         mapView = findViewById(R.id.map_view);
@@ -271,6 +284,29 @@ public class PlantDiaryActivity extends AppCompatActivity {
         tvDiagnose = findViewById(R.id.btn_diagnose);
 
         tvLeafColor = findViewById(R.id.layout_leaf_colors_container);
+    }
+
+    private void startBubbleCycle() {
+        if (layoutThoughtBubble == null) return;
+
+        showBubbleRunnable = new Runnable() {
+            @Override
+            public void run() {
+                layoutThoughtBubble.setVisibility(View.VISIBLE);
+                bubbleHandler.postDelayed(hideBubbleRunnable, 5000); // Show for 5 seconds
+            }
+        };
+
+        hideBubbleRunnable = new Runnable() {
+            @Override
+            public void run() {
+                layoutThoughtBubble.setVisibility(View.GONE);
+                bubbleHandler.postDelayed(showBubbleRunnable, 3000); // Hide for 3 seconds
+            }
+        };
+
+        // Initial delay before first show
+        bubbleHandler.postDelayed(showBubbleRunnable, 3000);
     }
 
     private void setupTextToSpeech() {
@@ -571,6 +607,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        bubbleHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 }

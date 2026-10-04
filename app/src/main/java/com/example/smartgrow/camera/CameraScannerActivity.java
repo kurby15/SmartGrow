@@ -122,8 +122,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                     startCameraX();
                     checkFirstTimeScan();
                 } else {
-                    Toast.makeText(this, "Camera permission is required to use this feature", Toast.LENGTH_SHORT).show();
-                    finish();
+                    showScanErrorDialog("Permission Required", "Camera permission is required to use this feature. Please enable it in settings.");
                 }
             });
 
@@ -144,8 +143,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             setContentView(R.layout.activity_camera_scanner);
         } catch (Exception e) {
             Log.e(TAG, "Failed to inflate layout", e);
-            Toast.makeText(this, "Camera initialization error", Toast.LENGTH_LONG).show();
-            finish();
+            showScanErrorDialog("Initialization Error", "The camera interface failed to load. Please restart the app.");
             return;
         }
 
@@ -353,7 +351,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                 bindCameraUseCases();
             } catch (ExecutionException | InterruptedException e) {
                 Log.e(TAG, "CameraProvider initialization failed", e);
-                Toast.makeText(this, "Camera initialization failed", Toast.LENGTH_SHORT).show();
+                showScanErrorDialog("Camera Failure", "Camera initialization failed. Please restart your device if the problem persists.");
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -383,13 +381,13 @@ public class CameraScannerActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e(TAG, "Binding camera use cases failed", e);
-            Toast.makeText(this, "Failed to bind camera", Toast.LENGTH_SHORT).show();
+            showScanErrorDialog("Camera Error", "Failed to bind camera use cases. The camera may be in use by another app.");
         }
     }
 
     private void takePhotoSafe() {
         if (imageCapture == null) {
-            Toast.makeText(this, "Camera not ready", Toast.LENGTH_SHORT).show();
+            showScanErrorDialog("Camera Not Ready", "The camera is still initializing. Please wait a moment and try again.");
             return;
         }
 
@@ -411,7 +409,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                     showLoading(false);
                     unfreezeScreen();
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(CameraScannerActivity.this, "Capture failed", Toast.LENGTH_SHORT).show();
+                        showScanErrorDialog("Capture Failed", "Failed to capture photo. Please check your storage space and camera hardware.");
                     }
                 });
             }
@@ -461,7 +459,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             showLoading(false);
             unfreezeScreen();
             if (!isFinishing() && !isDestroyed()) {
-                Toast.makeText(CameraScannerActivity.this, "Unable to process captured photo", Toast.LENGTH_SHORT).show();
+                showScanErrorDialog("Image Error", "Unable to process the captured photo. The file may be corrupted.");
             }
         });
     }
@@ -490,22 +488,33 @@ public class CameraScannerActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     boolean isPlant = true;
                     boolean isMultiple = false;
+                    boolean hasText = false;
                     try {
                         if (rawJson != null && !rawJson.isEmpty()) {
                             JSONObject root = new JSONObject(rawJson);
                             isPlant = root.optBoolean("is_plant", true);
                             isMultiple = root.optBoolean("multiple_plants", false);
+                            hasText = root.optBoolean("contains_text", false);
                         }
                     } catch (Exception ignored) {}
 
-                    if (!isPlant || isMultiple) {
+                    if (!isPlant || isMultiple || hasText) {
                         showLoading(false);
                         unfreezeScreen();
                         
-                        String title = isMultiple ? "Mixed Species Detected" : "Plant Not Detected";
-                        String message = isMultiple ? 
-                                "Multiple different plant species detected. Please scan plants of the same species for accurate identification." : 
-                                "The image does not appear to contain a plant. Please scan a clear plant image.";
+                        String title;
+                        String message;
+
+                        if (hasText) {
+                            title = "Text Detected";
+                            message = "The image appears to contain text or digital overlays. Please scan a clear plant image without any text for accurate identification.";
+                        } else if (isMultiple) {
+                            title = "Mixed Species Detected";
+                            message = "Multiple different plant species detected. Please scan plants of the same species for accurate identification.";
+                        } else {
+                            title = "Plant Not Detected";
+                            message = "The image does not appear to contain a plant. Please scan a clear plant image.";
+                        }
                         
                         showScanErrorDialog(title, message);
                         return;
@@ -537,9 +546,8 @@ public class CameraScannerActivity extends AppCompatActivity {
                             String name2 = scannedPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
                             if (!name1.contains(name2) && !name2.contains(name1)) {
                                 unfreezeScreen();
-                                Toast.makeText(CameraScannerActivity.this,
-                                        "Mismatched plant species detected. Diagnosis stopped. Please scan the correct plant (" + diaryPlantName + ").",
-                                        Toast.LENGTH_LONG).show();
+                                showScanErrorDialog("Species Mismatch", 
+                                        "Mismatched plant species detected. Please scan the correct plant (" + diaryPlantName + ") for an accurate diagnosis.");
                                 return;
                             }
                         }
@@ -560,8 +568,10 @@ public class CameraScannerActivity extends AppCompatActivity {
                         showScanErrorDialog("Plant Not Detected", "The image does not appear to contain a plant. Please scan a clear plant image.");
                     } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
                         showScanErrorDialog("Mixed Species Detected", "Multiple different plant species detected. Please scan plants of the same species for accurate identification.");
+                    } else if (PlantAnalyzer.ERROR_TEXT_DETECTED.equals(error)) {
+                        showScanErrorDialog("Text Detected", "The image appears to contain text or digital overlays. Please scan a clear plant image without any text overlays.");
                     } else {
-                        Toast.makeText(CameraScannerActivity.this, "Analysis Error: " + error, Toast.LENGTH_LONG).show();
+                        showScanErrorDialog("Analysis Error", "The AI was unable to analyze this image. Please try again with better lighting.");
                     }
                 });
             }
@@ -597,6 +607,7 @@ public class CameraScannerActivity extends AppCompatActivity {
     private void checkDuplicateAndProceed(Bitmap bitmap, String rawJson) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         String scientificName = extractScientificName(rawJson);
+        String commonName = extractCommonName(rawJson);
 
         if (currentUser == null || scientificName == null || scientificName.isEmpty() || scientificName.equalsIgnoreCase("N/A")) {
             runOnUiThread(() -> {
@@ -629,17 +640,16 @@ public class CameraScannerActivity extends AppCompatActivity {
                                 boolean inHistory = task2.isSuccessful() && !task2.getResult().isEmpty();
 
                                 runOnUiThread(() -> {
-                                    String plantUid = null;
-                                    if (!inGarden && !inHistory) {
-                                        // Save to history if not found in either
-                                        plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
-                                    } else {
-                                        Log.d(TAG, "Duplicate plant found (" + scientificName + "). Skipping auto-save to history.");
-                                        if (inGarden) plantUid = task1.getResult().getDocuments().get(0).getId();
-                                        else if (inHistory) plantUid = task2.getResult().getDocuments().get(0).getId();
+                                    showLoading(false);
+                                    if (inGarden || inHistory) {
+                                        unfreezeScreen();
+                                        showScanErrorDialog("Duplicate Plant Detected", 
+                                            "You already have a " + (commonName != null ? commonName : scientificName) + 
+                                            " in your garden or history. Duplicates are not allowed.");
+                                        return;
                                     }
 
-                                    showLoading(false);
+                                    String plantUid = autoSaveToDiaryHistory(bitmap, rawJson);
                                     navigateToDetails(bitmap, rawJson, plantUid);
                                 });
                             });
@@ -653,6 +663,22 @@ public class CameraScannerActivity extends AppCompatActivity {
         intent.putExtra("plant_uid", plantUid);
         startActivity(intent);
         finish();
+    }
+
+    private String extractCommonName(String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String fullTitle = profile.optString("name", "");
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    if (open != -1) return fullTitle.substring(0, open).trim();
+                }
+                return fullTitle.trim();
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private String extractScientificName(String rawJson) {
@@ -693,17 +719,13 @@ public class CameraScannerActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(CameraScannerActivity.this, "Diagnosis updated successfully", Toast.LENGTH_SHORT).show();
                         
-                        Integer health = (Integer) updateMap.get("healthPercentage");
-                        if (health != null && health < 50) {
-                            PlantReminderBottomSheet sheet = PlantReminderBottomSheet.newInstance(diaryPlantId, true);
-                            sheet.show(getSupportFragmentManager(), sheet.getTag());
-                        } else {
-                            finish();
-                        }
+                        // Fix: Immediately finish to return to the Diary activity and see the updated info (health, pests).
+                        // This prevents stacking or getting stuck on intermediate dialogs during re-scan.
+                        finish();
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error updating diary entry: " + e.getMessage());
-                        Toast.makeText(CameraScannerActivity.this, "Failed to update diagnosis", Toast.LENGTH_SHORT).show();
+                        showScanErrorDialog("Sync Failure", "Failed to update diagnosis in the database. Please check your connection.");
                         unfreezeScreen();
                     });
 
@@ -1113,7 +1135,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                         } else {
                             runOnUiThread(() -> {
                                 showLoading(false);
-                                Toast.makeText(CameraScannerActivity.this, "Failed to load image from gallery", Toast.LENGTH_SHORT).show();
+                                showScanErrorDialog("Gallery Error", "Failed to load image from gallery. Please try again.");
                             });
                         }
                     } catch (IOException e) {
@@ -1121,7 +1143,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             showLoading(false);
                             if (!isFinishing() && !isDestroyed()) {
-                                Toast.makeText(CameraScannerActivity.this, "Failed to load selected image", Toast.LENGTH_SHORT).show();
+                                showScanErrorDialog("Gallery Error", "Failed to load selected image. Please try again.");
                             }
                         });
                     }
@@ -1151,7 +1173,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                 showLoading(false);
                 unfreezeScreen();
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(CameraScannerActivity.this, "Failed to process gallery image", Toast.LENGTH_SHORT).show();
+                    showScanErrorDialog("Process Error", "Failed to process gallery image. Please ensure the image is not corrupted.");
                 }
             });
         }
