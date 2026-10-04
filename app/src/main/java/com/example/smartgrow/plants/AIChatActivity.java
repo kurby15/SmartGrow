@@ -39,6 +39,7 @@ import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
 import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
+import com.example.smartgrow.core.SharedPrefManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -58,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class AIChatActivity extends AppCompatActivity {
 
@@ -344,6 +346,27 @@ public class AIChatActivity extends AppCompatActivity {
     }
 
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
+        String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
+        boolean isAppGuidance = isAppRelatedQuestion(lowerMsg);
+
+        // Validation for AI interaction limit
+        if (!isAppGuidance) {
+            SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+            if (imageBitmap != null) {
+                if (!prefManager.canUseScan()) {
+                    long remaining = prefManager.getScanTimeRemaining();
+                    showLimitReachedToast(remaining, "scans");
+                    return;
+                }
+            } else {
+                if (!prefManager.canUseChat()) {
+                    long remaining = prefManager.getChatTimeRemaining();
+                    showLimitReachedToast(remaining, "chat prompts");
+                    return;
+                }
+            }
+        }
+
         // Hide welcome layout as soon as interaction starts
         if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
             layoutCenterWelcome.setVisibility(View.GONE);
@@ -378,8 +401,7 @@ public class AIChatActivity extends AppCompatActivity {
             return;
         }
 
-        String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
-        if (imageBitmap == null && isAppRelatedQuestion(lowerMsg)) {
+        if (imageBitmap == null && isAppGuidance) {
             respondToAppQuestion(lowerMsg);
             return;
         }
@@ -493,6 +515,13 @@ public class AIChatActivity extends AppCompatActivity {
             if (context.trim().isEmpty()) analyzer.askQuestion(messageText, aiCallback);
             else analyzer.askFollowUpQuestion(messageText, context, aiCallback);
         }
+    }
+
+    private void showLimitReachedToast(long millis, String type) {
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
+        String timeText = hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
+        Toast.makeText(this, "Daily limit reached for " + type + ". Resets in " + timeText + ".", Toast.LENGTH_LONG).show();
     }
 
     private boolean isAppRelatedQuestion(String msg) {

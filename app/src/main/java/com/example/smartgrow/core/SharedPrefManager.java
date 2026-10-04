@@ -7,12 +7,20 @@ import androidx.security.crypto.MasterKeys;
 import com.example.smartgrow.profile.User;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.concurrent.TimeUnit;
 
 public class SharedPrefManager {
     private static final String PREF_NAME = "SmartGrowSecurePrefs";
     private static final String OLD_PREF_NAME = "SmartGrowPrefs";
     private static SharedPrefManager instance;
     private SharedPreferences sharedPreferences;
+
+    private static final String KEY_SCAN_COUNT = "scan_usage_count";
+    private static final String KEY_SCAN_TIME = "scan_first_usage_time";
+    private static final String KEY_CHAT_COUNT = "chat_usage_count";
+    private static final String KEY_CHAT_TIME = "chat_first_usage_time";
+    public static final int MAX_PROMPTS = 15;
+    private static final long RESET_INTERVAL = TimeUnit.HOURS.toMillis(12);
 
     private SharedPrefManager(Context context) {
         try {
@@ -101,6 +109,59 @@ public class SharedPrefManager {
         if (sharedPreferences != null) {
             sharedPreferences.edit().putBoolean("first_time_scan", isFirstTime).apply();
         }
+    }
+
+    public boolean canUseScan() {
+        return checkAndIncrementLimit(KEY_SCAN_COUNT, KEY_SCAN_TIME);
+    }
+
+    public boolean canUseChat() {
+        return checkAndIncrementLimit(KEY_CHAT_COUNT, KEY_CHAT_TIME);
+    }
+
+    public long getScanTimeRemaining() {
+        return getTimeRemaining(KEY_SCAN_TIME);
+    }
+
+    public long getChatTimeRemaining() {
+        return getTimeRemaining(KEY_CHAT_TIME);
+    }
+
+    private boolean checkAndIncrementLimit(String countKey, String timeKey) {
+        if (sharedPreferences == null) return true;
+        
+        long currentTime = System.currentTimeMillis();
+        long firstUsageTime = sharedPreferences.getLong(timeKey, 0);
+        int currentCount = sharedPreferences.getInt(countKey, 0);
+
+        if (firstUsageTime == 0 || (currentTime - firstUsageTime) > RESET_INTERVAL) {
+            // Reset window
+            sharedPreferences.edit()
+                    .putLong(timeKey, currentTime)
+                    .putInt(countKey, 1)
+                    .apply();
+            return true;
+        }
+
+        if (currentCount < MAX_PROMPTS) {
+            sharedPreferences.edit()
+                    .putInt(countKey, currentCount + 1)
+                    .apply();
+            return true;
+        }
+
+        return false;
+    }
+
+    private long getTimeRemaining(String timeKey) {
+        if (sharedPreferences == null) return 0;
+        long firstUsageTime = sharedPreferences.getLong(timeKey, 0);
+        if (firstUsageTime == 0) return 0;
+        
+        long diff = System.currentTimeMillis() - firstUsageTime;
+        if (diff > RESET_INTERVAL) return 0;
+        
+        return RESET_INTERVAL - diff;
     }
 
     public void logout(Context context) {

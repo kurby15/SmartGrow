@@ -73,6 +73,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -391,6 +392,15 @@ public class CameraScannerActivity extends AppCompatActivity {
             return;
         }
 
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+        if (!prefManager.canUseScan()) {
+            long remaining = prefManager.getScanTimeRemaining();
+            String timeText = formatTimeRemaining(remaining);
+            showScanErrorDialog("Daily Limit Reached", 
+                "You have used your 15 free scans for this period. Please wait " + timeText + " for your limit to reset.");
+            return;
+        }
+
         showLoading(true);
 
         File photoFile = new File(getFilesDir(), "raw_capture.jpg");
@@ -414,6 +424,16 @@ public class CameraScannerActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private String formatTimeRemaining(long millis) {
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        } else {
+            return minutes + "m";
+        }
     }
 
     private void processSavedImage(File file) {
@@ -1114,6 +1134,15 @@ public class CameraScannerActivity extends AppCompatActivity {
         if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
+                SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+                if (!prefManager.canUseScan()) {
+                    long remaining = prefManager.getScanTimeRemaining();
+                    String timeText = formatTimeRemaining(remaining);
+                    showScanErrorDialog("Daily Limit Reached", 
+                        "You have used your 15 free scans for this period. Please wait " + timeText + " for your limit to reset.");
+                    return;
+                }
+
                 showLoading(true);
 
                 cameraExecutor.execute(() -> {

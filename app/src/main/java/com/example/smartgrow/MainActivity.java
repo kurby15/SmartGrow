@@ -43,6 +43,7 @@ import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
+import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.AIChatActivity;
 import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.plants.MyGardenFragment;
@@ -71,6 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -372,6 +374,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
+        String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
+        boolean isAppGuidance = isAppRelatedQuestion(lowerMsg);
+
+        // Validation for AI interaction limit (Only for plant/chatbot queries, not for app guidance)
+        if (!isAppGuidance) {
+            SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+            if (imageBitmap != null) {
+                // If it's a scan request in chat
+                if (!prefManager.canUseScan()) {
+                    long remaining = prefManager.getScanTimeRemaining();
+                    showLimitReachedToast(remaining, "scans");
+                    return;
+                }
+            } else {
+                // If it's a chat prompt
+                if (!prefManager.canUseChat()) {
+                    long remaining = prefManager.getChatTimeRemaining();
+                    showLimitReachedToast(remaining, "chat prompts");
+                    return;
+                }
+            }
+        }
+
         if (currentSessionId == null) {
             String title = (messageText != null && !messageText.isEmpty()) ? messageText : "Scanned Plant Image";
             saveSessionToHistory(title);
@@ -389,8 +414,7 @@ public class MainActivity extends AppCompatActivity {
 
         appendMessageToFirestore(userMsg);
 
-        String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
-        if (imageBitmap == null && isAppRelatedQuestion(lowerMsg)) {
+        if (imageBitmap == null && isAppGuidance) {
             respondToAppQuestion(lowerMsg);
             return;
         }
@@ -613,6 +637,13 @@ public class MainActivity extends AppCompatActivity {
                 analyzer.askFollowUpQuestion(messageText, fullContext, aiCallback);
             }
         }
+    }
+
+    private void showLimitReachedToast(long millis, String type) {
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
+        String timeText = hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
+        Toast.makeText(this, "Daily limit reached for " + type + ". Resets in " + timeText + ".", Toast.LENGTH_LONG).show();
     }
 
     private boolean isAppRelatedQuestion(String msg) {
