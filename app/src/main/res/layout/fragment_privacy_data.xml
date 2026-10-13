@@ -91,6 +91,60 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
+            <!-- Private Account Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_private_account"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="5dp"
+                app:strokeWidth="0dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/lbl_private_account"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_extrabold"
+                        android:text="Private Account"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="16dp"
+                        android:fontFamily="@font/inter_semibold"
+                        android:text="When enabled, only followers can see your posts and plant activity."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        app:layout_constraintEnd_toStartOf="@id/switch_private_account"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/lbl_private_account" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_private_account"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:thumbTint="@color/primary_green"
+                        app:trackTint="@color/primary_green_faded"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Account Deletion Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_account_deletion"
@@ -99,52 +153,43 @@
                 app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="5dp"
-                app:strokeWidth="0dp"
-                android:clipChildren="false"
-                android:clipToPadding="false">
+                app:strokeWidth="0dp">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false">
+                    android:padding="16dp">
 
-                    <!-- Account Deletion Title -->
                     <TextView
                         android:id="@+id/lbl_account_deletion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/inter_extrabold"
                         android:text="Account Deletion"
-                        android:textColor="@color/profile_title_color"
+                        android:textColor="#FF5252"
                         android:textSize="13sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <!-- Account Deletion Description -->
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:layout_marginEnd="16dp"
                         android:fontFamily="@font/inter_semibold"
-                        android:text="Permanently delete your account and all associated data from our servers."
+                        android:text="Permanently delete your account and all associated data. This action is irreversible."
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/switch_deletion"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/lbl_account_deletion" />
 
-                    <!-- Delete Switch -->
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switch_deletion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        app:thumbTint="@color/profile_title_color"
-                        app:trackTint="@color/primary_green"
+                        app:thumbTint="#FF5252"
+                        app:trackTint="#FFCDD2"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />

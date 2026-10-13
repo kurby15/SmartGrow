@@ -82,6 +82,34 @@
 
                 android:textStyle="bold" />
 
+
+            <!-- NOTIFICATION BUTTON -->
+
+            <ImageView
+
+                android:id="@+id/btn_notification_account_security"
+
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+
+                android:layout_marginEnd="8dp"
+
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:padding="10dp"
+
+                android:src="@drawable/ic_notification_bell"
+
+                app:tint="@color/primary_green"
+
+                android:contentDescription="Notifications" />
+
         </RelativeLayout>
 
     </com.google.android.material.card.MaterialCardView>
@@ -317,6 +345,7 @@
                         android:layout_height="13dp"
 
                         android:layout_alignParentEnd="true"
+
                         android:layout_centerVertical="true"
 
                         android:src="@drawable/ic_next"
@@ -335,4 +364,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>
-

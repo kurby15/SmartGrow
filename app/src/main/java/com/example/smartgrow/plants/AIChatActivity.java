@@ -39,13 +39,17 @@ import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
 import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
+import com.example.smartgrow.core.GeminiCacheService;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -67,6 +71,7 @@ public class AIChatActivity extends AppCompatActivity {
     public static final String EXTRA_IMAGE_PATH = "extra_image_path";
     public static final String EXTRA_IMAGE_BASE64 = "extra_image_base64";
     public static final String EXTRA_PLANT_NAME = "EXTRA_PLANT_NAME";
+    public static final String EXTRA_PLANT_ID = "EXTRA_PLANT_ID";
 
     private RecyclerView rvChatMessagesList;
     private EditText etChatInput;
@@ -78,13 +83,16 @@ public class AIChatActivity extends AppCompatActivity {
 
     // Preview image views & pending bitmap state
     private View layoutImagePreviewContainer;
-    private ImageView ivPreviewSelectedImage, ivPLantBot;
+    private ImageView ivPreviewSelectedImage;
     private Bitmap pendingImageBitmap = null;
 
     private ArrayList<ChatMessageModel> chatList;
     private ChatAdapter chatAdapter;
 
     private String lastAnalyzedPlantProfile = "";
+    private String currentNormalizedSpecies = "general";
+    private String currentSpeciesName = "General";
+
     private long lastRequestTime = 0;
     private String currentSessionId = null;
 
@@ -134,6 +142,11 @@ public class AIChatActivity extends AppCompatActivity {
                     }
                 }
             }
+
+            if (getIntent().hasExtra(EXTRA_PLANT_NAME)) {
+                currentSpeciesName = getIntent().getStringExtra(EXTRA_PLANT_NAME);
+                currentNormalizedSpecies = GeminiCacheService.getInstance().normalizeSpecies(currentSpeciesName);
+            }
         }
         
         ImageView ivPlantBot = findViewById(R.id.ivSproutAI);
@@ -152,9 +165,9 @@ public class AIChatActivity extends AppCompatActivity {
         Runnable animateMascotTask = new Runnable() {
             @Override
             public void run() {
-                if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
+                if (layoutCenterWelcome != null && layoutCenterWelcome.getVisibility() == View.VISIBLE) {
                     currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
-                    ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                    if (ivPlantBot != null) ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
                 }
                 handler.postDelayed(this, 2500);
             }
@@ -294,8 +307,7 @@ public class AIChatActivity extends AppCompatActivity {
                 if (userText.isEmpty() && pendingImageBitmap == null) return;
 
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - lastRequestTime < 2000) {
-                    Toast.makeText(this, "Please wait a moment.", Toast.LENGTH_SHORT).show();
+                if (currentTime - lastRequestTime < 1500) {
                     return;
                 }
 
@@ -338,13 +350,6 @@ public class AIChatActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isRecipeRequest(String msg) {
-        if (msg == null) return false;
-        String m = msg.toLowerCase().trim();
-        return m.contains("recipe") || m.contains("cook") || m.contains("how to make") || 
-               m.contains("ingredients") || m.contains("delicious") || m.contains("dish");
-    }
-
     private void sendChatMessageWithMedia(String messageText, Bitmap imageBitmap) {
         String lowerMsg = (messageText != null) ? messageText.toLowerCase().trim() : "";
         boolean isAppGuidance = isAppRelatedQuestion(lowerMsg);
@@ -367,7 +372,7 @@ public class AIChatActivity extends AppCompatActivity {
             }
         }
 
-        // Hide welcome layout as soon as interaction starts
+        // Hide welcome layout
         if (layoutCenterWelcome.getVisibility() == View.VISIBLE) {
             layoutCenterWelcome.setVisibility(View.GONE);
             rvChatMessagesList.setVisibility(View.VISIBLE);
@@ -388,147 +393,172 @@ public class AIChatActivity extends AppCompatActivity {
 
         appendMessageToFirestore(userMsg);
 
-        // Client-side recipe check
-        if (isRecipeRequest(messageText)) {
-            ChatMessageModel recipeReject = new ChatMessageModel(
-                    "I am sorry, but I can only assist with plant care, identification, and SmartGrow app features. I cannot provide food recipes or cooking instructions.",
-                    getCurrentPhTime(),
-                    ChatMessageModel.TYPE_AI);
-            chatList.add(recipeReject);
-            chatAdapter.notifyItemInserted(chatList.size() - 1);
-            rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-            appendMessageToFirestore(recipeReject);
-            return;
-        }
+        // recipe check
+        if (isRecipeCheck(messageText)) return;
 
         if (imageBitmap == null && isAppGuidance) {
             respondToAppQuestion(lowerMsg);
             return;
         }
 
-        chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
-        chatAdapter.notifyItemInserted(chatList.size() - 1);
-        rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-
+        GeminiCacheService cacheService = GeminiCacheService.getInstance();
+        String normalizedQuestion = cacheService.normalizeQuestion(messageText);
         PlantAnalyzer analyzer = new PlantAnalyzer();
 
-        if (imageBitmap != null) {
-            PlantAnalyzer.PlantAnalysisCallback detailedCallback = new PlantAnalyzer.PlantAnalysisCallback() {
-                @Override
-                public void onSuccess(String formattedResult, String rawJson) {
-                    runOnUiThread(() -> {
-                        removeLoadingIndicator();
-
-                        if (rawJson != null && (rawJson.contains("\"is_plant\": false")
-                                || rawJson.contains("\"is_plant\":false")
-                                || rawJson.contains("plant_not_detected"))) {
-
-                            ChatMessageModel notPlantMsg = new ChatMessageModel(
-                                    "We couldn't detect a plant in the provided image. Please make sure the photo is focused on a plant.",
-                                    getCurrentPhTime(),
-                                    ChatMessageModel.TYPE_AI);
-
-                            chatList.add(notPlantMsg);
-                            chatAdapter.notifyItemInserted(chatList.size() - 1);
-                            rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-                            appendMessageToFirestore(notPlantMsg);
-                            return;
-                        }
-
-                        ChatMessageModel aiMsg = new ChatMessageModel(formattedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                        ArrayList<String> suggestions = new ArrayList<>(PlantAnalyzer.extractPlantSuggestionsFromRawJson(rawJson));
-                        aiMsg.setFollowUpSuggestions(suggestions);
-
-                        chatList.add(aiMsg);
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-                        appendMessageToFirestore(aiMsg);
-                    });
-                }
-
-                @Override
-                public void onError(String error) {
-                    runOnUiThread(() -> {
-                        removeLoadingIndicator();
-                        String displayError = "I encountered an issue. Please check your connection.";
-                        if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
-                            displayError = "No plant detected. If people or pets are in the photo, please ensure the plant is clearly visible and in focus.";
-                        } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
-                            displayError = "Multiple different plant species detected. Please focus on one species at a time.";
-                        }
-
-                        ChatMessageModel errorMsg = new ChatMessageModel(displayError, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                        chatList.add(errorMsg);
-                        chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-                        appendMessageToFirestore(errorMsg);
-                    });
-                }
-            };
-
-            if (messageText != null && !messageText.trim().isEmpty()) {
-                analyzer.analyzePlantWithQuestion(messageText, imageBitmap, detailedCallback);
-            } else {
-                analyzer.analyzePlantDetailed(imageBitmap, detailedCallback);
+        // SPEED OPTIMIZATION: Instant check before showing loading bubble
+        if (imageBitmap == null) {
+            // Instant Memory check
+            DocumentSnapshot memDoc = cacheService.getChatResponseFromMemory(currentNormalizedSpecies, normalizedQuestion);
+            if (memDoc != null && memDoc.exists()) {
+                Log.d(TAG, "Chat Session Memory HIT. Instant display.");
+                displayAiResponse(new ChatMessageModel(memDoc.getString("answer"), getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+                return;
             }
-        } else {
-            PlantAnalyzer.PlantCallback aiCallback = new PlantAnalyzer.PlantCallback() {
-                @Override
-                public void onSuccess(String rawAiReply) {
+
+            // Quick Firestore check
+            cacheService.getCachedChatResponse(currentNormalizedSpecies, normalizedQuestion).addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                    displayAiResponse(new ChatMessageModel(task.getResult().getString("answer"), getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+                } else {
+                    // Missed cache, now show loading and go to AI
                     runOnUiThread(() -> {
-                        removeLoadingIndicator();
-                        String cleanedReply = cleanAiResponseText(rawAiReply);
-                        ArrayList<String> suggestions = new ArrayList<>();
-
-                        if (cleanedReply.contains("only answer questions related to plants") || cleanedReply.toLowerCase().contains("cannot provide recipes")) {
-                            suggestions.add("Give me care tips for a Monstera.");
-                        } else {
-                            suggestions.add("Tell me about ideal humidity.");
-                            suggestions.add("Walk through into SmartGrow");
-                        }
-
-                        ChatMessageModel msg = new ChatMessageModel(cleanedReply, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                        msg.setFollowUpSuggestions(suggestions);
-                        chatList.add(msg);
+                        chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
                         chatAdapter.notifyItemInserted(chatList.size() - 1);
                         rvChatMessagesList.scrollToPosition(chatList.size() - 1);
-                        appendMessageToFirestore(msg);
+                        callGeminiChat(analyzer, messageText, cacheService, normalizedQuestion);
                     });
                 }
+            });
+            return;
+        } else {
+            // Vision Track: Check Identification + Profile Caches first
+            String hash = cacheService.computeImageHash(imageBitmap);
+            cacheService.getCachedIdentification(hash).addOnCompleteListener(idTask -> {
+                String speciesFromCache = (idTask.isSuccessful() && idTask.getResult() != null && idTask.getResult().exists()) ? idTask.getResult().getString("speciesName") : cacheService.getIdentificationFromMemory(hash);
 
-                @Override
-                public void onError(String error) {
+                if (speciesFromCache != null) {
+                    String norm = cacheService.normalizeSpecies(speciesFromCache);
+                    cacheService.getCachedPlant(norm).addOnCompleteListener(plantTask -> {
+                        if (plantTask.isSuccessful() && plantTask.getResult() != null && plantTask.getResult().exists()) {
+                            currentSpeciesName = speciesFromCache;
+                            currentNormalizedSpecies = norm;
+                            String raw = plantTask.getResult().getString("rawAnalysisJson");
+                            String formatted = analyzer.parseAndFormatPlantJson(raw);
+                            runOnUiThread(() -> handleVisionSuccess(formatted, raw));
+                        } else {
+                            // Partial hit, show loading then finish process
+                            runOnUiThread(() -> {
+                                chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
+                                chatAdapter.notifyItemInserted(chatList.size() - 1);
+                                rvChatMessagesList.scrollToPosition(chatList.size() - 1);
+                                processSpeciesCacheInChat(imageBitmap, speciesFromCache, messageText, analyzer, cacheService);
+                            });
+                        }
+                    });
+                } else {
+                    // Full miss, show loading and call Gemini
                     runOnUiThread(() -> {
-                        removeLoadingIndicator();
-                        ChatMessageModel errorMsg = new ChatMessageModel("I encountered an issue. Please try again.", getCurrentPhTime(), ChatMessageModel.TYPE_AI);
-                        chatList.add(errorMsg);
+                        chatList.add(new ChatMessageModel("", "", ChatMessageModel.TYPE_LOADING));
                         chatAdapter.notifyItemInserted(chatList.size() - 1);
-                        appendMessageToFirestore(errorMsg);
+                        rvChatMessagesList.scrollToPosition(chatList.size() - 1);
+                        callGeminiVision(analyzer, messageText, imageBitmap, cacheService, hash);
                     });
                 }
-            };
-
-            String context = lastAnalyzedPlantProfile;
-            String history = buildChatHistoryContext();
-            if (!history.isEmpty()) context += "\n\nContext:\n" + history;
-
-            if (context.trim().isEmpty()) analyzer.askQuestion(messageText, aiCallback);
-            else analyzer.askFollowUpQuestion(messageText, context, aiCallback);
+            });
+            return;
         }
     }
 
-    private void showLimitReachedToast(long millis, String type) {
-        long hours = TimeUnit.MILLISECONDS.toHours(millis);
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
-        String timeText = hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
-        Toast.makeText(this, "Daily limit reached for " + type + ". Resets in " + timeText + ".", Toast.LENGTH_LONG).show();
+    private void processSpeciesCacheInChat(Bitmap bitmap, String speciesName, String messageText, PlantAnalyzer analyzer, GeminiCacheService cacheService) {
+        currentSpeciesName = speciesName;
+        currentNormalizedSpecies = cacheService.normalizeSpecies(speciesName);
+
+        cacheService.getCachedPlant(currentNormalizedSpecies).addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                String rawJson = task.getResult().getString("rawAnalysisJson");
+                String formatted = analyzer.parseAndFormatPlantJson(rawJson);
+                runOnUiThread(() -> {
+                    removeLoadingIndicator();
+                    handleVisionSuccess(formatted, rawJson);
+                });
+            } else {
+                callGeminiVision(analyzer, messageText, bitmap, cacheService, null);
+            }
+        });
     }
 
-    private boolean isAppRelatedQuestion(String msg) {
-        if (msg == null) return false;
-        String m = msg.toLowerCase().trim();
-        return m.contains("how the app works") || m.contains("walk through") || m.contains("app details") ||
-                m.contains("features") || m.contains("scan") || m.contains("garden") || m.contains("reminder");
+    private void callGeminiVision(PlantAnalyzer analyzer, String messageText, Bitmap imageBitmap, GeminiCacheService cacheService, String imageHash) {
+        PlantAnalyzer.PlantAnalysisCallback detailedCallback = new PlantAnalyzer.PlantAnalysisCallback() {
+            @Override
+            public void onSuccess(String formattedResult, String rawJson) {
+                runOnUiThread(() -> {
+                    removeLoadingIndicator();
+
+                    if (rawJson != null && (rawJson.contains("\"is_plant\": false") || rawJson.contains("\"is_plant\":false"))) {
+                        displayAiResponse(new ChatMessageModel("We couldn't detect a plant in the provided image.", getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+                        return;
+                    }
+
+                    String cName = analyzer.extractCommonName(rawJson);
+                    if (cName != null) {
+                        currentSpeciesName = cName;
+                        currentNormalizedSpecies = cacheService.normalizeSpecies(cName);
+                        cacheService.savePlantCache(currentNormalizedSpecies, cName, rawJson, analyzer.parseAnalysisToMap(null, rawJson));
+                        if (imageHash != null) cacheService.saveIdentificationCache(imageHash, cName);
+                    }
+
+                    handleVisionSuccess(formattedResult, rawJson);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    removeLoadingIndicator();
+                    displayAiResponse(new ChatMessageModel("I encountered an issue. Please try again.", getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+                });
+            }
+        };
+
+        if (messageText != null && !messageText.trim().isEmpty()) {
+            analyzer.analyzePlantWithQuestion(messageText, imageBitmap, detailedCallback);
+        } else {
+            analyzer.analyzePlantDetailed(imageBitmap, detailedCallback);
+        }
+    }
+
+    private void callGeminiChat(PlantAnalyzer analyzer, String messageText, GeminiCacheService cacheService, String normalizedQuestion) {
+        PlantAnalyzer.PlantCallback aiCallback = new PlantAnalyzer.PlantCallback() {
+            @Override
+            public void onSuccess(String rawAiReply) {
+                runOnUiThread(() -> {
+                    removeLoadingIndicator();
+                    String cleanedReply = cleanAiResponseText(rawAiReply);
+
+                    // Save to cache
+                    cacheService.saveChatResponse(currentNormalizedSpecies, currentSpeciesName, messageText, normalizedQuestion, cleanedReply);
+
+                    ChatMessageModel msg = new ChatMessageModel(cleanedReply, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+                    msg.setFollowUpSuggestions(new ArrayList<>(List.of("Give me care tips for a Monstera.", "Tell me about ideal humidity.")));
+                    displayAiResponse(msg);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    removeLoadingIndicator();
+                    displayAiResponse(new ChatMessageModel("I encountered an issue. Please try again.", getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+                });
+            }
+        };
+
+        String context = lastAnalyzedPlantProfile;
+        String history = buildChatHistoryContext();
+        if (!history.isEmpty()) context += "\n\nContext:\n" + history;
+
+        if (context.trim().isEmpty()) analyzer.askQuestion(messageText, aiCallback);
+        else analyzer.askFollowUpQuestion(messageText, context, aiCallback);
     }
 
     private void respondToAppQuestion(String msg) {
@@ -536,27 +566,95 @@ public class AIChatActivity extends AppCompatActivity {
         ArrayList<String> suggestions = new ArrayList<>();
         String m = msg.toLowerCase().trim();
 
-        if (m.contains("scan")) {
-            response = "Plant Identification & Health Scanner\n\nTo identify a plant, tap the Scan icon. Capture a photo to identify 10,000+ species and detect diseases.";
+        if (m.contains("scan") || m.contains("camera")) {
+            response = "🌿 Plant Identification & Health Scanner\n\n" +
+                    "To identify a plant, tap the Scan icon or use the Attach button in chat. Capture or upload a photo to:\n" +
+                    "• Identify 10,000+ plant species instantly.\n" +
+                    "• Detect diseases and pests using AI vision.\n" +
+                    "• Get specific care recommendations based on the scan.";
             suggestions.add("How to set reminders?");
-        } else if (m.contains("garden")) {
-            response = "My Garden\n\nThe 'My Garden' section stores your scanned plants. Track growth history and access care guides here.";
+            suggestions.add("What is My Garden?");
+        } else if (m.contains("garden") || m.contains("my garden")) {
+            response = "🏡 My Garden & Digital Repository\n\n" +
+                    "The 'My Garden' section stores all your scanned plants. Here you can:\n" +
+                    "• Track growth history for each plant.\n" +
+                    "• Access scientific names, common aliases, and distribution maps.\n" +
+                    "• View detailed care guides saved from previous scans.";
             suggestions.add("How to scan a plant?");
-        } else if (m.contains("reminder")) {
-            response = "Care Reminders\n\nSet schedules for Watering, Fertilizing, and Repotting via the 'Set Reminder' tab.";
-            suggestions.add("Tell me about the Community.");
-        } else {
-            response = "Welcome to SmartGrow!\n\nI can help you with:\n• Identifying plants via Scan\n• Organizing your Garden\n• Setting Care Reminders\n• Global Community Forum\n\nWhat would you like to know about?";
+            suggestions.add("Tell me about reminders.");
+        } else if (m.contains("reminder") || m.contains("reminders")) {
+            response = "⏰ Care Reminders & Notifications\n\n" +
+                    "Never forget to care for your plants! Set schedules for:\n" +
+                    "• Watering, Fertilizing, and Repotting.\n" +
+                    "• Custom notification times to suit your routine.\n" +
+                    "• Smart reminders automatically suggested for diseased plants.";
+            suggestions.add("How the app works?");
+            suggestions.add("What is the Forum?");
+        } else if (m.contains("forum") || m.contains("community")) {
+            response = "🤝 Global Community Forum\n\n" +
+                    "Connect with other plant enthusiasts! Use the Forum to:\n" +
+                    "• Share tips and success stories.\n" +
+                    "• Post photos of your journey.\n" +
+                    "• Ask questions to experienced gardeners.";
+            suggestions.add("Walk through into SmartGrow");
+        } else if (m.contains("walk through") || m.contains("app works") || m.contains("features")) {
+            response = "🌟 SmartGrow App Features Walkthrough\n\n" +
+                    "1. Scan/Camera: Identifies species and diagnoses health from photos.\n\n" +
+                    "2. AI Chatbot: Your botanical assistant (SproutAI) for any advice.\n\n" +
+                    "3. Home Dashboard: Shows weather, garden summary, and quick actions.\n\n" +
+                    "4. My Garden: Track your plants' progress and health profile.\n\n" +
+                    "5. Reminders: Personalized schedules for watering and maintenance.\n\n" +
+                    "6. Community Forum: Connect with other gardeners and share tips.\n\n" +
+                    "7. History: Access all your past scans and chat sessions anytime.\n\n" +
+                    "What would you like to explore first?";
             suggestions.add("Tell more about Scanning.");
             suggestions.add("What is My Garden?");
+        } else {
+            response = "Welcome to SmartGrow! I am SproutAI, your botanical assistant.\n\n" +
+                    "I can help you with plant identification, disease diagnosis, and care advice. I also guide you through the SmartGrow app features.\n\n" +
+                    "What would you like to know about?";
+            suggestions.add("Walk through into SmartGrow");
+            suggestions.add("How to scan a plant?");
         }
 
         ChatMessageModel aiMsg = new ChatMessageModel(response, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
         aiMsg.setFollowUpSuggestions(suggestions);
+        displayAiResponse(aiMsg);
+    }
+
+    private boolean isRecipeCheck(String msg) {
+        if (msg != null && (msg.toLowerCase().contains("recipe") || msg.toLowerCase().contains("cook"))) {
+            displayAiResponse(new ChatMessageModel("I am sorry, but I can only assist with plant care, identification, and SmartGrow app features. I cannot provide food recipes or cooking instructions.", getCurrentPhTime(), ChatMessageModel.TYPE_AI));
+            return true;
+        }
+        return false;
+    }
+
+    private void handleVisionSuccess(String formattedResult, String rawJson) {
+        lastAnalyzedPlantProfile = formattedResult;
+        ChatMessageModel aiMsg = new ChatMessageModel(formattedResult, getCurrentPhTime(), ChatMessageModel.TYPE_AI);
+        aiMsg.setFollowUpSuggestions(new ArrayList<>(PlantAnalyzer.extractPlantSuggestionsFromRawJson(rawJson)));
+        displayAiResponse(aiMsg);
+    }
+
+    private void displayAiResponse(ChatMessageModel aiMsg) {
         chatList.add(aiMsg);
         chatAdapter.notifyItemInserted(chatList.size() - 1);
         rvChatMessagesList.scrollToPosition(chatList.size() - 1);
         appendMessageToFirestore(aiMsg);
+    }
+
+    private void showLimitReachedToast(long millis, String type) {
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60;
+        String timeText = (hours > 0 ? hours + "h " : "") + minutes + "m";
+        Toast.makeText(this, "Daily limit reached for " + type + ". Resets in " + timeText + ".", Toast.LENGTH_LONG).show();
+    }
+
+    private boolean isAppRelatedQuestion(String msg) {
+        if (msg == null) return false;
+        String m = msg.toLowerCase();
+        return m.contains("how the app works") || m.contains("walk through") || m.contains("app details") || m.contains("features") || m.contains("scan") || m.contains("garden") || m.contains("reminder");
     }
 
     private void removeLoadingIndicator() {
@@ -612,21 +710,18 @@ public class AIChatActivity extends AppCompatActivity {
         currentSessionId = String.valueOf(System.currentTimeMillis());
         if (chatList != null) chatList.clear();
         lastAnalyzedPlantProfile = "";
+        currentNormalizedSpecies = "general";
+        currentSpeciesName = "General";
         clearPendingImage();
-        
-        // Show welcome layout
+
         if (layoutCenterWelcome != null) {
             layoutCenterWelcome.setVisibility(View.VISIBLE);
         }
         if (rvChatMessagesList != null) {
             rvChatMessagesList.setVisibility(View.GONE);
         }
-        
-        if (chatAdapter != null) chatAdapter.notifyDataSetChanged();
-    }
 
-    private void addDefaultWelcomeMessage() {
-        // Not used now since we show the welcome layout instead
+        if (chatAdapter != null) chatAdapter.notifyDataSetChanged();
     }
 
     private void showHistoryBottomSheetDialog() {
@@ -661,10 +756,7 @@ public class AIChatActivity extends AppCompatActivity {
                     }
                 }
             }
-            
-            // Toggle visibility based on content
             updateUiState();
-            
             chatAdapter.notifyDataSetChanged();
             rvChatMessagesList.scrollToPosition(chatList.size() - 1);
         });
@@ -683,21 +775,14 @@ public class AIChatActivity extends AppCompatActivity {
 
     private String cleanAiResponseText(String input) {
         if (input == null || input.isEmpty()) return "";
-        if (input.trim().startsWith("{") && input.trim().endsWith("}")) {
-            input = input.replaceAll("[\\{\\}\"\\[\\]]", "").replaceAll(",", "\n\n").replaceAll(":", ": ");
-        }
-        String cleaned = input.replace("*", "").replaceAll("[#()\\[\\]_~`]", "").replaceAll("(?m)^[ \t]+|[ \t]+$", "");
-        cleaned = cleaned.replaceAll("\n{2,}", "\n\n");
-        if (!cleaned.contains("\n\n") && cleaned.contains("\n")) cleaned = cleaned.replace("\n", "\n\n");
-        return cleaned.trim();
+        String cleaned = input.replace("*", "").replaceAll("[#()\\[\\]_~`]", "").trim();
+        return cleaned.replaceAll("\n{2,}", "\n\n");
     }
 
     private void saveSessionToHistory(String firstQuestion) {
         String userId = getCurrentUserId();
         if (userId == null || firstQuestion == null) return;
-        String title = firstQuestion.trim();
-        if (title.length() > 35) title = title.substring(0, 32) + "...";
-        if (currentSessionId == null) currentSessionId = String.valueOf(System.currentTimeMillis());
+        String title = (firstQuestion.length() > 35) ? firstQuestion.substring(0, 32) + "..." : firstQuestion;
         Map<String, Object> sessionMap = new HashMap<>();
         sessionMap.put("uid", userId);
         sessionMap.put("sessionId", currentSessionId);
@@ -734,18 +819,17 @@ public class AIChatActivity extends AppCompatActivity {
 
     private String encodeBitmapToBase64(Bitmap bitmap) {
         if (bitmap == null) return null;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, os);
+        return Base64.encodeToString(os.toByteArray(), Base64.DEFAULT);
     }
 
     private Bitmap decodeBase64ToBitmap(String base64Str) {
         if (base64Str == null || base64Str.isEmpty()) return null;
         try {
-            byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
+            byte[] decodedBytes = Base64.decode(base64Str, base64Str.startsWith("data:") ? base64Str.indexOf(",") + 1 : 0);
             return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
         } catch (Exception e) {
-            Log.e(TAG, "decodeBase64ToBitmap: error", e);
             return null;
         }
     }

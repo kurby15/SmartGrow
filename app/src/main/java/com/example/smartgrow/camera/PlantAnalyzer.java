@@ -17,7 +17,9 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,6 +80,11 @@ public class PlantAnalyzer {
         void onResult(boolean isPlant);
         void onError(String error);
     }
+    
+    public interface IdentificationCallback {
+        void onSuccess(String speciesName, double confidence);
+        void onError(String error);
+    }
 
     public PlantAnalyzer() {
         this.client = new OkHttpClient.Builder()
@@ -112,10 +119,93 @@ public class PlantAnalyzer {
         askAI(question, imageBitmap, null, null, detailedCallback);
     }
 
+    public void identifyPlant(Bitmap imageBitmap, IdentificationCallback callback) {
+        try {
+            Bitmap scaledBitmap = scaleBitmap(imageBitmap, 800);
+
+            JSONObject body = new JSONObject();
+            JSONArray contents = new JSONArray();
+            JSONObject contentObj = new JSONObject();
+            JSONArray partsArray = new JSONArray();
+
+            JSONObject textPart = new JSONObject();
+            textPart.put("text", "Identify the plant species in this image. Return ONLY a JSON object: {\"identified\": true, \"speciesName\": \"Common Name (Scientific Name)\", \"confidence\": 0.95}. If no plant is found, set identified to false.");
+            partsArray.put(textPart);
+
+            JSONObject imagePart = new JSONObject();
+            JSONObject inlineData = new JSONObject();
+            inlineData.put("mimeType", "image/jpeg");
+            inlineData.put("data", bitmapToBase64(scaledBitmap));
+            imagePart.put("inlineData", inlineData);
+            partsArray.put(imagePart);
+
+            contentObj.put("parts", partsArray);
+            contents.put(contentObj);
+            body.put("contents", contents);
+
+            JSONObject generationConfig = new JSONObject();
+            generationConfig.put("responseMimeType", "application/json");
+            body.put("generationConfig", generationConfig);
+
+            String jsonBody = body.toString();
+            String geminiKey = BuildConfig.GEMINI_API_KEY;
+            String url = GEMINI_API_URL + "?key=" + geminiKey;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(RequestBody.create(jsonBody, MediaType.get("application/json; charset=utf-8")))
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    mainHandler.post(() -> callback.onError(e.getMessage()));
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    try (Response res = response) {
+                        String responseStr = res.body() != null ? res.body().string() : "";
+                        if (!res.isSuccessful()) {
+                            mainHandler.post(() -> callback.onError("API Error: " + res.code()));
+                            return;
+                        }
+
+                        JSONObject jsonResponse = new JSONObject(responseStr);
+                        JSONArray candidates = jsonResponse.optJSONArray("candidates");
+                        if (candidates != null && candidates.length() > 0) {
+                            JSONObject content = candidates.getJSONObject(0).optJSONObject("content");
+                            if (content != null) {
+                                JSONArray parts = content.optJSONArray("parts");
+                                if (parts != null && parts.length() > 0) {
+                                    String replyText = parts.getJSONObject(0).optString("text", "");
+                                    String rawJsonBlock = extractJsonBlock(replyText);
+                                    JSONObject parsed = new JSONObject(rawJsonBlock);
+                                    if (parsed.optBoolean("identified", false)) {
+                                        String species = parsed.optString("speciesName", "Unknown");
+                                        double conf = parsed.optDouble("confidence", 0.0);
+                                        mainHandler.post(() -> callback.onSuccess(species, conf));
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        mainHandler.post(() -> callback.onError("Could not identify plant."));
+                    } catch (Exception e) {
+                        mainHandler.post(() -> callback.onError(e.getMessage()));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
     public void validatePlantImage(Bitmap imageBitmap, ValidationCallback callback) {
         try {
             Bitmap scaledBitmap = scaleBitmap(imageBitmap, 800);
-            
+
             JSONObject body = new JSONObject();
             JSONArray contents = new JSONArray();
             JSONObject contentObj = new JSONObject();
@@ -545,7 +635,7 @@ public class PlantAnalyzer {
                                     if (parsedRoot.has("is_plant") && !parsedRoot.getBoolean("is_plant")) {
                                         boolean isMultiple = parsedRoot.optBoolean("multiple_plants", false);
                                         boolean hasText = parsedRoot.optBoolean("contains_text", false);
-                                        
+
                                         mainHandler.post(() -> {
                                             if (hasText) {
                                                 if (callback != null) callback.onError("Image contains text content.");
@@ -646,7 +736,7 @@ public class PlantAnalyzer {
         return suggestions;
     }
 
-    private String parseAndFormatPlantJson(String jsonRawString) {
+    public String parseAndFormatPlantJson(String jsonRawString) {
         try {
             String cleanedJson = extractJsonBlock(jsonRawString);
             JSONObject root = new JSONObject(cleanedJson);
@@ -730,7 +820,7 @@ public class PlantAnalyzer {
                 sb.append("🐛 Common Pests\n\n");
                 String detected = pestInfo.optString("possible_pest_detected", "no pest detected");
                 JSONArray commonPests = pestInfo.optJSONArray("common_pests");
-                
+
                 sb.append("  Detected: ").append(detected).append("\n\n");
                 if (commonPests != null && commonPests.length() > 0) {
                     for (int i = 0; i < commonPests.length(); i++) {
@@ -740,7 +830,7 @@ public class PlantAnalyzer {
                         }
                     }
                 }
-                
+
                 sb.append("🛡️ How to Avoid Pest\n\n");
                 sb.append("  ").append(pestInfo.optString("how_to_avoid_pest", "N/A")).append("\n\n");
             }
@@ -762,6 +852,181 @@ public class PlantAnalyzer {
             }
             return jsonRawString.replaceAll("[\\{\\}\"\\[\\]]", "").trim();
         }
+    }
+
+    public Map<String, Object> parseAnalysisToMap(Bitmap bitmap, String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+
+            if (!root.optBoolean("is_plant", true)) {
+                return null;
+            }
+
+            String plantName = "Unknown Plant";
+            String scientificName = "N/A";
+            String healthStatus = "Healthy";
+            int healthPercentage = 100;
+            int matchConfidencePercentage = 95;
+            String careDifficultyText = "Easy";
+            int careDifficultyPercentage = 50;
+
+            String aliases = "N/A";
+            String petToxicity = "Non-toxic";
+            String weedPotential = "Low";
+            String distribution = "N/A";
+            String habitat = "N/A";
+            String plantType = "Unknown";
+            String lifespan = "N/A";
+            boolean isArtificial = root.optBoolean("is_artificial", false);
+
+            List<String> leafColorsList = new ArrayList<>();
+
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String fullTitle = profile.optString("name", plantName);
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    int close = fullTitle.indexOf(")");
+                    if (open < close) {
+                        plantName = fullTitle.substring(0, open).trim();
+                        scientificName = fullTitle.substring(open + 1, close).trim();
+                    } else {
+                        plantName = fullTitle;
+                    }
+                } else {
+                    plantName = fullTitle;
+                }
+
+                if (profile.has("scientific_name") && !profile.optString("scientific_name").isEmpty()) {
+                    scientificName = profile.optString("scientific_name", scientificName);
+                }
+
+                matchConfidencePercentage = parsePercentage(
+                        profile.opt("confidence") != null ? profile.opt("confidence") : profile.opt("match_percentage"),
+                        matchConfidencePercentage
+                );
+
+                aliases = profile.optString("philippine_name", profile.optString("aliases", aliases));
+                distribution = profile.optString("distribution_text", profile.optString("origin", distribution));
+                habitat = profile.optString("habitat", habitat);
+                plantType = profile.optString("type", profile.optString("plant_type", plantType));
+                petToxicity = profile.optString("pet_toxicity", petToxicity);
+                weedPotential = profile.optString("weed_potential", weedPotential);
+                lifespan = profile.optString("lifespan", lifespan);
+
+                careDifficultyText = profile.optString("care_difficulty", profile.optString("difficulty_level", careDifficultyText));
+                careDifficultyPercentage = parsePercentage(
+                        profile.opt("care_difficulty_percentage") != null ? profile.opt("care_difficulty_percentage") : profile.opt("difficulty_percentage"),
+                        careDifficultyPercentage
+                );
+            }
+
+            JSONObject health = root.optJSONObject("health_scanner");
+            if (health != null) {
+                healthStatus = health.optString("status", healthStatus);
+                healthPercentage = parsePercentage(
+                        health.opt("health_score") != null ? health.opt("health_score") : health.opt("confidence"),
+                        healthPercentage
+                );
+            }
+
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("plantName", plantName);
+            dataMap.put("scientificName", scientificName);
+            dataMap.put("healthStatus", healthStatus);
+            dataMap.put("healthPercentage", healthPercentage);
+            dataMap.put("matchConfidencePercentage", matchConfidencePercentage);
+            dataMap.put("careDifficultyText", careDifficultyText);
+            dataMap.put("careDifficultyPercentage", careDifficultyPercentage);
+            dataMap.put("aliases", aliases);
+            dataMap.put("distribution", distribution);
+            dataMap.put("habitat", habitat);
+            dataMap.put("plantType", plantType);
+            dataMap.put("petToxicity", petToxicity);
+            dataMap.put("weedPotential", weedPotential);
+            dataMap.put("lifespan", lifespan);
+            dataMap.put("isArtificial", isArtificial);
+
+            JSONObject care = root.optJSONObject("care_guide");
+            if (care != null) {
+                Map<String, String> careMap = new HashMap<>();
+                careMap.put("watering", care.optString("watering", "N/A"));
+                careMap.put("sunlight", care.optString("sunlight", "N/A"));
+                careMap.put("temperature", care.optString("temperature", "N/A"));
+                dataMap.put("careInformation", careMap);
+            }
+            
+            JSONObject howTos = root.optJSONObject("how_tos");
+            if (howTos != null) {
+                dataMap.put("propagation", howTos.optString("propagation", "N/A"));
+            }
+
+            if (bitmap != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                dataMap.put("imageBase64", Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT));
+            }
+
+            return dataMap;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing analysis JSON", e);
+            return null;
+        }
+    }
+
+    private int parsePercentage(Object rawVal, int fallback) {
+        if (rawVal == null) return fallback;
+        if (rawVal instanceof Integer) return (Integer) rawVal;
+        if (rawVal instanceof Double) return ((Double) rawVal).intValue();
+
+        String strVal = String.valueOf(rawVal);
+        Matcher matcher = Pattern.compile("(\\d+)").matcher(strVal);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {}
+        }
+        return fallback;
+    }
+
+    public String extractCommonName(String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String fullTitle = profile.optString("name", "");
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    if (open != -1) return fullTitle.substring(0, open).trim();
+                }
+                return fullTitle.trim();
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    public String extractScientificName(String rawJson) {
+        try {
+            JSONObject root = new JSONObject(rawJson);
+            JSONObject profile = root.optJSONObject("plant_profile");
+            if (profile != null) {
+                String scientificName = profile.optString("scientific_name", "");
+                if (!scientificName.isEmpty() && !scientificName.equalsIgnoreCase("N/A")) {
+                    return scientificName;
+                }
+
+                String fullTitle = profile.optString("name", "");
+                if (fullTitle.contains("(") && fullTitle.contains(")")) {
+                    int open = fullTitle.indexOf("(");
+                    int close = fullTitle.indexOf(")");
+                    if (open < close) {
+                        return fullTitle.substring(open + 1, close).trim();
+                    }
+                }
+                return fullTitle.trim();
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private String extractJsonBlock(String raw) {

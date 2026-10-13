@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.OvershootInterpolator;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -48,13 +47,13 @@ import androidx.core.content.ContextCompat;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartgrow.R;
+import com.example.smartgrow.core.GeminiCacheService;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.PlantDetailsActivity;
-import com.example.smartgrow.plants.PlantDiaryActivity;
-import com.example.smartgrow.plants.PlantReminderBottomSheet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -112,6 +111,7 @@ public class CameraScannerActivity extends AppCompatActivity {
     private Runnable progressRunnable;
     private int progressCount = 0;
     private boolean isAnalyzing = false;
+    private long loadingStepDelay = 50; // Dynamic delay for speed optimization
 
     private boolean isChatMode = false;
     private String diaryPlantId = null;
@@ -230,6 +230,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (show) {
                 if (!loadingDialog.isShowing() && !isFinishing()) {
                     progressCount = 0;
+                    loadingStepDelay = 50; // Standard speed
                     if (tvProgressPercentage != null) tvProgressPercentage.setText("0%");
                     if (tvLoadingMessage != null) tvLoadingMessage.setText("Scanning plant features...");
 
@@ -249,6 +250,16 @@ public class CameraScannerActivity extends AppCompatActivity {
                     loadingDialog.dismiss();
                 }
             }
+        });
+    }
+
+    /**
+     * Speeds up the loading progress animation when a cache hit is detected.
+     */
+    private void speedUpLoading() {
+        runOnUiThread(() -> {
+            loadingStepDelay = 2; // Ultra fast progress
+            if (progressCount < 85) progressCount = 85; // Immediate jump to near completion
         });
     }
 
@@ -284,7 +295,7 @@ public class CameraScannerActivity extends AppCompatActivity {
         progressRunnable = new Runnable() {
             @Override
             public void run() {
-                if (progressCount < 95) {
+                if (progressCount < 99) {
                     progressCount++;
                     if (tvProgressPercentage != null) {
                         tvProgressPercentage.setText(progressCount + "%");
@@ -304,12 +315,12 @@ public class CameraScannerActivity extends AppCompatActivity {
                         animateBloom(flowerBottomRight);
                     }
 
-                    long delay = progressCount < 50 ? 50 : 80;
+                    long delay = progressCount < 50 ? loadingStepDelay : (loadingStepDelay + 10);
                     animationHandler.postDelayed(this, delay);
                 }
             }
         };
-        animationHandler.postDelayed(progressRunnable, 50);
+        animationHandler.postDelayed(progressRunnable, loadingStepDelay);
     }
 
     private void animateBloom(ImageView flowerView) {
@@ -323,7 +334,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
         AnimatorSet set = new AnimatorSet();
         set.playTogether(scaleX, scaleY);
-        set.setDuration(400);
+        set.setDuration(300);
         set.setInterpolator(new OvershootInterpolator());
         set.start();
     }
@@ -502,98 +513,185 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private void analyzeAndOpenDetails(Bitmap bitmap) {
         PlantAnalyzer analyzer = new PlantAnalyzer();
-        analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
-            @Override
-            public void onSuccess(String formattedResult, String rawJson) {
-                runOnUiThread(() -> {
-                    boolean isPlant = true;
-                    boolean isMultiple = false;
-                    boolean hasText = false;
-                    try {
-                        if (rawJson != null && !rawJson.isEmpty()) {
-                            JSONObject root = new JSONObject(rawJson);
-                            isPlant = root.optBoolean("is_plant", true);
-                            isMultiple = root.optBoolean("multiple_plants", false);
-                            hasText = root.optBoolean("contains_text", false);
-                        }
-                    } catch (Exception ignored) {}
+        GeminiCacheService cacheService = GeminiCacheService.getInstance();
 
-                    if (!isPlant || isMultiple || hasText) {
-                        showLoading(false);
-                        unfreezeScreen();
-                        
-                        String title;
-                        String message;
+        String imageHash = cacheService.computeImageHash(bitmap);
+        
+        // Fast identification from memory cache
+        String cachedIdFromMemory = cacheService.getIdentificationFromMemory(imageHash);
+        if (cachedIdFromMemory != null) {
+            speedUpLoading();
+            processSpeciesCacheCheck(bitmap, cachedIdFromMemory, analyzer, cacheService);
+            return;
+        }
 
-                        if (hasText) {
-                            title = "Text Detected";
-                            message = "The image appears to contain text or digital overlays. Please scan a clear plant image without any text for accurate identification.";
-                        } else if (isMultiple) {
-                            title = "Mixed Species Detected";
-                            message = "Multiple different plant species detected. Please scan plants of the same species for accurate identification.";
-                        } else {
-                            title = "Plant Not Detected";
-                            message = "The image does not appear to contain a plant. Please scan a clear plant image.";
+        Log.d(TAG, "Starting plant identification...");
+        
+        // Check Firestore Identification Cache
+        cacheService.getCachedIdentification(imageHash).addOnCompleteListener(idTask -> {
+            String speciesFromIdCache = null;
+            if (idTask.isSuccessful() && idTask.getResult() != null && idTask.getResult().exists()) {
+                speciesFromIdCache = idTask.getResult().getString("speciesName");
+                speedUpLoading();
+            }
+
+            if (speciesFromIdCache != null) {
+                processSpeciesCacheCheck(bitmap, speciesFromIdCache, analyzer, cacheService);
+            } else {
+                // Fallback to Gemini Identification
+                analyzer.identifyPlant(bitmap, new PlantAnalyzer.IdentificationCallback() {
+                    @Override
+                    public void onSuccess(String speciesName, double confidence) {
+                        Log.d(TAG, "Identified: " + speciesName + " with confidence: " + confidence);
+
+                        if (confidence < GeminiCacheService.PLANT_IDENTIFICATION_THRESHOLD) {
+                            runOnUiThread(() -> {
+                                showLoading(false);
+                                unfreezeScreen();
+                                showScanErrorDialog("Low Confidence", "We couldn't identify the plant confidently. Please try a clearer photo.");
+                            });
+                            return;
                         }
-                        
-                        showScanErrorDialog(title, message);
-                        return;
+
+                        cacheService.saveIdentificationCache(imageHash, speciesName);
+                        processSpeciesCacheCheck(bitmap, speciesName, analyzer, cacheService);
                     }
 
-                    if (diaryPlantId != null) {
-                        showLoading(false);
-                        String scannedPlantName = "";
-                        try {
-                            JSONObject root = new JSONObject(rawJson);
-                            JSONObject profile = root.optJSONObject("plant_profile");
-                            if (profile != null) {
-                                String fullTitle = profile.optString("name", "");
-                                if (fullTitle.contains("(") && fullTitle.contains(")")) {
-                                    int open = fullTitle.indexOf("(");
-                                    if (open != -1) {
-                                        scannedPlantName = fullTitle.substring(0, open).trim();
-                                    } else {
-                                        scannedPlantName = fullTitle.trim();
-                                    }
-                                } else {
-                                    scannedPlantName = fullTitle.trim();
-                                }
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "Identification error: " + error);
+                        // Fallback to direct analysis if identification fails or is uncertain
+                        analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+                            @Override
+                            public void onSuccess(String formattedResult, String rawJson) {
+                                handleAnalysisResult(bitmap, rawJson);
                             }
-                        } catch (Exception ignored) {}
 
-                        if (diaryPlantName != null && !diaryPlantName.trim().isEmpty() && !scannedPlantName.trim().isEmpty()) {
-                            String name1 = diaryPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
-                            String name2 = scannedPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
-                            if (!name1.contains(name2) && !name2.contains(name1)) {
-                                unfreezeScreen();
-                                showScanErrorDialog("Species Mismatch", 
-                                        "Mismatched plant species detected. Please scan the correct plant (" + diaryPlantName + ") for an accurate diagnosis.");
-                                return;
+                            @Override
+                            public void onError(String error) {
+                                handleAnalysisError(error);
                             }
-                        }
-
-                        updateDiaryPlant(bitmap, rawJson);
-                    } else {
-                        checkDuplicateAndProceed(bitmap, rawJson);
+                        });
                     }
                 });
             }
+        });
+    }
 
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    unfreezeScreen();
-                    if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
-                        showScanErrorDialog("Plant Not Detected", "The image does not appear to contain a plant. Please scan a clear plant image.");
-                    } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
-                        showScanErrorDialog("Mixed Species Detected", "Multiple different plant species detected. Please scan plants of the same species for accurate identification.");
-                    } else if (PlantAnalyzer.ERROR_TEXT_DETECTED.equals(error)) {
-                        showScanErrorDialog("Text Detected", "The image appears to contain text or digital overlays. Please scan a clear plant image without any text overlays.");
-                    } else {
-                        showScanErrorDialog("Analysis Error", "The AI was unable to analyze this image. Please try again with better lighting.");
+    private void processSpeciesCacheCheck(Bitmap bitmap, String speciesName, PlantAnalyzer analyzer, GeminiCacheService cacheService) {
+        String normalizedSpecies = cacheService.normalizeSpecies(speciesName);
+        
+        // Fast check from session memory profile
+        DocumentSnapshot memDoc = cacheService.getPlantFromMemory(normalizedSpecies);
+        if (memDoc != null && memDoc.exists()) {
+            speedUpLoading();
+            handleAnalysisResult(bitmap, memDoc.getString("rawAnalysisJson"));
+            return;
+        }
+
+        cacheService.getCachedPlant(normalizedSpecies).addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                Log.d(TAG, "Plant Firestore cache HIT: " + normalizedSpecies);
+                speedUpLoading();
+                String rawJson = task.getResult().getString("rawAnalysisJson");
+                if (rawJson != null) {
+                    handleAnalysisResult(bitmap, rawJson);
+                    return;
+                }
+            }
+
+            Log.d(TAG, "Plant cache MISS: " + normalizedSpecies + ". Calling Gemini for full analysis.");
+            analyzer.analyzePlantDetailed(bitmap, new PlantAnalyzer.PlantAnalysisCallback() {
+                @Override
+                public void onSuccess(String formattedResult, String rawJson) {
+                    try {
+                        JSONObject root = new JSONObject(rawJson);
+                        Map<String, Object> data = parseAnalysisToMap(null, rawJson);
+                        cacheService.savePlantCache(normalizedSpecies, speciesName, rawJson, data);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error saving to cache", e);
                     }
-                });
+                    handleAnalysisResult(bitmap, rawJson);
+                }
+
+                @Override
+                public void onError(String error) {
+                    handleAnalysisError(error);
+                }
+            });
+        });
+    }
+
+    private void handleAnalysisResult(Bitmap bitmap, String rawJson) {
+        runOnUiThread(() -> {
+            boolean isPlant = true;
+            boolean isMultiple = false;
+            boolean hasText = false;
+            try {
+                if (rawJson != null && !rawJson.isEmpty()) {
+                    JSONObject root = new JSONObject(rawJson);
+                    isPlant = root.optBoolean("is_plant", true);
+                    isMultiple = root.optBoolean("multiple_plants", false);
+                    hasText = root.optBoolean("contains_text", false);
+                }
+            } catch (Exception ignored) {}
+
+            if (!isPlant || isMultiple || hasText) {
+                showLoading(false);
+                unfreezeScreen();
+                
+                String title;
+                String message;
+
+                if (hasText) {
+                    title = "Text Detected";
+                    message = "The image appears to contain text or digital overlays. Please scan a clear plant image without any text for accurate identification.";
+                } else if (isMultiple) {
+                    title = "Mixed Species Detected";
+                    message = "Multiple different plant species detected. Please scan plants of the same species for accurate identification.";
+                } else {
+                    title = "Plant Not Detected";
+                    message = "The image does not appear to contain a plant. Please scan a clear plant image.";
+                }
+                
+                showScanErrorDialog(title, message);
+                return;
+            }
+
+            if (diaryPlantId != null) {
+                showLoading(false);
+                String scannedPlantName = extractCommonName(rawJson);
+
+                if (diaryPlantName != null && !diaryPlantName.trim().isEmpty() && scannedPlantName != null && !scannedPlantName.trim().isEmpty()) {
+                    String name1 = diaryPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
+                    String name2 = scannedPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
+                    if (!name1.contains(name2) && !name2.contains(name1)) {
+                        unfreezeScreen();
+                        showScanErrorDialog("Species Mismatch", 
+                                "Mismatched plant species detected. Please scan the correct plant (" + diaryPlantName + ") for an accurate diagnosis.");
+                        return;
+                    }
+                }
+
+                updateDiaryPlant(bitmap, rawJson);
+            } else {
+                checkDuplicateAndProceed(bitmap, rawJson);
+            }
+        });
+    }
+
+    private void handleAnalysisError(String error) {
+        runOnUiThread(() -> {
+            showLoading(false);
+            unfreezeScreen();
+            if (PlantAnalyzer.ERROR_NON_PLANT.equals(error)) {
+                showScanErrorDialog("Plant Not Detected", "The image does not appear to contain a plant. Please scan a clear plant image.");
+            } else if (PlantAnalyzer.ERROR_MULTIPLE_PLANTS.equals(error)) {
+                showScanErrorDialog("Mixed Species Detected", "Multiple different plant species detected. Please scan plants of the same species for accurate identification.");
+            } else if (PlantAnalyzer.ERROR_TEXT_DETECTED.equals(error)) {
+                showScanErrorDialog("Text Detected", "The image appears to contain text or digital overlays. Please scan a clear plant image without any text overlays.");
+            } else {
+                showScanErrorDialog("Analysis Error", "The AI was unable to analyze this image. Please try again with better lighting.");
             }
         });
     }
@@ -727,7 +825,6 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private void updateDiaryPlant(Bitmap bitmap, String rawJson) {
         try {
-            JSONObject root = new JSONObject(rawJson);
             Map<String, Object> updateMap = parseAnalysisToMap(bitmap, rawJson);
 
             if (updateMap == null) return;
@@ -738,9 +835,6 @@ public class CameraScannerActivity extends AppCompatActivity {
                     .set(updateMap, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(CameraScannerActivity.this, "Diagnosis updated successfully", Toast.LENGTH_SHORT).show();
-                        
-                        // Fix: Immediately finish to return to the Diary activity and see the updated info (health, pests).
-                        // This prevents stacking or getting stuck on intermediate dialogs during re-scan.
                         finish();
                     })
                     .addOnFailureListener(e -> {
@@ -960,7 +1054,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (pestInfo != null) {
                 dataMap.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "no pest detected"));
                 dataMap.put("how_to_avoid_pest", pestInfo.optString("how_to_avoid_pest", "N/A"));
-                
+
                 JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
                 if (commonPestsArray != null) {
                     List<Map<String, String>> pestList = new ArrayList<>();
@@ -992,10 +1086,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private String autoSaveToDiaryHistory(Bitmap bitmap, String rawJson) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            Log.w(TAG, "User not logged in. Skipping auto-save to diary_history.");
-            return null;
-        }
+        if (currentUser == null) return null;
 
         try {
             Map<String, Object> historyEntry = parseAnalysisToMap(bitmap, rawJson);
@@ -1138,7 +1229,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                 if (!prefManager.canUseScan()) {
                     long remaining = prefManager.getScanTimeRemaining();
                     String timeText = formatTimeRemaining(remaining);
-                    showScanErrorDialog("Daily Limit Reached", 
+                    showScanErrorDialog("Daily Limit Reached",
                         "You have used your 15 free scans for this period. Please wait " + timeText + " for your limit to reset.");
                     return;
                 }

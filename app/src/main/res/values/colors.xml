@@ -3,6 +3,7 @@
     <color name="app_background">#F5FFF8</color>
     <color name="header_background">#FAFBFA</color>
     <color name="primary_green">#1e4620</color>
+    <color name="primary_green_faded">#A5D6A7</color>
     <color name="text_primary">#1A2E22</color>
     <color name="text_secondary">#52705D</color>
     <color name="card_background">#FFFFFF</color>

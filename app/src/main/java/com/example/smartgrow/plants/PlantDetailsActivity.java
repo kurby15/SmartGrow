@@ -442,8 +442,97 @@ public class PlantDetailsActivity extends AppCompatActivity {
                 diaryEntry.put("plantType", profile.optString("type", profile.optString("plant_type", "N/A")));
                 diaryEntry.put("lifespan", profile.optString("lifespan", "N/A"));
                 diaryEntry.put("careDifficultyText", profile.optString("care_difficulty", "Easy"));
+
+                // Distribution coordinates
+                JSONArray locArray = profile.optJSONArray("distribution_coordinates");
+                if (locArray == null) locArray = profile.optJSONArray("locations");
+                if (locArray != null) {
+                    List<Map<String, Object>> distCoords = new ArrayList<>();
+                    for (int i = 0; i < locArray.length(); i++) {
+                        JSONObject locObj = locArray.optJSONObject(i);
+                        if (locObj != null) {
+                            Map<String, Object> locMap = new HashMap<>();
+                            locMap.put("latitude", locObj.optDouble("latitude", locObj.optDouble("lat", 0)));
+                            locMap.put("longitude", locObj.optDouble("longitude", locObj.optDouble("lng", 0)));
+                            locMap.put("title", locObj.optString("title", ""));
+                            locMap.put("snippet", locObj.optString("snippet", ""));
+                            locMap.put("distribution_type", locObj.optString("distribution_type", "Native"));
+                            distCoords.add(locMap);
+                        }
+                    }
+                    diaryEntry.put("distribution_coordinates", distCoords);
+                }
             }
-        } catch (Exception ignored) {}
+
+            JSONObject characteristics = root.optJSONObject("characteristics");
+            if (characteristics != null) {
+                diaryEntry.put("ultimateHeight", characteristics.optString("ultimate_height", "N/A"));
+                diaryEntry.put("ultimateSpread", characteristics.optString("ultimate_spread", "N/A"));
+                diaryEntry.put("leafType", characteristics.optString("leaf_type", "N/A"));
+                diaryEntry.put("plantingTime", characteristics.optString("planting_time", "N/A"));
+
+                JSONArray colorsArray = characteristics.optJSONArray("leaf_colors");
+                if (colorsArray != null) {
+                    List<String> colorsList = new ArrayList<>();
+                    for (int i = 0; i < colorsArray.length(); i++) {
+                        colorsList.add(colorsArray.optString(i));
+                    }
+                    diaryEntry.put("leaf_colors", colorsList);
+                }
+            }
+
+            JSONObject ecosystem = root.optJSONObject("ecosystem");
+            if (ecosystem != null) {
+                diaryEntry.put("temperatureRange", ecosystem.optString("temp_range", "N/A"));
+                diaryEntry.put("hardinessZones", ecosystem.optString("hardiness_zones", "N/A"));
+                diaryEntry.put("sunlight", ecosystem.optString("sunlight", "N/A"));
+                diaryEntry.put("soil", ecosystem.optString("soil", "N/A"));
+            }
+
+            JSONObject howTos = root.optJSONObject("how_tos");
+            if (howTos != null) {
+                diaryEntry.put("pruning", howTos.optString("pruning", "N/A"));
+                diaryEntry.put("propagation", howTos.optString("propagation", "N/A"));
+                diaryEntry.put("repotting", howTos.optString("repotting", "N/A"));
+            }
+
+            JSONObject extraDetails = root.optJSONObject("extra_details");
+            if (extraDetails != null) {
+                diaryEntry.put("usesText", extraDetails.optString("uses", "N/A"));
+                diaryEntry.put("adaptationText", extraDetails.optString("adaptation_strategies", "N/A"));
+                diaryEntry.put("ecologicalText", extraDetails.optString("ecological_application", "N/A"));
+                diaryEntry.put("historyText", extraDetails.optString("history_and_legends", "N/A"));
+                diaryEntry.put("nameStoryText", extraDetails.optString("name_story", "N/A"));
+                diaryEntry.put("symbolismText", extraDetails.optString("symbolism", "N/A"));
+            }
+
+            JSONObject pestInfo = root.optJSONObject("pest_info");
+            if (pestInfo != null) {
+                diaryEntry.put("possible_pest_detected", pestInfo.optString("possible_pest_detected", "no pest detected"));
+                JSONArray commonPestsArray = pestInfo.optJSONArray("common_pests");
+                if (commonPestsArray != null) {
+                    List<Map<String, String>> pestList = new ArrayList<>();
+                    for (int i = 0; i < commonPestsArray.length(); i++) {
+                        JSONObject pestObj = commonPestsArray.optJSONObject(i);
+                        if (pestObj != null) {
+                            Map<String, String> pestMap = new HashMap<>();
+                            pestMap.put("name", pestObj.optString("name"));
+                            pestMap.put("description", pestObj.optString("description"));
+                            pestList.add(pestMap);
+                        }
+                    }
+                    diaryEntry.put("common_pests", pestList);
+                }
+            }
+
+            JSONArray commonProblemsArray = root.optJSONArray("common_problems");
+            if (commonProblemsArray != null) {
+                diaryEntry.put("commonProblemsJson", commonProblemsArray.toString());
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing analysis JSON in performSave", e);
+        }
 
         // Automatic care reminders based on health percentage
         Map<String, String> schedule = getAutoSchedule(healthPercentage);

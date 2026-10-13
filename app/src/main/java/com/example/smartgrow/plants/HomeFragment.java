@@ -435,8 +435,10 @@ public class HomeFragment extends Fragment {
                     if (isTaskDue(waterFreq, p.getLastWateredDate())) {
                         CareTaskModel task = new CareTaskModel(p.getId(), "Water " + p.getPlantName(), "💧 Scheduled at " + prefTime, "Water Now", plantBitmap, "Water");
                         task.setDone(isWateredToday);
-                        careTaskList.add(task);
-                        waterTaskAdded = true;
+                        if (!isWateredToday) {
+                            careTaskList.add(task);
+                            waterTaskAdded = true;
+                        }
 
                         if (!isWateredToday && isTimeReached(prefTime)) {
                             needWaterCount++;
@@ -453,8 +455,10 @@ public class HomeFragment extends Fragment {
                         boolean isDone = todayDate.equals(p.getLastFertilizedDate());
                         CareTaskModel task = new CareTaskModel(p.getId(), "Fertilize " + p.getPlantName(), "🌿 Feeding due today", "Feed Now", plantBitmap, "Fertilize");
                         task.setDone(isDone);
-                        careTaskList.add(task);
-                        fertTaskAdded = true;
+                        if (!isDone) {
+                            careTaskList.add(task);
+                            fertTaskAdded = true;
+                        }
                     }
                 }
 
@@ -463,8 +467,10 @@ public class HomeFragment extends Fragment {
                         boolean isDone = todayDate.equals(p.getLastCheckedDate());
                         CareTaskModel task = new CareTaskModel(p.getId(), "Check " + p.getPlantName(), "☀️ Sunlight check today", "Inspect", plantBitmap, "Check");
                         task.setDone(isDone);
-                        careTaskList.add(task);
-                        checkTaskAdded = true;
+                        if (!isDone) {
+                            careTaskList.add(task);
+                            checkTaskAdded = true;
+                        }
                     }
                 }
             } else {
@@ -548,7 +554,7 @@ public class HomeFragment extends Fragment {
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
         String todayDate = sdf.format(new Date());
 
-        if (todayDate.equals(lastDate)) return true;
+        if (todayDate.equals(lastDate)) return false;
         if (lastDate == null || lastDate.isEmpty()) return true;
 
         try {

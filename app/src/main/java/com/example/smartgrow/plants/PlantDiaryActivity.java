@@ -229,7 +229,7 @@ public class PlantDiaryActivity extends AppCompatActivity {
             @Override
             public void run() {
                 currentIndex[0] = (currentIndex[0] + 1) % botFrames.length;
-                ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
+                if (ivPlantBot != null) ivPlantBot.setImageResource(botFrames[currentIndex[0]]);
                 handler.postDelayed(this, 2500);
             }
         };
@@ -237,10 +237,11 @@ public class PlantDiaryActivity extends AppCompatActivity {
         handler.postDelayed(animateMascotTask, 2500);
 
         ivPlantBot.setOnClickListener(v -> {
-            String plantName = tvPlantTitle.getText().toString();
+            String plantNameStr = tvPlantTitle.getText().toString();
 
             Intent intent = new Intent(PlantDiaryActivity.this, AIChatActivity.class);
-            intent.putExtra(AIChatActivity.EXTRA_PLANT_NAME, plantName);
+            intent.putExtra(AIChatActivity.EXTRA_PLANT_NAME, plantNameStr);
+            intent.putExtra(AIChatActivity.EXTRA_PLANT_ID, plantId);
             if (plantImageBase64 != null) {
                 intent.putExtra(AIChatActivity.EXTRA_IMAGE_BASE64, plantImageBase64);
             }

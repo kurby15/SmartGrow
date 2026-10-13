@@ -22,6 +22,10 @@ public class SharedPrefManager {
     public static final int MAX_PROMPTS = 15;
     private static final long RESET_INTERVAL = TimeUnit.HOURS.toMillis(12);
 
+    // AI Configuration
+    public static final double PLANT_IDENTIFICATION_THRESHOLD = 0.80;
+    public static final long PLANT_CACHE_EXPIRATION = TimeUnit.DAYS.toMillis(30);
+
     private SharedPrefManager(Context context) {
         try {
             String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
@@ -117,6 +121,30 @@ public class SharedPrefManager {
 
     public boolean canUseChat() {
         return checkAndIncrementLimit(KEY_CHAT_COUNT, KEY_CHAT_TIME);
+    }
+    
+    public boolean hasReachedScanLimit() {
+        return getRemainingScanPrompts() <= 0;
+    }
+
+    public int getRemainingScanPrompts() {
+        if (sharedPreferences == null) return MAX_PROMPTS;
+        long currentTime = System.currentTimeMillis();
+        long firstUsageTime = sharedPreferences.getLong(KEY_SCAN_TIME, 0);
+        if (firstUsageTime == 0 || (currentTime - firstUsageTime) > RESET_INTERVAL) return MAX_PROMPTS;
+        return MAX_PROMPTS - sharedPreferences.getInt(KEY_SCAN_COUNT, 0);
+    }
+    
+    public boolean hasReachedChatLimit() {
+        return getRemainingChatPrompts() <= 0;
+    }
+    
+    public int getRemainingChatPrompts() {
+        if (sharedPreferences == null) return MAX_PROMPTS;
+        long currentTime = System.currentTimeMillis();
+        long firstUsageTime = sharedPreferences.getLong(KEY_CHAT_TIME, 0);
+        if (firstUsageTime == 0 || (currentTime - firstUsageTime) > RESET_INTERVAL) return MAX_PROMPTS;
+        return MAX_PROMPTS - sharedPreferences.getInt(KEY_CHAT_COUNT, 0);
     }
 
     public long getScanTimeRemaining() {
