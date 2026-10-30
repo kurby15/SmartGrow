@@ -25,6 +25,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -43,6 +44,8 @@ import com.example.smartgrow.camera.HistoryBottomSheet;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.community.ArchiveFragment;
 import com.example.smartgrow.community.CommunityForumFragment;
+import com.example.smartgrow.community.NotificationAdapter;
+import com.example.smartgrow.community.NotificationModel;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.AIChatActivity;
 import com.example.smartgrow.plants.HomeFragment;
@@ -56,9 +59,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -80,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialCardView cardNavChatAssistant;
     private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile;
+    private TextView tvNotificationBadge;
     private View mainHeaderBar;
 
     private BottomNavigationView bottomNav;
@@ -106,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
     // Firebase References
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private ListenerRegistration notificationListener;
 
     // Activity Result Launchers
     private ActivityResultLauncher<Intent> cameraScannerLauncher;
@@ -141,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         cardActionNotification = findViewById(R.id.card_action_notification);
         cardActionGlobal = findViewById(R.id.card_action_global);
         cardActionProfile = findViewById(R.id.card_action_profile);
+        tvNotificationBadge = findViewById(R.id.tv_notification_badge);
 
         if (savedInstanceState == null) {
             if (getIntent() != null && getIntent().hasExtra("plantId")) {
@@ -190,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setupGlobalHeaderListeners();
+        listenForNotifications();
 
         if (cardNavChatAssistant != null) {
             cardNavChatAssistant.setOnClickListener(this::showAssistantPopupMenu);
@@ -198,6 +209,29 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             checkCurrentFragmentForVisibility();
         });
+    }
+
+    private void listenForNotifications() {
+        String userId = getCurrentUserId();
+        if (userId == null) return;
+
+        if (notificationListener != null) notificationListener.remove();
+
+        notificationListener = db.collection("notifications")
+                .whereEqualTo("receiverId", userId)
+                .whereEqualTo("read", false)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) return;
+                    if (value != null) {
+                        int count = value.size();
+                        if (count > 0) {
+                            tvNotificationBadge.setVisibility(View.VISIBLE);
+                            tvNotificationBadge.setText(String.valueOf(count));
+                        } else {
+                            tvNotificationBadge.setVisibility(View.GONE);
+                        }
+                    }
+                });
     }
 
     private void checkCurrentFragmentForVisibility() {
@@ -1302,21 +1336,104 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showNotificationDialog() {
-        Dialog dialog = new Dialog(this);
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_notification);
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
+
+        RecyclerView rvNotifs = dialog.findViewById(R.id.rv_notifications_list);
+        View layoutNoNotifs = dialog.findViewById(R.id.layout_no_notifications);
+        TextView btnClearAll = dialog.findViewById(R.id.btn_clear_all_notifications);
+        List<NotificationModel> notifList = new ArrayList<>();
+        NotificationAdapter notifAdapter = new NotificationAdapter(notifList);
+
+        notifAdapter.setOnNotificationClickListener(notification -> {
+            dialog.dismiss();
+            if (notification.getPostId() != null) {
+                CommunityForumFragment forumFragment = CommunityForumFragment.newInstance(notification.getPostId());
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, forumFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+
+        if (rvNotifs != null) {
+            rvNotifs.setLayoutManager(new LinearLayoutManager(this));
+            rvNotifs.setAdapter(notifAdapter);
+        }
+
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            db.collection("notifications")
+                    .whereEqualTo("receiverId", userId)
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .addSnapshotListener((querySnapshot, error) -> {
+                        if (error != null || querySnapshot == null) return;
+                        notifList.clear();
+                        WriteBatch batch = db.batch();
+                        for (DocumentSnapshot snap : querySnapshot.getDocuments()) {
+                            NotificationModel n = snap.toObject(NotificationModel.class);
+                            if (n != null) {
+                                notifList.add(n);
+                                if (!n.isRead()) {
+                                    batch.update(snap.getReference(), "read", true);
+                                }
+                            }
+                        }
+
+                        if (notifList.isEmpty()) {
+                            if (rvNotifs != null) rvNotifs.setVisibility(View.GONE);
+                            if (layoutNoNotifs != null) layoutNoNotifs.setVisibility(View.VISIBLE);
+                            if (btnClearAll != null) btnClearAll.setVisibility(View.GONE);
+                        } else {
+                            if (rvNotifs != null) rvNotifs.setVisibility(View.VISIBLE);
+                            if (layoutNoNotifs != null) layoutNoNotifs.setVisibility(View.GONE);
+                            if (btnClearAll != null) btnClearAll.setVisibility(View.VISIBLE);
+                        }
+
+                        notifAdapter.notifyDataSetChanged();
+                        batch.commit();
+                    });
+
+            if (btnClearAll != null) {
+                btnClearAll.setOnClickListener(v -> {
+                    db.collection("notifications")
+                            .whereEqualTo("receiverId", userId)
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> {
+                                WriteBatch batch = db.batch();
+                                for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                                    batch.delete(doc.getReference());
+                                }
+                                batch.commit().addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(MainActivity.this, "Notifications cleared.", Toast.LENGTH_SHORT).show();
+                                });
+                            });
+                });
+            }
+        }
+
         MaterialCardView btnClose = dialog.findViewById(R.id.btn_close_notification);
         if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         checkCurrentFragmentForVisibility();
+        listenForNotifications();
     }
 }

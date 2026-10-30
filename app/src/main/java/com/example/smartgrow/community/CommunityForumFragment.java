@@ -68,6 +68,8 @@ import java.util.Set;
 
 public class CommunityForumFragment extends Fragment implements CommunityPostAdapter.OnPostInteractionListener {
 
+    private static final String ARG_HIGHLIGHT_POST_ID = "highlight_post_id";
+
     private RecyclerView recyclerView;
     private CommunityPostAdapter adapter;
     private List<CommunityPostModel> postList;
@@ -94,8 +96,17 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
     private com.facebook.shimmer.ShimmerFrameLayout shimmerSkeleton;
     private boolean isInitialLoad = true;
     private PlantAnalyzer plantAnalyzer;
+    private String highlightPostId;
 
     public CommunityForumFragment() {}
+
+    public static CommunityForumFragment newInstance(String highlightPostId) {
+        CommunityForumFragment fragment = new CommunityForumFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_HIGHLIGHT_POST_ID, highlightPostId);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -103,6 +114,10 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         plantAnalyzer = new PlantAnalyzer();
+
+        if (getArguments() != null) {
+            highlightPostId = getArguments().getString(ARG_HIGHLIGHT_POST_ID);
+        }
 
         if (mAuth.getCurrentUser() != null) {
             currentUid = mAuth.getCurrentUser().getUid();
@@ -249,9 +264,27 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                     forumContent.setVisibility(View.VISIBLE);
                 }
                 isInitialLoad = false;
+
+                if (highlightPostId != null) {
+                    scrollToPost(highlightPostId);
+                }
             }
         }, 1500);
     }
+
+    private void scrollToPost(String postId) {
+        for (int i = 0; i < postList.size(); i++) {
+            if (postList.get(i).getPostId().equals(postId)) {
+                final int position = i;
+                recyclerView.post(() -> {
+                    recyclerView.smoothScrollToPosition(position);
+                    highlightPostId = null; // Clear it so it doesn't scroll again on refresh
+                });
+                break;
+            }
+        }
+    }
+
     private void listenForPosts() {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
         if (currentUid == null) {
@@ -303,6 +336,10 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                                 if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
 
                                 hideSkeletonLoading();
+
+                                if (!isInitialLoad && highlightPostId != null) {
+                                    scrollToPost(highlightPostId);
+                                }
                             });
                 });
     }
@@ -500,9 +537,29 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
                 likeData.put("timestamp", FieldValue.serverTimestamp());
                 transaction.set(likeRef, likeData);
                 transaction.update(postRef, "likesCount", FieldValue.increment(1));
+
+                // Send notification to post owner
+                if (!post.getUserId().equals(currentUid)) {
+                    sendNotification(post.getUserId(), "like", post.getPostId(), "");
+                }
             }
             return null;
         });
+    }
+
+    private void sendNotification(String receiverId, String type, String postId, String content) {
+        DocumentReference notifRef = db.collection("notifications").document();
+        NotificationModel notification = new NotificationModel(
+                notifRef.getId(),
+                type,
+                currentUid,
+                currentUsername,
+                receiverId,
+                postId,
+                content,
+                System.currentTimeMillis()
+        );
+        notifRef.set(notification);
     }
 
     @Override
@@ -802,6 +859,12 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
         newCommentRef.set(cm).addOnSuccessListener(aVoid -> {
             selectedCommentImageUri = null;
             db.collection("posts").document(post.getPostId()).update("commentsCount", FieldValue.increment(1));
+
+            // Send notification to post owner
+            if (!post.getUserId().equals(currentUid)) {
+                sendNotification(post.getUserId(), "comment", post.getPostId(), content);
+            }
+
             dialog.dismiss();
             showCommentsDialog(post); // Refresh dialog
         }).addOnFailureListener(e -> {
