@@ -2,6 +2,7 @@ package com.example.smartgrow.core;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import com.example.smartgrow.BuildConfig;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -13,8 +14,8 @@ import javax.mail.internet.MimeMessage;
 
 public class GMailSender {
 
-    private static final String SENDER_EMAIL = "supportsmartgrow@gmail.com";
-    private static final String SENDER_PASSWORD = "soct tvbn tsfj byfd";
+    private static final String SENDER_EMAIL = BuildConfig.GMAIL_EMAIL;
+    private static final String SENDER_PASSWORD = BuildConfig.GMAIL_PASSWORD;
 
     public interface EmailListener {
         void onSuccess();
@@ -44,6 +45,10 @@ public class GMailSender {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            if (SENDER_EMAIL == null || SENDER_EMAIL.isEmpty() || SENDER_PASSWORD == null || SENDER_PASSWORD.isEmpty()) {
+                Log.e("GMailSender", "Gmail credentials are not configured in local.properties");
+                return false;
+            }
             try {
                 Properties props = new Properties();
                 props.put("mail.smtp.host", "smtp.gmail.com");
@@ -69,7 +74,8 @@ public class GMailSender {
                 return true;
             } catch (Exception e) {
                 this.exception = e;
-                Log.e("GMailSender", "Error sending email", e);
+                // Avoid logging full exception to prevent accidental credential leak in some mail libs
+                Log.e("GMailSender", "Error sending email: " + e.getMessage());
                 return false;
             }
         }

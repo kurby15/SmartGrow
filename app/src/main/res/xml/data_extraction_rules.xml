@@ -1,19 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Exclude sensitive security and auth data from cloud backups -->
+        <exclude domain="sharedpref" path="SmartGrowSecurePrefs.xml"/>
+        <exclude domain="database" path="google_app_measurement_local.db"/>
+        <exclude domain="sharedpref" path="com.google.android.gms.appid.xml"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- Exclude sensitive security and auth data from device-to-device transfers -->
+        <exclude domain="sharedpref" path="SmartGrowSecurePrefs.xml"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

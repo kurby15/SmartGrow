@@ -30,6 +30,7 @@ import com.example.smartgrow.R;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.history.SnapHistoryAdapter;
 import com.example.smartgrow.history.SnapHistoryModel;
+import com.example.smartgrow.utils.ValidationUtils;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -258,7 +259,9 @@ public class MyGardenFragment extends Fragment {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    filterLists(s.toString());
+                    // SANITIZE Search Input
+                    String query = ValidationUtils.sanitize(s.toString());
+                    filterLists(query);
                 }
 
                 @Override

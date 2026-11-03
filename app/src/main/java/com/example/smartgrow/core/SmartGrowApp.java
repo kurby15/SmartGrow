@@ -10,6 +10,12 @@ public class SmartGrowApp extends Application {
     public void onCreate() {
         super.onCreate();
         
+        // Register Global Security Exception Handler
+        GlobalSecurityExceptionHandler.register();
+
+        // Check Device Integrity (Root/Debug)
+        IntegrityManager.checkIntegrity(this);
+        
         // Apply saved theme preference
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         boolean isDarkMode = prefs.getBoolean("dark_mode", false);

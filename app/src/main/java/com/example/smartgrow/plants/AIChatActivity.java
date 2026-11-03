@@ -148,7 +148,7 @@ public class AIChatActivity extends AppCompatActivity {
                 currentNormalizedSpecies = GeminiCacheService.getInstance().normalizeSpecies(currentSpeciesName);
             }
         }
-        
+
         ImageView ivPlantBot = findViewById(R.id.ivSproutAI);
         int[] botFrames = {
                 R.drawable.bot_welcoming,
@@ -276,6 +276,13 @@ public class AIChatActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
+                        // MIME Type Check
+                        String mimeType = getContentResolver().getType(uri);
+                        if (mimeType == null || !mimeType.startsWith("image/")) {
+                            Toast.makeText(this, "Invalid file type. Only images are allowed.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         try {
                             Bitmap bitmap;
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -378,7 +385,8 @@ public class AIChatActivity extends AppCompatActivity {
             rvChatMessagesList.setVisibility(View.VISIBLE);
         }
 
-        if (currentSessionId == null) {
+        // FIX: Save session to history if this is the first message of a new session
+        if (chatList.isEmpty()) {
             String title = (messageText != null && !messageText.isEmpty()) ? messageText : "Scanned Plant Image";
             saveSessionToHistory(title);
         }
@@ -803,18 +811,16 @@ public class AIChatActivity extends AppCompatActivity {
         if (imgBase64 != null) newMsgMap.put("imageBase64", imgBase64);
         if (message.getFollowUpSuggestions() != null) newMsgMap.put("followUpSuggestions", message.getFollowUpSuggestions());
 
-        db.collection("ai_chat_messages").document(currentSessionId).get().addOnSuccessListener(doc -> {
-            if (doc.exists()) {
-                db.collection("ai_chat_messages").document(currentSessionId).update("messages", FieldValue.arrayUnion(newMsgMap), "lastUpdated", System.currentTimeMillis());
-            } else {
-                Map<String, Object> sessionDoc = new HashMap<>();
-                sessionDoc.put("uid", userId);
-                sessionDoc.put("sessionId", currentSessionId);
-                sessionDoc.put("messages", new ArrayList<>(List.of(newMsgMap)));
-                sessionDoc.put("lastUpdated", System.currentTimeMillis());
-                db.collection("ai_chat_messages").document(currentSessionId).set(sessionDoc);
-            }
-        });
+        // FIX: Use set with merge and arrayUnion to avoid permission issues during .get()
+        Map<String, Object> sessionDoc = new HashMap<>();
+        sessionDoc.put("uid", userId);
+        sessionDoc.put("sessionId", currentSessionId);
+        sessionDoc.put("lastUpdated", System.currentTimeMillis());
+        sessionDoc.put("messages", FieldValue.arrayUnion(newMsgMap));
+
+        db.collection("ai_chat_messages").document(currentSessionId)
+                .set(sessionDoc, SetOptions.merge())
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving message to history", e));
     }
 
     private String encodeBitmapToBase64(Bitmap bitmap) {

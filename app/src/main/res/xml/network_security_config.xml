@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Global policy: No cleartext allowed for any domain -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Specific enforcement for your known APIs -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">openweathermap.org</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">sambanova.ai</domain>
+    </domain-config>
+</network-security-config>

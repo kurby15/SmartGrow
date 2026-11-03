@@ -28,9 +28,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Firestore (Matches your Register and Login steps)
         db = FirebaseFirestore.getInstance();
-
         setContentView(R.layout.activity_forgot_password);
 
         if (getSupportActionBar() != null) {
@@ -67,13 +65,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
     private void checkEmailExists(String email) {
         btnSendCode.setEnabled(false);
-        Toast.makeText(this, "Verifying user record...", Toast.LENGTH_SHORT).show();
+        btnSendCode.setText("Verifying...");
 
-        // Since your emails are encrypted in Firestore, we must iterate and decrypt to verify.
-        // This bypasses the restricted Firebase Auth 'fetchSignInMethods' security limits.
         db.collection("users").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
                 boolean found = false;
+                String foundUid = null;
+
                 for (DocumentSnapshot doc : task.getResult()) {
                     String uid = doc.getId();
                     String encEmail = doc.getString("email");
@@ -82,45 +80,57 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                             String decryptedEmail = FirebaseCryptoUtils.decrypt(encEmail, uid);
                             if (email.equalsIgnoreCase(decryptedEmail)) {
                                 found = true;
+                                foundUid = uid;
                                 break;
                             }
                         } catch (Exception e) {
-                            Log.e("ForgotPassword", "Decryption error for UID: " + uid);
+                            Log.e("ForgotPassword", "Decryption error: " + e.getMessage());
                         }
                     }
                 }
 
                 if (found) {
-                    // Email verified! Generate 4-digit code
-                    String otpCode = String.valueOf(new Random().nextInt(9000) + 1000);
-                    
-                    GMailSender.sendOTP(email, otpCode, new GMailSender.EmailListener() {
-                        @Override
-                        public void onSuccess() {
-                            btnSendCode.setEnabled(true);
-                            Toast.makeText(ForgotPasswordActivity.this, "Verification code sent to " + email, Toast.LENGTH_SHORT).show();
-                            
-                            Intent intent = new Intent(ForgotPasswordActivity.this, VerifyOTPActivity.class);
-                            intent.putExtra("email", email);
-                            intent.putExtra("otp_code", otpCode); 
-                            startActivity(intent);
-                            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                        }
-
-                        @Override
-                        public void onFailure(Exception e) {
-                            btnSendCode.setEnabled(true);
-                            Toast.makeText(ForgotPasswordActivity.this, "Email error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });
+                    sendOtpCode(email, foundUid);
                 } else {
-                    btnSendCode.setEnabled(true);
-                    Toast.makeText(ForgotPasswordActivity.this, "This email is not registered in SmartGrow.", Toast.LENGTH_SHORT).show();
+                    resetButton();
+                    Toast.makeText(ForgotPasswordActivity.this, "This email is not registered.", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                btnSendCode.setEnabled(true);
-                Toast.makeText(ForgotPasswordActivity.this, "Database Error: " + (task.getException() != null ? task.getException().getMessage() : "Connection failed"), Toast.LENGTH_SHORT).show();
+                resetButton();
+                String error = task.getException() != null ? task.getException().getMessage() : "Database Error";
+                Log.e("ForgotPassword", "Firestore Error: " + error);
+                Toast.makeText(ForgotPasswordActivity.this, "Verification failed. Check Firestore rules.", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void sendOtpCode(String email, String uid) {
+        String otpCode = String.valueOf(new Random().nextInt(9000) + 1000);
+
+        GMailSender.sendOTP(email, otpCode, new GMailSender.EmailListener() {
+            @Override
+            public void onSuccess() {
+                resetButton();
+                Toast.makeText(ForgotPasswordActivity.this, "Verification code sent to " + email, Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(ForgotPasswordActivity.this, VerifyOTPActivity.class);
+                intent.putExtra("email", email);
+                intent.putExtra("uid", uid);
+                intent.putExtra("otp_code", otpCode);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                resetButton();
+                Toast.makeText(ForgotPasswordActivity.this, "Failed to send email: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void resetButton() {
+        btnSendCode.setEnabled(true);
+        btnSendCode.setText("Send Code");
     }
 }

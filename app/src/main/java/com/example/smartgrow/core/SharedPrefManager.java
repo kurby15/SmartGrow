@@ -19,7 +19,12 @@ public class SharedPrefManager {
     private static final String KEY_SCAN_TIME = "scan_first_usage_time";
     private static final String KEY_CHAT_COUNT = "chat_usage_count";
     private static final String KEY_CHAT_TIME = "chat_first_usage_time";
+    private static final String KEY_LOGIN_ATTEMPTS = "login_attempts";
+    private static final String KEY_LOCKOUT_TIME = "lockout_time";
+
     public static final int MAX_PROMPTS = 15;
+    public static final int MAX_LOGIN_ATTEMPTS = 5;
+    public static final long LOCKOUT_DURATION = TimeUnit.MINUTES.toMillis(5);
     private static final long RESET_INTERVAL = TimeUnit.HOURS.toMillis(12);
 
     // AI Configuration
@@ -122,7 +127,7 @@ public class SharedPrefManager {
     public boolean canUseChat() {
         return checkAndIncrementLimit(KEY_CHAT_COUNT, KEY_CHAT_TIME);
     }
-    
+
     public boolean hasReachedScanLimit() {
         return getRemainingScanPrompts() <= 0;
     }
@@ -134,11 +139,11 @@ public class SharedPrefManager {
         if (firstUsageTime == 0 || (currentTime - firstUsageTime) > RESET_INTERVAL) return MAX_PROMPTS;
         return MAX_PROMPTS - sharedPreferences.getInt(KEY_SCAN_COUNT, 0);
     }
-    
+
     public boolean hasReachedChatLimit() {
         return getRemainingChatPrompts() <= 0;
     }
-    
+
     public int getRemainingChatPrompts() {
         if (sharedPreferences == null) return MAX_PROMPTS;
         long currentTime = System.currentTimeMillis();
@@ -157,7 +162,7 @@ public class SharedPrefManager {
 
     private boolean checkAndIncrementLimit(String countKey, String timeKey) {
         if (sharedPreferences == null) return true;
-        
+
         long currentTime = System.currentTimeMillis();
         long firstUsageTime = sharedPreferences.getLong(timeKey, 0);
         int currentCount = sharedPreferences.getInt(countKey, 0);
@@ -185,11 +190,55 @@ public class SharedPrefManager {
         if (sharedPreferences == null) return 0;
         long firstUsageTime = sharedPreferences.getLong(timeKey, 0);
         if (firstUsageTime == 0) return 0;
-        
+
         long diff = System.currentTimeMillis() - firstUsageTime;
         if (diff > RESET_INTERVAL) return 0;
-        
+
         return RESET_INTERVAL - diff;
+    }
+
+    // Login Attempt Management
+    public int getLoginAttempts() {
+        return sharedPreferences != null ? sharedPreferences.getInt(KEY_LOGIN_ATTEMPTS, 0) : 0;
+    }
+
+    public void incrementLoginAttempts() {
+        if (sharedPreferences != null) {
+            int attempts = getLoginAttempts() + 1;
+            sharedPreferences.edit().putInt(KEY_LOGIN_ATTEMPTS, attempts).apply();
+            if (attempts >= MAX_LOGIN_ATTEMPTS) {
+                setLockoutTime(System.currentTimeMillis());
+            }
+        }
+    }
+
+    public void resetLoginAttempts() {
+        if (sharedPreferences != null) {
+            sharedPreferences.edit()
+                    .putInt(KEY_LOGIN_ATTEMPTS, 0)
+                    .putLong(KEY_LOCKOUT_TIME, 0)
+                    .apply();
+        }
+    }
+
+    public long getLockoutTime() {
+        return sharedPreferences != null ? sharedPreferences.getLong(KEY_LOCKOUT_TIME, 0) : 0;
+    }
+
+    private void setLockoutTime(long time) {
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putLong(KEY_LOCKOUT_TIME, time).apply();
+        }
+    }
+
+    public long getRemainingLockoutMillis() {
+        long lockoutTime = getLockoutTime();
+        if (lockoutTime == 0) return 0;
+        long elapsed = System.currentTimeMillis() - lockoutTime;
+        if (elapsed >= LOCKOUT_DURATION) {
+            return 0;
+        }
+        return LOCKOUT_DURATION - elapsed;
     }
 
     public void logout(Context context) {

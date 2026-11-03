@@ -247,6 +247,21 @@
 
             </LinearLayout>
 
+            <!-- LOCK MESSAGE / COUNTDOWN -->
+            <TextView
+                android:id="@+id/tv_lock_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Too many failed attempts. Try again in 5:00"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter_medium"
+                android:gravity="center"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/layout_form"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- SIGN IN BUTTON -->
 
@@ -265,7 +280,7 @@
                 android:layout_marginTop="25dp"
                 app:cornerRadius="15dp"
                 app:rippleColor="@color/white"
-                app:layout_constraintTop_toBottomOf="@id/layout_form"
+                app:layout_constraintTop_toBottomOf="@id/tv_lock_message"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
@@ -347,4 +362,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

@@ -2,8 +2,10 @@ package com.example.smartgrow.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.InputType;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
+import com.example.smartgrow.core.SecurityLogger;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.profile.User;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
@@ -21,11 +24,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Locale;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
+    private TextView tvLockMessage;
+    private MaterialButton btnLogin;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private SharedPrefManager prefManager;
+    private CountDownTimer lockoutTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +42,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+        prefManager = SharedPrefManager.getInstance(this);
 
         if (mAuth.getCurrentUser() != null && prefManager != null && prefManager.isLoggedIn()) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -48,31 +56,40 @@ public class LoginActivity extends AppCompatActivity {
 
         etUsername = findViewById(R.id.et_username);
         etPassword = findViewById(R.id.et_password);
-        MaterialButton btnLogin = findViewById(R.id.btn_login);
+        tvLockMessage = findViewById(R.id.tv_lock_message);
+        btnLogin = findViewById(R.id.btn_login);
         TextView tvForgotPassword = findViewById(R.id.tv_forgot_password);
         TextView tvGoToRegister = findViewById(R.id.tv_go_to_register);
+
+        checkLockoutStatus();
 
         btnLogin.setOnClickListener(v -> {
             String input = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
             if (input.isEmpty() || password.isEmpty()) {
+                SecurityLogger.log(SecurityLogger.SecurityEvent.INPUT_VALIDATION_FAILURE, "Empty login credentials submitted");
                 Toast.makeText(this, "Please enter username/email and password", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            if (prefManager.getRemainingLockoutMillis() > 0) {
+                checkLockoutStatus();
+                return;
+            }
+
             btnLogin.setEnabled(false);
-            btnLogin.setText("Signing in...");
+            btnLogin.setText(R.string.signing_in);
 
             if (Patterns.EMAIL_ADDRESS.matcher(input).matches()) {
-                loginWithEmailAndPassword(input, password, btnLogin);
+                loginWithEmailAndPassword(input, password);
             } else {
                 findEmailByUsername(input, (foundEmail) -> {
                     if (foundEmail != null) {
-                        loginWithEmailAndPassword(foundEmail, password, btnLogin);
+                        loginWithEmailAndPassword(foundEmail, password);
                     } else {
-                        resetButton(btnLogin);
-                        Toast.makeText(LoginActivity.this, "Username does not exist", Toast.LENGTH_SHORT).show();
+                        SecurityLogger.log(SecurityLogger.SecurityEvent.AUTH_FAILURE, "Username not found: " + input);
+                        handleLoginFailure();
                     }
                 });
             }
@@ -82,25 +99,79 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
-        
-        // Modified to go directly to the final registration step (Create Account)
+
         tvGoToRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterStep5Activity.class)));
     }
 
-    private void loginWithEmailAndPassword(String email, String password, MaterialButton btnLogin) {
+    private void checkLockoutStatus() {
+        long remainingMillis = prefManager.getRemainingLockoutMillis();
+        if (remainingMillis > 0) {
+            startLockoutCountdown(remainingMillis);
+        } else {
+            if (lockoutTimer != null) {
+                lockoutTimer.cancel();
+            }
+            tvLockMessage.setVisibility(View.GONE);
+            resetButton(btnLogin);
+        }
+    }
+
+    private void startLockoutCountdown(long millis) {
+        if (lockoutTimer != null) {
+            lockoutTimer.cancel();
+        }
+
+        btnLogin.setEnabled(false);
+        tvLockMessage.setVisibility(View.VISIBLE);
+
+        lockoutTimer = new CountDownTimer(millis, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long minutes = (millisUntilFinished / 1000) / 60;
+                long seconds = (millisUntilFinished / 1000) % 60;
+                String timeFormatted = String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
+                tvLockMessage.setText(getString(R.string.lockout_message, timeFormatted));
+            }
+
+            @Override
+            public void onFinish() {
+                tvLockMessage.setVisibility(View.GONE);
+                resetButton(btnLogin);
+                prefManager.resetLoginAttempts();
+            }
+        }.start();
+    }
+
+    private void handleLoginFailure() {
+        resetButton(btnLogin);
+        prefManager.incrementLoginAttempts();
+        int attempts = prefManager.getLoginAttempts();
+
+        if (attempts >= SharedPrefManager.MAX_LOGIN_ATTEMPTS) {
+            SecurityLogger.log(SecurityLogger.SecurityEvent.AUTH_FAILURE, "Account locked due to multiple failed attempts");
+            checkLockoutStatus();
+            Toast.makeText(this, R.string.lock_toast, Toast.LENGTH_LONG).show();
+        } else {
+            int remaining = SharedPrefManager.MAX_LOGIN_ATTEMPTS - attempts;
+            Toast.makeText(this, getString(R.string.login_attempts_remaining, remaining), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loginWithEmailAndPassword(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                        fetchUserProfile(mAuth.getCurrentUser().getUid(), btnLogin);
+                        SecurityLogger.log(SecurityLogger.SecurityEvent.AUTH_SUCCESS, "Login successful for email: " + email);
+                        prefManager.resetLoginAttempts();
+                        fetchUserProfile(mAuth.getCurrentUser().getUid());
                     } else {
-                        resetButton(btnLogin);
-                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Authentication failed";
-                        Toast.makeText(LoginActivity.this, "Login Failed: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        SecurityLogger.log(SecurityLogger.SecurityEvent.AUTH_FAILURE, "Login failed for email: " + email);
+                        handleLoginFailure();
                     }
                 });
     }
 
-    private void fetchUserProfile(String uid, MaterialButton btnLogin) {
+    private void fetchUserProfile(String uid) {
         db.collection("users").document(uid)
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -127,7 +198,6 @@ public class LoginActivity extends AppCompatActivity {
                         user.setChoice3(doc.getString("choice3"));
                         user.setChoice4(doc.getString("choice4"));
 
-                        SharedPrefManager prefManager = SharedPrefManager.getInstance(LoginActivity.this);
                         if (prefManager != null) {
                             prefManager.saveUser(user);
                         }
@@ -136,11 +206,13 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     } else {
+                        SecurityLogger.log(SecurityLogger.SecurityEvent.DATA_INTEGRITY_VIOLATION, "User profile missing in Firestore for UID: " + uid);
                         Toast.makeText(LoginActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
                     resetButton(btnLogin);
+                    SecurityLogger.log(SecurityLogger.SecurityEvent.EXCEPTION_OCCURRED, "Firestore error fetching profile: " + e.getMessage());
                     Toast.makeText(LoginActivity.this, "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
@@ -167,62 +239,24 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     listener.onResult(null);
                 })
-                .addOnFailureListener(e -> listener.onResult(null));
-    }
-
-    private void showResetPasswordDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Reset Password");
-
-        final EditText input = new EditText(this);
-        input.setHint("Enter your email or username");
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-        String prefilledText = etUsername.getText().toString().trim();
-        if (!prefilledText.isEmpty()) {
-            input.setText(prefilledText);
-        }
-
-        builder.setView(input);
-
-        builder.setPositiveButton("Send Reset Link", (dialog, which) -> {
-            String target = input.getText().toString().trim();
-            if (target.isEmpty()) {
-                Toast.makeText(LoginActivity.this, "Please enter your email or username", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (Patterns.EMAIL_ADDRESS.matcher(target).matches()) {
-                sendResetEmail(target);
-            } else {
-                findEmailByUsername(target, email -> {
-                    if (email != null && !email.isEmpty()) {
-                        sendResetEmail(email);
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Username not found.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
-    }
-
-    private void sendResetEmail(String email) {
-        mAuth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "Password reset link sent to " + email, Toast.LENGTH_LONG).show();
-                    } else {
-                        String error = task.getException() != null ? task.getException().getMessage() : "Failed to send reset email";
-                        Toast.makeText(LoginActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
-                    }
+                .addOnFailureListener(e -> {
+                    SecurityLogger.log(SecurityLogger.SecurityEvent.EXCEPTION_OCCURRED, "Firestore error finding email: " + e.getMessage());
+                    listener.onResult(null);
                 });
     }
 
     private void resetButton(MaterialButton btn) {
-        btn.setEnabled(true);
-        btn.setText("Sign in");
+        if (prefManager.getRemainingLockoutMillis() <= 0) {
+            btn.setEnabled(true);
+            btn.setText(R.string.sign_in);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (lockoutTimer != null) {
+            lockoutTimer.cancel();
+        }
     }
 }

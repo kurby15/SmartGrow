@@ -24,8 +24,6 @@ import com.bumptech.glide.Glide;
 import com.example.smartgrow.R;
 import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.core.SharedPrefManager;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -60,6 +58,8 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
     private ActivityResultLauncher<String> imagePickerLauncher;
     private SharedPrefManager prefManager;
     private PlantAnalyzer plantAnalyzer;
+
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
     public static CreatePostBottomSheet newInstance() {
         return new CreatePostBottomSheet();
@@ -134,9 +134,25 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
 
     private void validateAndUpload(String content) {
         try {
+            // MIME Type Check
+            String mimeType = requireContext().getContentResolver().getType(selectedImageUri);
+            if (mimeType == null || !mimeType.startsWith("image/")) {
+                Toast.makeText(getContext(), "Invalid file type. Only images are allowed.", Toast.LENGTH_SHORT).show();
+                resetButton();
+                return;
+            }
+
             InputStream inputStream = requireContext().getContentResolver().openInputStream(selectedImageUri);
+            if (inputStream != null && inputStream.available() > MAX_IMAGE_SIZE) {
+                Toast.makeText(getContext(), "Image exceeds 5MB limit.", Toast.LENGTH_SHORT).show();
+                resetButton();
+                inputStream.close();
+                return;
+            }
+
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            
+            if (inputStream != null) inputStream.close();
+
             plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
                 @Override
                 public void onResult(boolean isPlant) {
@@ -165,6 +181,13 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
             byte[] data = baos.toByteArray();
+
+            // Final check on compressed size
+            if (data.length > MAX_IMAGE_SIZE) {
+                Toast.makeText(getContext(), "Compressed image still exceeds 5MB.", Toast.LENGTH_SHORT).show();
+                resetButton();
+                return;
+            }
 
             String fileName = "post_" + UUID.randomUUID().toString() + ".jpg";
             StorageReference fileRef = storageRef.child(fileName);

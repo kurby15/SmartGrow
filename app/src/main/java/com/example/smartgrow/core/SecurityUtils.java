@@ -9,10 +9,16 @@ import javax.crypto.spec.PBEKeySpec;
 
 public class SecurityUtils {
 
-    private static final int ITERATIONS = 10000;
+    // Modern security standards (OWASP) recommend 600,000 iterations for PBKDF2
+    private static final int ITERATIONS = 600000;
     private static final int KEY_LENGTH = 256;
     private static final int SALT_LENGTH = 16;
+    private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
+    /**
+     * Hashes the password using PBKDF2 with HMAC-SHA256.
+     * Returns a string in the format "salt:hash"
+     */
     public static String hashPassword(String password) {
         char[] passwordChars = password.toCharArray();
         byte[] salt = new byte[SALT_LENGTH];
@@ -21,12 +27,11 @@ public class SecurityUtils {
         return Base64.encodeToString(salt, Base64.NO_WRAP) + ":" + Base64.encodeToString(hash, Base64.NO_WRAP);
     }
 
+    /**
+     * Verifies the entered password against the stored "salt:hash" string.
+     */
     public static boolean verifyPassword(String password, String storedHash) {
-        if (storedHash == null) return false;
-
-        if (!storedHash.contains(":")) {
-            return password.equals(storedHash);
-        }
+        if (storedHash == null || !storedHash.contains(":")) return false;
 
         try {
             String[] parts = storedHash.split(":");
@@ -37,6 +42,7 @@ public class SecurityUtils {
 
             byte[] testHash = pbkdf2(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
 
+            // Use constant-time comparison to prevent timing attacks
             int diff = hash.length ^ testHash.length;
             for (int i = 0; i < hash.length && i < testHash.length; i++) {
                 diff |= hash[i] ^ testHash[i];
@@ -50,7 +56,7 @@ public class SecurityUtils {
     private static byte[] pbkdf2(char[] password, byte[] salt, int iterations, int keyLength) {
         try {
             PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
-            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
             return skf.generateSecret(spec).getEncoded();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException("Error while hashing password", e);

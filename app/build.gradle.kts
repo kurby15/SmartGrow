@@ -50,8 +50,15 @@ android {
         buildConfigField("String", "MAPBOX_DOWNLOADS_TOKEN", "\"$mapboxDownloadsToken\"")
 
         // Weather API Key
-        val weatherApiKey = properties.getProperty("WEATHER_API_KEY") ?: "70e43a6113de3666e6d247ef57a82344"
+        val weatherApiKey = properties.getProperty("WEATHER_API_KEY") ?: ""
         buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+
+        // GMail Credentials (Securely loaded from local.properties)
+        val gmailEmail = properties.getProperty("GMAIL_EMAIL") ?: ""
+        buildConfigField("String", "GMAIL_EMAIL", "\"$gmailEmail\"")
+
+        val gmailPassword = properties.getProperty("GMAIL_PASSWORD") ?: ""
+        buildConfigField("String", "GMAIL_PASSWORD", "\"$gmailPassword\"")
 
         // Injects keys into AndroidManifest.xml
         manifestPlaceholders["mapsApiKey"] = mapsApiKey

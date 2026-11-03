@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SharedPrefManager;
+import com.example.smartgrow.utils.ValidationUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -120,7 +121,10 @@ public class AddLogBottomSheet extends BottomSheetDialogFragment {
         }
 
         String date = etLogDate.getText().toString().trim();
-        String notes = etLogNotes.getText().toString().trim();
+        String rawNotes = etLogNotes.getText().toString().trim();
+        
+        // 🛡️ SANITIZE DIARY NOTES
+        String notes = ValidationUtils.sanitize(rawNotes);
 
         if (date.isEmpty()) {
             Toast.makeText(getContext(), "Please select a date", Toast.LENGTH_SHORT).show();

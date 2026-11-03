@@ -14,6 +14,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,6 +39,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.smartgrow.auth.LoginActivity;
 import com.example.smartgrow.camera.CameraScannerActivity;
 import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
@@ -84,6 +87,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final long INACTIVITY_TIMEOUT = 3 * 60 * 1000; // 3 minutes
 
     private MaterialCardView cardNavChatAssistant;
     private MaterialCardView cardActionNotification, cardActionGlobal, cardActionProfile;
@@ -120,6 +124,10 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraScannerLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
+
+    // Inactivity Logout
+    private final Handler inactivityHandler = new Handler(Looper.getMainLooper());
+    private final Runnable inactivityRunnable = this::performAutoLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,6 +217,31 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             checkCurrentFragmentForVisibility();
         });
+
+        resetInactivityTimer();
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        resetInactivityTimer();
+    }
+
+    private void resetInactivityTimer() {
+        inactivityHandler.removeCallbacks(inactivityRunnable);
+        inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT);
+    }
+
+    private void performAutoLogout() {
+        Log.d(TAG, "User inactive for 3 minutes. Logging out...");
+        SharedPrefManager.getInstance(this).logout(this);
+        FirebaseAuth.getInstance().signOut();
+        
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        Toast.makeText(this, "Logged out due to inactivity", Toast.LENGTH_LONG).show();
+        finish();
     }
 
     private void listenForNotifications() {
@@ -686,7 +719,7 @@ public class MainActivity extends AppCompatActivity {
         String m = msg.toLowerCase().trim();
         return m.contains("how the app works") ||
                 m.contains("walk through") ||
-                m.contains("app details") || 
+                m.contains("app details") ||
                 m.contains("what can this app do") ||
                 m.contains("about smartgrow") ||
                 m.contains("features") ||
@@ -845,9 +878,9 @@ public class MainActivity extends AppCompatActivity {
         String cleaned = input.replace("*", "");
         cleaned = cleaned.replaceAll("[#()\\[\\]_~`]", "");
         cleaned = cleaned.replaceAll("(?m)^[ \t]+|[ \t]+$", "");
-        
+
         cleaned = cleaned.replaceAll("\n{2,}", "\n\n");
-        
+
         if (!cleaned.contains("\n\n") && cleaned.contains("\n")) {
              cleaned = cleaned.replace("\n", "\n\n");
         }
@@ -1428,6 +1461,7 @@ public class MainActivity extends AppCompatActivity {
         if (notificationListener != null) {
             notificationListener.remove();
         }
+        inactivityHandler.removeCallbacks(inactivityRunnable);
     }
 
     @Override
@@ -1435,5 +1469,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         checkCurrentFragmentForVisibility();
         listenForNotifications();
+        resetInactivityTimer();
     }
 }

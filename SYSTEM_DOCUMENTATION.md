@@ -196,9 +196,13 @@ The **My Garden** module (`MyGardenFragment`) is the core botanical management h
 - **Local Storage**: `SharedPrefManager` for session caching and user metadata.
 - **Media Handling**: Uses **Glide** for asset caching and Base64 for local image processing.
 
-### B. Security Implementation
-- **Field-Level Encryption**: All sensitive user profile data is encrypted before transit to Firestore.
+### B. Security Implementation & Maintenance
+- **Field-Level Encryption**: All sensitive user profile data is encrypted before transit to Firestore using AES-256.
 - **Session Integrity**: Mandatory re-authentication for sensitive account management tasks.
+- **Secure Maintenance & Operational Checks**:
+    *   **Automated Dependency Updates**: Dependabot is integrated to perform weekly scans of the project dependencies and GitHub Actions, automatically suggesting updates for security patches.
+    *   **Security CI/CD Integration**: The Android CI workflow includes automated security linting (`lintDebug`) to identify potential code-level vulnerabilities during every build.
+    *   **Secret Management**: Sensitive API keys are strictly managed via `local.properties` (local) and GitHub Secrets (CI), preventing accidental credential exposure in the codebase.
 
 ---
 

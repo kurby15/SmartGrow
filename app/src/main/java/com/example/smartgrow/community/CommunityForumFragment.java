@@ -41,6 +41,7 @@ import com.example.smartgrow.camera.PlantAnalyzer;
 import com.example.smartgrow.core.SharedPrefManager;
 import com.example.smartgrow.plants.HomeFragment;
 import com.example.smartgrow.utils.FirebaseCryptoUtils;
+import com.example.smartgrow.utils.ValidationUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
@@ -69,6 +70,7 @@ import java.util.Set;
 public class CommunityForumFragment extends Fragment implements CommunityPostAdapter.OnPostInteractionListener {
 
     private static final String ARG_HIGHLIGHT_POST_ID = "highlight_post_id";
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
     private RecyclerView recyclerView;
     private CommunityPostAdapter adapter;
@@ -385,7 +387,9 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         if (btnPost != null) {
             btnPost.setOnClickListener(view -> {
-                String content = etContent != null ? etContent.getText().toString().trim() : "";
+                String rawContent = etContent != null ? etContent.getText().toString().trim() : "";
+                String content = ValidationUtils.sanitize(rawContent);
+                
                 if (content.isEmpty() && selectedImageUri == null) return;
                 if (ProfanityFilter.hasProfanity(content)) {
                     Toast.makeText(getContext(), "Prohibited words detected in your post.", Toast.LENGTH_SHORT).show();
@@ -409,8 +413,27 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     private void validatePostImage(String content, Button btnPost, BottomSheetDialog dialog) {
         try {
+            // MIME Type Check
+            String mimeType = requireContext().getContentResolver().getType(selectedImageUri);
+            if (mimeType == null || !mimeType.startsWith("image/")) {
+                Toast.makeText(getContext(), "Invalid file type.", Toast.LENGTH_SHORT).show();
+                btnPost.setEnabled(true);
+                btnPost.setText("Post");
+                return;
+            }
+
             InputStream is = requireContext().getContentResolver().openInputStream(selectedImageUri);
+            if (is != null && is.available() > MAX_IMAGE_SIZE) {
+                Toast.makeText(getContext(), "Image exceeds 5MB limit.", Toast.LENGTH_SHORT).show();
+                btnPost.setEnabled(true);
+                btnPost.setText("Post");
+                is.close();
+                return;
+            }
+
             Bitmap bitmap = BitmapFactory.decodeStream(is);
+            if (is != null) is.close();
+
             plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
                 @Override
                 public void onResult(boolean isPlant) {
@@ -679,7 +702,9 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         if (btnUpdate != null) {
             btnUpdate.setOnClickListener(view -> {
-                String newContent = etContent != null ? etContent.getText().toString().trim() : "";
+                String rawContent = etContent != null ? etContent.getText().toString().trim() : "";
+                String newContent = ValidationUtils.sanitize(rawContent);
+
                 if (newContent.isEmpty() && (updatedImageBase64[0] == null || updatedImageBase64[0].isEmpty())) {
                     Toast.makeText(getContext(), "Post cannot be empty", Toast.LENGTH_SHORT).show();
                     return;
@@ -804,7 +829,9 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
         if (btnSend != null) {
             btnSend.setOnClickListener(view -> {
-                String content = etComment != null ? etComment.getText().toString().trim() : "";
+                String rawContent = etComment != null ? etComment.getText().toString().trim() : "";
+                String content = ValidationUtils.sanitize(rawContent);
+
                 if (content.isEmpty() && selectedCommentImageUri == null) return;
                 
                 if (ProfanityFilter.hasProfanity(content)) {
@@ -826,8 +853,25 @@ public class CommunityForumFragment extends Fragment implements CommunityPostAda
 
     private void validateCommentImage(String content, CommunityPostModel post, ImageButton btnSend, BottomSheetDialog dialog) {
         try {
+            // MIME Type Check
+            String mimeType = requireContext().getContentResolver().getType(selectedCommentImageUri);
+            if (mimeType == null || !mimeType.startsWith("image/")) {
+                Toast.makeText(getContext(), "Invalid file type.", Toast.LENGTH_SHORT).show();
+                btnSend.setEnabled(true);
+                return;
+            }
+
             InputStream is = requireContext().getContentResolver().openInputStream(selectedCommentImageUri);
+            if (is != null && is.available() > MAX_IMAGE_SIZE) {
+                Toast.makeText(getContext(), "Image exceeds 5MB limit.", Toast.LENGTH_SHORT).show();
+                btnSend.setEnabled(true);
+                is.close();
+                return;
+            }
+
             Bitmap bitmap = BitmapFactory.decodeStream(is);
+            if (is != null) is.close();
+
             plantAnalyzer.validatePlantImage(bitmap, new PlantAnalyzer.ValidationCallback() {
                 @Override
                 public void onResult(boolean isPlant) {

@@ -526,7 +526,7 @@ public class CameraScannerActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "Starting plant identification...");
-        
+
         // Check Firestore Identification Cache
         cacheService.getCachedIdentification(imageHash).addOnCompleteListener(idTask -> {
             String speciesFromIdCache = null;
@@ -580,7 +580,7 @@ public class CameraScannerActivity extends AppCompatActivity {
 
     private void processSpeciesCacheCheck(Bitmap bitmap, String speciesName, PlantAnalyzer analyzer, GeminiCacheService cacheService) {
         String normalizedSpecies = cacheService.normalizeSpecies(speciesName);
-        
+
         // Fast check from session memory profile
         DocumentSnapshot memDoc = cacheService.getPlantFromMemory(normalizedSpecies);
         if (memDoc != null && memDoc.exists()) {
@@ -639,7 +639,7 @@ public class CameraScannerActivity extends AppCompatActivity {
             if (!isPlant || isMultiple || hasText) {
                 showLoading(false);
                 unfreezeScreen();
-                
+
                 String title;
                 String message;
 
@@ -653,7 +653,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                     title = "Plant Not Detected";
                     message = "The image does not appear to contain a plant. Please scan a clear plant image.";
                 }
-                
+
                 showScanErrorDialog(title, message);
                 return;
             }
@@ -667,7 +667,7 @@ public class CameraScannerActivity extends AppCompatActivity {
                     String name2 = scannedPlantName.toLowerCase().replaceAll("[^a-zA-PI-Z0-9]", "");
                     if (!name1.contains(name2) && !name2.contains(name1)) {
                         unfreezeScreen();
-                        showScanErrorDialog("Species Mismatch", 
+                        showScanErrorDialog("Species Mismatch",
                                 "Mismatched plant species detected. Please scan the correct plant (" + diaryPlantName + ") for an accurate diagnosis.");
                         return;
                     }
@@ -761,8 +761,8 @@ public class CameraScannerActivity extends AppCompatActivity {
                                     showLoading(false);
                                     if (inGarden || inHistory) {
                                         unfreezeScreen();
-                                        showScanErrorDialog("Duplicate Plant Detected", 
-                                            "You already have a " + (commonName != null ? commonName : scientificName) + 
+                                        showScanErrorDialog("Duplicate Plant Detected",
+                                            "You already have a " + (commonName != null ? commonName : scientificName) +
                                             " in your garden or history. Duplicates are not allowed.");
                                         return;
                                     }

@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.example.smartgrow.R;
 import com.example.smartgrow.core.SharedPrefManager;
+import com.example.smartgrow.utils.ValidationUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -46,6 +47,8 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
     private String currentUsername;
     private Bitmap selectedBitmap = null;
     private SharedPrefManager prefManager;
+
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
     public static AddPlantBottomSheetActivity newInstance() {
         return new AddPlantBottomSheetActivity();
@@ -87,7 +90,14 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
                     Uri uri = result.getData().getData();
                     try {
                         InputStream is = requireContext().getContentResolver().openInputStream(uri);
+                        if (is != null && is.available() > MAX_IMAGE_SIZE) {
+                            Toast.makeText(getContext(), "Image exceeds 5MB limit.", Toast.LENGTH_SHORT).show();
+                            is.close();
+                            return;
+                        }
                         selectedBitmap = BitmapFactory.decodeStream(is);
+                        if (is != null) is.close();
+                        
                         imgPlantPreview.setImageBitmap(selectedBitmap);
                         imgPlantPreview.setVisibility(View.VISIBLE);
                         layoutImagePlaceholder.setVisibility(View.GONE);
@@ -151,10 +161,15 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
             return;
         }
 
-        String name = etName.getText().toString().trim();
-        String species = etSpecies.getText().toString().trim();
-        String medicinal = etMedicinalUse.getText().toString().trim();
+        String rawName = etName.getText().toString().trim();
+        String rawSpecies = etSpecies.getText().toString().trim();
+        String rawMedicinal = etMedicinalUse.getText().toString().trim();
         String date = etDate.getText().toString().trim();
+
+        // 🛡️ SANITIZE Inputs
+        String name = ValidationUtils.sanitize(rawName);
+        String species = ValidationUtils.sanitize(rawSpecies);
+        String medicinal = ValidationUtils.sanitize(rawMedicinal);
 
         if (name.isEmpty() || species.isEmpty() || date.isEmpty()) {
             Toast.makeText(getContext(), "Fill in required fields!", Toast.LENGTH_SHORT).show();
@@ -167,7 +182,15 @@ public class AddPlantBottomSheetActivity extends BottomSheetDialogFragment {
             Bitmap resized = Bitmap.createScaledBitmap(selectedBitmap, 400, 400, true);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             resized.compress(Bitmap.CompressFormat.JPEG, 70, baos);
-            base64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+            byte[] bytes = baos.toByteArray();
+            
+            if (bytes.length > MAX_IMAGE_SIZE) {
+                Toast.makeText(getContext(), "Compressed image still exceeds 5MB.", Toast.LENGTH_SHORT).show();
+                btnSubmit.setEnabled(true);
+                return;
+            }
+            
+            base64Image = Base64.encodeToString(bytes, Base64.DEFAULT);
         }
 
         String id = databaseReference.push().getKey();

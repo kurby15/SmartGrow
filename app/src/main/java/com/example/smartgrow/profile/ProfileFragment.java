@@ -417,8 +417,17 @@ public class ProfileFragment extends Fragment {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null && isAdded()) {
+                    Uri uri = result.getData().getData();
+
+                    // MIME Type Check
+                    String mimeType = requireContext().getContentResolver().getType(uri);
+                    if (mimeType == null || !mimeType.startsWith("image/")) {
+                        Toast.makeText(getContext(), "Invalid file type. Only images are allowed.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     try {
-                        InputStream is = requireContext().getContentResolver().openInputStream(result.getData().getData());
+                        InputStream is = requireContext().getContentResolver().openInputStream(uri);
                         Bitmap bitmap = BitmapFactory.decodeStream(is);
                         if (bitmap != null) uploadProfilePic(bitmap);
                     } catch (Exception e) {

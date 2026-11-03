@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.R;
 import com.example.smartgrow.camera.PlantAnalyzer;
+import com.example.smartgrow.utils.ValidationUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -135,7 +136,9 @@ public class AllPlantsFragment extends Fragment {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    filter(s.toString());
+                    // SANITIZE Search Input
+                    String query = ValidationUtils.sanitize(s.toString());
+                    filter(query);
                 }
 
                 @Override
