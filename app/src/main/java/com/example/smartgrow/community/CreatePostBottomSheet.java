@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -46,7 +45,7 @@ public class CreatePostBottomSheet extends BottomSheetDialogFragment {
     private MaterialButton btnSubmitPost;
     private MaterialCardView cardPreview;
     private ImageView ivPostPreview;
-    private ImageButton btnRemovePhoto;
+    private ImageView btnRemovePhoto;
 
     private DatabaseReference postsRef;
     private StorageReference storageRef;
