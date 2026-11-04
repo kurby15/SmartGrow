@@ -30,7 +30,7 @@ secrets.properties
 *.keystore
 
 # Firebase
-google-services.json
+# google-services.json
 
 # Log files
 *.log

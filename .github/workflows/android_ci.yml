@@ -40,7 +40,12 @@ jobs:
         echo "GMAIL_PASSWORD=${{ secrets.GMAIL_PASSWORD }}" >> local.properties
 
     - name: Create google-services.json
-      run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
+      run: |
+        if [ -z "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+          echo '{"project_info":{"project_number":"123456789012","project_id":"smartgrow-stub","storage_bucket":"smartgrow-stub.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:0000000000000000000000","android_client_info":{"package_name":"com.example.smartgrow"}},"oauth_client":[],"api_key":[{"current_key":"dummy_api_key"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}' > app/google-services.json
+        else
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
+        fi
 
     - name: Build with Gradle
       run: ./gradlew assembleDebug
