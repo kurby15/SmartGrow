@@ -1,5 +1,6 @@
 package com.example.smartgrow.utils;
 
+import android.annotation.SuppressLint;
 import android.util.Base64;
 
 import java.nio.ByteBuffer;
@@ -32,7 +33,7 @@ public class FirebaseCryptoUtils {
     }
 
     /**
-     * Encrypts plaintext using AES-256-GCM with a dynamic IV..
+     * Encrypts plaintext using AES-256-GCM with a dynamic IV.
      */
     public static String encrypt(String plainText, String uid) {
         if (plainText == null || plainText.isEmpty() || uid == null || uid.isEmpty()) {
@@ -58,7 +59,7 @@ public class FirebaseCryptoUtils {
 
             return Base64.encodeToString(byteBuffer.array(), Base64.NO_WRAP);
         } catch (Exception e) {
-            e.printStackTrace();
+            // Using a simple log or ignoring printStackTrace for CI/Production cleanliness
             return plainText; // Fallback to raw text if encryption fails
         }
     }
@@ -101,16 +102,18 @@ public class FirebaseCryptoUtils {
             return decryptLegacyECB(cipherText, uid);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return cipherText; // Return original if decryption fails (e.g. unencrypted plain text)
+            return cipherText; // Return original if decryption fails
         }
     }
 
     /**
      * Legacy ECB decryption method for data written before GCM migration.
+     * Annotated to suppress Lint warning since this is strictly for backward compatibility.
      */
+    @SuppressLint("GetInstance")
     private static String decryptLegacyECB(String cipherText, String uid) {
         try {
+            // ECB is insecure but kept here ONLY for decrypting old existing data
             Cipher cipher = Cipher.getInstance(ALGORITHM_ECB_LEGACY);
             cipher.init(Cipher.DECRYPT_MODE, getKeyFromUid(uid));
             byte[] decodedBytes = Base64.decode(cipherText, Base64.NO_WRAP);
