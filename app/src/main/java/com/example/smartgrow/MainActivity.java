@@ -40,6 +40,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartgrow.auth.LoginActivity;
+import com.example.smartgrow.auth.SplashActivity;
 import com.example.smartgrow.camera.CameraScannerActivity;
 import com.example.smartgrow.camera.ChatAdapter;
 import com.example.smartgrow.camera.ChatMessageModel;
@@ -56,6 +57,7 @@ import com.example.smartgrow.plants.MyGardenFragment;
 import com.example.smartgrow.profile.ProfileFragment;
 import com.example.smartgrow.plants.SetReminderFragment;
 import com.example.smartgrow.plants.PlantReminderBottomSheet;
+import com.example.smartgrow.settings.BiometricSecurityFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -154,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bottomNav = findViewById(R.id.bottom_navigation_bar);
-        mainHeaderBar = findViewById(R.id.layout_top_header);
+        mainHeaderBar = findViewById(R.id.card_top_header);
         cardActionNotification = findViewById(R.id.card_action_notification);
         cardActionGlobal = findViewById(R.id.card_action_global);
         cardActionProfile = findViewById(R.id.card_action_profile);
@@ -237,7 +239,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPrefManager.getInstance(this).logout(this);
         FirebaseAuth.getInstance().signOut();
         
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        // Redirect to SplashActivity to show loading and entry flow as requested
+        Intent intent = new Intent(MainActivity.this, SplashActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         Toast.makeText(this, "Logged out due to inactivity", Toast.LENGTH_LONG).show();
@@ -274,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
                 || current instanceof ArchiveFragment
                 || current instanceof com.example.smartgrow.settings.AppPreferencesFragment
                 || current instanceof com.example.smartgrow.settings.AccountSecurityFragment
+                || current instanceof BiometricSecurityFragment
                 || current instanceof com.example.smartgrow.settings.SupportInfoFragment
                 || current instanceof com.example.smartgrow.profile.EditProfileFragment
                 || current instanceof com.example.smartgrow.settings.PrivacyDataFragment

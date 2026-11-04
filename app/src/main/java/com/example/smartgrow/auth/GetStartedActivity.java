@@ -10,9 +10,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.smartgrow.MainActivity;
 import com.example.smartgrow.R;
-import com.example.smartgrow.core.SharedPrefManager;
 import com.google.android.material.button.MaterialButton;
 
 public class GetStartedActivity extends AppCompatActivity {
@@ -21,12 +19,8 @@ public class GetStartedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
-            startActivity(new Intent(GetStartedActivity.this, MainActivity.class));
-            finish();
-            return;
-        }
-
+        // Auto-login redirect removed to ensure entry flow is always seen.
+        
         setContentView(R.layout.activity_get_started);
 
         if (getSupportActionBar() != null) {
@@ -74,8 +68,10 @@ public class GetStartedActivity extends AppCompatActivity {
 
         if (btnGetStarted != null) {
             btnGetStarted.setOnClickListener(v -> {
+                // Always direct to LoginActivity to ensure re-authentication or session check
                 Intent intent = new Intent(GetStartedActivity.this, LoginActivity.class);
                 startActivity(intent);
+                finish();
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             });
         }

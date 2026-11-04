@@ -286,6 +286,76 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- BIOMETRIC SECURITY -->
+
+            <com.google.android.material.card.MaterialCardView
+
+                android:id="@+id/btn_security_biometric"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginBottom="12dp"
+
+                android:clickable="true"
+                android:focusable="true"
+
+                android:foreground="?attr/selectableItemBackground"
+
+                app:cardBackgroundColor="@color/card_background"
+
+                app:cardCornerRadius="20dp"
+
+                app:cardElevation="5dp"
+
+                app:strokeWidth="0dp">
+
+
+                <RelativeLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:minHeight="64dp"
+
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="12dp">
+
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_centerVertical="true"
+
+                        android:fontFamily="@font/inter_extrabold"
+
+                        android:text="Biometric Security"
+
+                        android:textColor="@color/text_primary"
+
+                        android:textSize="13sp" />
+
+
+                    <ImageView
+
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
+
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+
+                        android:src="@drawable/ic_next"
+
+                        app:tint="@color/text_primary"
+
+                        android:contentDescription="Open Biometric Security" />
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
 
             <!-- CHANGE PASSWORD -->
 

@@ -22,4 +22,10 @@
 
     <!-- Registration Strings -->
     <string name="registration_error_generic">Registration failed. Please check your details and try again.</string>
+
+    <!-- Biometric Security Strings -->
+    <string name="biometric_security_title">Biometric Security</string>
+    <string name="biometric_security_description">Manage your biometric authentication settings to keep your account secure.</string>
+    <string name="biometric_enable_label">Enable Fingerprint Login</string>
+    <string name="biometric_enable_sublabel">Use your fingerprint to quickly and securely log into your account.</string>
 </resources>

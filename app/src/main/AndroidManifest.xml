@@ -37,6 +37,9 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- 🔐 Biometric Permission -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
     <!-- Queries for Package Visibility (Required for Android 11+) -->
     <queries>
         <package android:name="com.google.android.gms" />

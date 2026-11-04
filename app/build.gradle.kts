@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     implementation(libs.play.services.location)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.biometric)
 
     // Firebase (Using BoM for version management)
     implementation(platform("com.google.firebase:firebase-bom:34.17.0"))

@@ -21,6 +21,8 @@ public class SharedPrefManager {
     private static final String KEY_CHAT_TIME = "chat_first_usage_time";
     private static final String KEY_LOGIN_ATTEMPTS = "login_attempts";
     private static final String KEY_LOCKOUT_TIME = "lockout_time";
+    private static final String KEY_BIOMETRIC_ENABLED = "biometric_enabled";
+    private static final String KEY_PASSWORD = "user_password";
 
     public static final int MAX_PROMPTS = 15;
     public static final int MAX_LOGIN_ATTEMPTS = 5;
@@ -74,9 +76,12 @@ public class SharedPrefManager {
     }
 
     public User getUser() {
-        if (!isLoggedIn()) return null;
+        if (sharedPreferences == null) return null;
+        String uid = sharedPreferences.getString("uid", null);
+        if (uid == null) return null;
+
         User user = new User();
-        user.setUid(sharedPreferences.getString("uid", null));
+        user.setUid(uid);
         user.setUsername(getUsername());
         user.setFullName(getFullName());
         user.setEmail(sharedPreferences.getString("email", null));
@@ -84,6 +89,16 @@ public class SharedPrefManager {
         user.setPhone(sharedPreferences.getString("phone", null));
         user.setProfilePic(getProfilePic());
         return user;
+    }
+
+    public void savePassword(String password) {
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putString(KEY_PASSWORD, password).apply();
+        }
+    }
+
+    public String getPassword() {
+        return sharedPreferences != null ? sharedPreferences.getString(KEY_PASSWORD, null) : null;
     }
 
     public void saveProfilePic(String profilePic) {
@@ -241,10 +256,51 @@ public class SharedPrefManager {
         return LOCKOUT_DURATION - elapsed;
     }
 
+    public void setBiometricEnabled(boolean enabled) {
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply();
+            if (!enabled) {
+                // Clear stored password if biometric is disabled
+                sharedPreferences.edit().remove(KEY_PASSWORD).apply();
+            }
+        }
+    }
+
+    public boolean isBiometricEnabled() {
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, false);
+    }
+
     public void logout(Context context) {
         try {
             if (sharedPreferences != null) {
+                // Preserve biometric state, UID, and usage limits
+                boolean biometricEnabled = isBiometricEnabled();
+                String uid = sharedPreferences.getString("uid", null);
+                String email = sharedPreferences.getString("email", null);
+                String password = getPassword();
+                
+                int scanCount = sharedPreferences.getInt(KEY_SCAN_COUNT, 0);
+                long scanTime = sharedPreferences.getLong(KEY_SCAN_TIME, 0);
+                int chatCount = sharedPreferences.getInt(KEY_CHAT_COUNT, 0);
+                long chatTime = sharedPreferences.getLong(KEY_CHAT_TIME, 0);
+
                 sharedPreferences.edit().clear().commit();
+                
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                if (biometricEnabled) {
+                    editor.putBoolean(KEY_BIOMETRIC_ENABLED, true);
+                    if (uid != null) editor.putString("uid", uid);
+                    if (email != null) editor.putString("email", email);
+                    if (password != null) editor.putString(KEY_PASSWORD, password);
+                }
+                
+                editor.putInt(KEY_SCAN_COUNT, scanCount);
+                editor.putLong(KEY_SCAN_TIME, scanTime);
+                editor.putInt(KEY_CHAT_COUNT, chatCount);
+                editor.putLong(KEY_CHAT_TIME, chatTime);
+                
+                editor.putBoolean("is_logged_in", false);
+                editor.commit();
             }
             if (context != null) {
                 context.getSharedPreferences(OLD_PREF_NAME, Context.MODE_PRIVATE).edit().clear().commit();

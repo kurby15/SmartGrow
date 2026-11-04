@@ -53,6 +53,13 @@ public class AccountSecurityFragment extends Fragment {
                     .commit();
         });
 
+        view.findViewById(R.id.btn_security_biometric).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new BiometricSecurityFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
         view.findViewById(R.id.btn_security_password).setOnClickListener(v -> {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new ChangePasswordFragment())
