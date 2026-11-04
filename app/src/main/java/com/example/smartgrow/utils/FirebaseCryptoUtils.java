@@ -32,7 +32,7 @@ public class FirebaseCryptoUtils {
     }
 
     /**
-     * Encrypts plaintext using AES-256-GCM with a dynamic IV.
+     * Encrypts plaintext using AES-256-GCM with a dynamic IV..
      */
     public static String encrypt(String plainText, String uid) {
         if (plainText == null || plainText.isEmpty() || uid == null || uid.isEmpty()) {
