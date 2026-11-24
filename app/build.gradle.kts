@@ -106,7 +106,7 @@ dependencies {
     implementation(libs.androidx.biometric)
 
     // Firebase (Using BoM for version management)
-    implementation(platform("com.google.firebase:firebase-bom:34.17.0"))
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-auth")      // Firebase Authentication
     implementation("com.google.firebase:firebase-firestore") // Cloud Firestore
     implementation(libs.firebase.database)                  // Realtime Database
@@ -116,33 +116,33 @@ dependencies {
     implementation("com.mapbox.maps:android:11.2.0")
 
     // OpenStreetMap (osmdroid)
-    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation(libs.play.services.maps)
 
     // CameraX Integration
-    val cameraxVersion = "1.3.1"
+    val cameraxVersion = "1.7.0"
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
-    implementation("com.google.guava:guava:31.1-android")
+    implementation("com.google.guava:guava:33.8.0-android")
 
     // Email
-    implementation("com.sun.mail:android-mail:1.6.7")
-    implementation("com.sun.mail:android-activation:1.6.7")
+    implementation("com.sun.mail:android-mail:1.6.8")
+    implementation("com.sun.mail:android-activation:1.6.8")
 
     // Glide (Image Loading) + SVG Support for Distribution Maps
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.github.bumptech.glide:glide:5.0.10")
+    annotationProcessor("com.github.bumptech.glide:compiler:5.0.10")
     implementation("com.caverock:androidsvg-aar:1.4")
 
     // OkHttp + Logging
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.5.1")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
     // Testing
